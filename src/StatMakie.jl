@@ -18,5 +18,6 @@ using Distributions
 # include("df.jl")
 include("density.jl")
 include("histogram.jl")
+include("distribution.jl")
 
 end
