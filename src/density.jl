@@ -11,7 +11,7 @@ plottype(::BivariateKDE) = Heatmap
     Theme()
 end
 
-function AbstractPlotting.plot!(scene::Scene, ::Type{Density}, attributes::Attributes, p...)
+function plot!(scene::Scene, ::Type{Density}, attributes::Attributes, p...)
     attr = copy(attributes)
     hist_kwarg = [:boundary, :npoints, :kernel, :bandwidth]
     hist_attr = [pop!(attr, key, Signal(nothing)) for key in hist_kwarg]

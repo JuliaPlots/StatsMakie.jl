@@ -11,7 +11,7 @@ plottype(::StatsBase.Histogram{<:Any, 3}) = Contour
     Theme()
 end
 
-function AbstractPlotting.plot!(scene::Scene, ::Type{Histogram}, attributes::Attributes, p...)
+function plot!(scene::Scene, ::Type{Histogram}, attributes::Attributes, p...)
     attr = copy(attributes)
     hist_kwarg = [:nbins, :closed]
     hist_attr = [pop!(attr, key, Signal(nothing)) for key in hist_kwarg]
