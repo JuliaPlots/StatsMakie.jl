@@ -16,10 +16,11 @@ end
 
 function AbstractPlotting.plot!(scene::Scene, ::Type{Histogram}, attributes::Attributes, p...)
     attr = copy(attributes)
-    hist_attr = [pop!(attr, key, Signal(nothing)) for key in [:nbins, :closed]]
-    h = lift(hist_attr...) do nbins, closed
-        kwargs = (nbins = nbins, closed = closed)
-        fit(StatsBase.Histogram, p...; Iterators.filter(t -> last(t) !== nothing, pairs(kwargs))...)
+    hist_kwarg = [:nbins, :closed]
+    hist_attr = [pop!(attr, key, Signal(nothing)) for key in hist_kwarg]
+    h = lift(hist_attr...) do v...
+        kwargs = (t for t in zip(hist_kwarg, v) if last(t) !== nothing)
+        fit(StatsBase.Histogram, p...; kwargs...)
     end
     _args = lift(hist2values, h)
     args = Tuple(lift(t->t[i], _args) for i in 1:length(to_value(_args)))
