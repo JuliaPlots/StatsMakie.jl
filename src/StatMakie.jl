@@ -4,7 +4,8 @@ using Reexport
 @reexport using Makie
 using AbstractPlotting
 import AbstractPlotting: convert_arguments, plottype, Plot, plot!, to_value, default_theme
-using StatsBase, Statistics, KernelDensity
+using Statistics, KernelDensity
+import StatsBase
 using Distributions
 # import IterableTables
 # import DataValues: DataValue
