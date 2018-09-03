@@ -1,8 +1,8 @@
-_to_values(d::UnivariateKDE) = (d.x, d.density)
-_to_values(d::BivariateKDE) = (d.x, d.y, d.density)
+convert_arguments(P::Type{<: AbstractPlot}, d::KernelDensity.UnivariateKDE) =
+    convert_arguments(P, d.x, d.density)
 
-convert_arguments(P::Type{<: AbstractPlot}, d::KernelDensity.AbstractKDE) =
-    convert_arguments(P, _to_values(d)...)
+convert_arguments(P::Type{<: AbstractPlot}, d::KernelDensity.BivariateKDE) =
+    convert_arguments(P, d.x, d.y, d.density)
 
 plottype(::UnivariateKDE) = Lines
 plottype(::BivariateKDE) = Heatmap
@@ -19,8 +19,6 @@ function AbstractPlotting.plot!(scene::Scene, ::Type{Density}, attributes::Attri
         kwargs = (t for t in zip(hist_kwarg, v) if last(t) !== nothing)
         kde(p...; kwargs...)
     end
-    _args = lift(_to_values, h)
-    args = Tuple(lift(t->t[i], _args) for i in 1:length(to_value(_args)))
-    plot!(scene, plottype(to_value(h)), attr, args...)
+    plot!(scene, attr, h)
     scene
 end

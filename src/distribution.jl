@@ -20,13 +20,10 @@ end
 yz_args(dist::Distribution) = default_range(dist)
 yz_args(dist::Distribution{<:VariateForm, <:Discrete}) = (UnitRange(default_range(dist)...),)
 
-_to_values(dist::Distribution) = _to_values(dist, yz_args(dist)...)
-_to_values(dist::Distribution, args...) = _to_values(x -> pdf(dist, x), args...)
-_to_values(f::Function, min, max) = _to_values(f, range(min, stop=max, length=100))
-_to_values(f::Function, r) = (r, f.(r))
-
-convert_arguments(P::Type{<: AbstractPlot}, d::Distribution) =
-    convert_arguments(P, _to_values(d)...)
+convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution) = convert_arguments(P, dist, yz_args(dist)...)
+convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution, args...) = convert_arguments(P, x -> pdf(dist, x), args...)
+convert_arguments(P::Type{<:AbstractPlot}, f::Function, min, max) = convert_arguments(P, f, range(min, stop=max, length=100))
+convert_arguments(P::Type{<:AbstractPlot}, f::Function, r) = convert_arguments(P, r, f.(r))
 
 plottype(::Distribution) = Lines
 plottype(::Distribution{<:VariateForm, <:Discrete}) = ScatterLines
