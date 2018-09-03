@@ -3,8 +3,8 @@ module StatMakie
 using Reexport
 @reexport using Makie
 using AbstractPlotting
-import AbstractPlotting: argument_convert, plottype
-using StatsBase, Statistics
+import AbstractPlotting: convert_arguments, plottype, Plot, plot!, to_value, default_theme
+using StatsBase, Statistics, KernelDensity
 using Distributions
 # import IterableTables
 # import DataValues: DataValue
@@ -14,5 +14,7 @@ using Distributions
 # export @df
 
 # include("df.jl")
+include("density.jl")
+include("histogram.jl")
 
 end

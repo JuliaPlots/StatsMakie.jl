@@ -1,5 +1,5 @@
 julia 0.7
-Makie
+Makie 0.9
 AbstractPlotting
 KernelDensity
 Reexport
