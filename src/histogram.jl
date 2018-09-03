@@ -14,10 +14,7 @@ plottype(::StatsBase.Histogram{<:Any, 3}) = Contour
     Theme()
 end
 
-# From the StatPlots examples in Makie
-
 function AbstractPlotting.plot!(scene::Scene, ::Type{Histogram}, attributes::Attributes, p...)
-    # we assume that the y kwarg is set with the data to be binned, and nbins is also defined
     attr = copy(attributes)
     hist_attr = [pop!(attr, key, Signal(nothing)) for key in [:nbins, :closed]]
     h = lift(hist_attr...) do nbins, closed
