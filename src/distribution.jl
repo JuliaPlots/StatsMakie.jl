@@ -1,15 +1,3 @@
-# from StatPlots
-
-@recipe(ScatterLines) do scene
-    Theme()
-end
-
-function AbstractPlotting.plot!(scene::Scene, ::Type{ScatterLines}, attributes::Attributes, p...)
-    plot!(scene, Scatter, attributes, p...)
-    plot!(scene, Lines, attributes, p...)
-    scene
-end
-
 # pick a nice default x range given a distribution
 function default_range(dist::Distribution, alpha = 0.0001)
     minval = isfinite(minimum(dist)) ? minimum(dist) : quantile(dist, alpha)
@@ -22,11 +10,9 @@ support(dist::Distribution{<:VariateForm, <:Discrete}) = (UnitRange(default_rang
 
 convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution) = convert_arguments(P, dist, support(dist)...)
 convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution, args...) = convert_arguments(P, x -> pdf(dist, x), args...)
-convert_arguments(P::Type{<:AbstractPlot}, f::Function, min, max) = convert_arguments(P, f, range(min, stop=max, length=100))
-convert_arguments(P::Type{<:AbstractPlot}, f::Function, r) = convert_arguments(P, r, f.(r))
 
-plottype(::Distribution) = Lines
-plottype(::Distribution{<:VariateForm, <:Discrete}) = ScatterLines
+plottype(::Distribution, args...) = Lines
+plottype(::Distribution{<:VariateForm, <:Discrete}, args...) = ScatterLines
 #-----------------------------------------------------------------------------
 # qqplots
 
