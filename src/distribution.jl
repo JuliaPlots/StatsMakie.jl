@@ -17,10 +17,10 @@ function default_range(dist::Distribution, alpha = 0.0001)
     minval, maxval
 end
 
-yz_args(dist::Distribution) = default_range(dist)
-yz_args(dist::Distribution{<:VariateForm, <:Discrete}) = (UnitRange(default_range(dist)...),)
+support(dist::Distribution) = default_range(dist)
+support(dist::Distribution{<:VariateForm, <:Discrete}) = (UnitRange(default_range(dist)...),)
 
-convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution) = convert_arguments(P, dist, yz_args(dist)...)
+convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution) = convert_arguments(P, dist, support(dist)...)
 convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution, args...) = convert_arguments(P, x -> pdf(dist, x), args...)
 convert_arguments(P::Type{<:AbstractPlot}, f::Function, min, max) = convert_arguments(P, f, range(min, stop=max, length=100))
 convert_arguments(P::Type{<:AbstractPlot}, f::Function, r) = convert_arguments(P, r, f.(r))
