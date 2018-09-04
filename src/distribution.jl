@@ -15,8 +15,10 @@ plottype(::Distribution, args...) = Lines
 plottype(::Distribution{<:VariateForm, <:Discrete}, args...) = ScatterLines
 #-----------------------------------------------------------------------------
 # qqplots
-
-# @recipe function f(h::QQPair; qqline = :identity)
+# 
+# function plot!(P::Type{<:AbstractPlot}, )
+#
+# function plot!(h::QQPair; qqline = :identity)
 #     if qqline in (:fit, :quantile, :identity, :R)
 #         xs = [extrema(h.qx)...]
 #         if qqline == :identity
