@@ -16,6 +16,7 @@ using Distributions
 # export @df
 
 # include("df.jl")
+include("utils.jl")
 include("density.jl")
 include("histogram.jl")
 include("distribution.jl")

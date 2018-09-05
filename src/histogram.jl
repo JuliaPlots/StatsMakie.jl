@@ -12,13 +12,8 @@ plottype(::StatsBase.Histogram{<:Any, 3}) = Contour
 end
 
 function plot!(scene::SceneLike, ::Type{<:Histogram}, attributes::Attributes, p...)
-    attr = copy(attributes)
-    hist_kwarg = [:nbins, :closed]
-    hist_attr = [pop!(attr, key, Signal(nothing)) for key in hist_kwarg]
-    h = lift(hist_attr...) do v...
-        kwargs = (t for t in zip(hist_kwarg, v) if last(t) !== nothing)
-        fit(StatsBase.Histogram, p...; kwargs...)
-    end
+    hist_attr, attr = splitattributes(attributes, [:nbins, :closed])
+    h = LiftedKwargs(hist_attr)(fit, StatsBase.Histogram, p...)
     plot!(scene, attr, h)
     scene
 end

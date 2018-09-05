@@ -12,13 +12,8 @@ plottype(::BivariateKDE) = Heatmap
 end
 
 function plot!(scene::SceneLike, ::Type{<:Density}, attributes::Attributes, p...)
-    attr = copy(attributes)
-    hist_kwarg = [:boundary, :npoints, :kernel, :bandwidth]
-    hist_attr = [pop!(attr, key, Signal(nothing)) for key in hist_kwarg]
-    h = lift(hist_attr...) do v...
-        kwargs = (t for t in zip(hist_kwarg, v) if last(t) !== nothing)
-        kde(p...; kwargs...)
-    end
+    kde_attr, attr = splitattributes(attributes, [:boundary, :npoints, :kernel, :bandwidth])
+    h = LiftedKwargs(kde_attr)(kde, p...)
     plot!(scene, attr, h)
     scene
 end
