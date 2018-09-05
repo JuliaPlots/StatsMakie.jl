@@ -19,5 +19,6 @@ using Distributions
 include("density.jl")
 include("histogram.jl")
 include("distribution.jl")
+include("corrplot.jl")
 
 end
