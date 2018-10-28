@@ -32,7 +32,7 @@ plottype(::QQPair) = Scatter
 
 function plot!(scene::SceneLike, P::Type{<:AbstractPlot}, attributes::Attributes, h::QQPair)
     attr = copy(attributes)
-    qqline = pop!(attr, :qqline, Signal(:identity)) |> to_value
+    qqline = pop!(attr, :qqline, Observable(:identity)) |> to_value
     if qqline in (:fit, :quantile, :identity, :R)
         xs = [extrema(h.qx)...]
         if qqline == :identity

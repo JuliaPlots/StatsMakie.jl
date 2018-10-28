@@ -4,5 +4,5 @@ AbstractPlotting
 KernelDensity
 Reexport
 StatsBase
-Reactive
+Observables
 Distributions
