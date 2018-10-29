@@ -19,11 +19,5 @@ function plot!(plot::Histogram{<:NTuple{N}}) where N
     syms = [:closed, :nbins]
     fithist(args...; kwargs...) = fit(StatsBase.Histogram, args...; kwargs...)
     hist = lift_plot(fithist, plot; n = N, syms = syms)
-    plot!(plot, hist)
+    plot!(plot, Theme(plot), hist)
 end
-
-# band(10, 20, 30, large = false)
-#
-# plt[:large]
-# plot(h::StatsBase.Histogram)
-# histogram(randn(10000))
