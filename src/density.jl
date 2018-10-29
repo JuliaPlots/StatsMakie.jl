@@ -8,12 +8,16 @@ plottype(::UnivariateKDE) = Lines
 plottype(::BivariateKDE) = Heatmap
 
 @recipe(Density) do scene
-    Theme()
+    Theme(;
+        default_theme(scene)...,
+        boundary = nothing,
+        npoints = nothing,
+        kernel = nothing,
+        bandwidth = nothing
+    )
 end
 
-function plot!(scene::SceneLike, ::Type{<:Density}, attributes::Attributes, p...)
-    kde_attr, attr = splitattributes(attributes, [:boundary, :npoints, :kernel, :bandwidth])
-    h = LiftedKwargs(kde_attr)(kde, p...)
-    plot!(scene, attr, h)
-    scene
+function plot!(plot::Density{<:NTuple{N}}) where N
+    pdf = lift_plot(kde, plot; n = N, syms = [:boundary, :npoints, :kernel, :bandwidth])
+    plot!(plot, Theme(plot), pdf)
 end
