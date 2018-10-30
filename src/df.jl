@@ -19,7 +19,7 @@ macro df(d, x)
         vars = Symbol[]
         plot_call = parse_iterabletable_call!(d, x, syms, vars)
         compute_vars = Expr(:(=), Expr(:tuple, vars...),
-            Expr(:call, :(StatMakie.extract_columns_from_iterabletable), d, syms...))
+            Expr(:call, :(StatsMakie.extract_columns_from_iterabletable), d, syms...))
         argnames = _argnames(d, x)
         return esc(Expr(:block, compute_vars, plot_call))
     else
@@ -75,7 +75,7 @@ end
 _arg2string(d, x) = stringify(x)
 function _arg2string(d, x::Expr)
     if x.head == :call && x.args[1] == :cols
-        return :(StatMakie.compute_name($d, $(x.args[2])))
+        return :(StatsMakie.compute_name($d, $(x.args[2])))
     elseif x.head == :call && x.args[1] == :hcat
         return hcat(stringify.(x.args[2:end])...)
     elseif x.head == :hcat

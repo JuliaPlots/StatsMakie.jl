@@ -1,4 +1,4 @@
-The StatMakie.jl package is licensed under the MIT "Expat" License:
+The StatsMakie.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2018: Pietro Vertechi.
 >

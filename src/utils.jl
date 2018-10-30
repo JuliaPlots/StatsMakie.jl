@@ -25,3 +25,15 @@ function (kw::LiftedKwargs)(f, args...; kwargs...)
         f(args...; kwargs..., zip(keys(kw), v)...)
     end
 end
+
+function lift_plot(f, p; n = 1, syms = Symbol[])
+    v = (p[i] for i in 1:n)
+    kw = (p[sym] for sym in syms)
+    function g(args...)
+        v = args[1:n]
+        kwargs = ((sym, args[n+i]) for (i, sym) in enumerate(syms))
+        kwargs_filt = Iterators.filter(t -> last(t) !== nothing, kwargs)
+        f(v...; kwargs_filt...)
+    end
+    lift(g, v..., kw...)
+end

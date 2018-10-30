@@ -1,4 +1,4 @@
-module StatMakie
+module StatsMakie
 
 using Reexport
 @reexport using Makie

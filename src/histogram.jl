@@ -8,12 +8,16 @@ plottype(::StatsBase.Histogram{<:Any, 2}) = Heatmap
 plottype(::StatsBase.Histogram{<:Any, 3}) = Contour
 
 @recipe(Histogram) do scene
-    Theme()
+    Theme(;
+        default_theme(scene)...,
+        closed = :right,
+        nbins = nothing
+    )
 end
 
-function plot!(scene::SceneLike, ::Type{<:Histogram}, attributes::Attributes, p...)
-    hist_attr, attr = splitattributes(attributes, [:nbins, :closed])
-    h = LiftedKwargs(hist_attr)(fit, StatsBase.Histogram, p...)
-    plot!(scene, attr, h)
-    scene
+function plot!(plot::Histogram{<:NTuple{N}}) where N
+    syms = [:closed, :nbins]
+    fithist(args...; kwargs...) = fit(StatsBase.Histogram, args...; kwargs...)
+    hist = lift_plot(fithist, plot; n = N, syms = syms)
+    plot!(plot, Theme(plot), hist)
 end

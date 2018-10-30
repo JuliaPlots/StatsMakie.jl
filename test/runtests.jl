@@ -1,4 +1,4 @@
-using StatMakie, IndexedTables
+using StatsMakie, IndexedTables
 using Base.Test
 
 @testset "df" begin
