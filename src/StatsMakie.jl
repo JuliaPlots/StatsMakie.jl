@@ -8,6 +8,7 @@ import AbstractPlotting: convert_arguments, plottype, Plot, plot!, to_value, def
 using Statistics, KernelDensity
 import StatsBase
 using Distributions
+using Tables, IndexedTables
 # import IterableTables
 # import DataValues: DataValue
 # import TableTraits: column_types, column_names, getiterator, isiterabletable
@@ -16,6 +17,7 @@ using Distributions
 # export @df
 
 # include("df.jl")
+include("group.jl")
 include("utils.jl")
 include("density.jl")
 include("histogram.jl")
