@@ -16,17 +16,17 @@ Grouped(args...) = Grouped(args)
 
 Base.pairs(g::Grouped) = g.pairs
 
-function plot!(p::Combined{Any, Tuple{Grouped, Vararg{N}}}) where {N}
+function plot!(p::Combined{T, <: Tuple{Grouped, Vararg{<:Any, N}}}) where {T, N}
     g = p[1] |> to_value |> pairs
-    keys(p) |> println
     names = Tuple(a for (a, b) in g)
     cols = Tuple(_first(b) for (a, b) in g)
     funcs = Tuple(to_function(b) for (a, b) in g)
-    coltable = table(cols..., to_value.(p[2:N])...; names = [names..., (Symbol("x$i") for i in 1:N)...])
+    coltable = table(cols..., to_value.(p[2:(N+1)])...; names = [names..., (Symbol("x$i") for i in 1:N)...])
     groupby(coltable, names, usekey = true) do key, dd
+        attr = copy(Theme(p))
         for (i, (k, v)) in enumerate(pairs(key))
-            p[k] = lift(funcs[i], v)
+            attr[k] = lift(funcs[i], to_node(v))
         end
-        scatter!(p, columns(dd)...)
+        plot!(p, Combined{T}, attr, columns(dd)...)
     end
 end

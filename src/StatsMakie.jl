@@ -4,7 +4,7 @@ using Reexport
 @reexport using Makie
 using Observables
 using AbstractPlotting
-import AbstractPlotting: convert_arguments, plottype, Plot, plot!, to_value, default_theme
+import AbstractPlotting: convert_arguments, plottype, Plot, plot!, to_value, default_theme, to_node
 using Statistics, KernelDensity
 import StatsBase
 using Distributions
