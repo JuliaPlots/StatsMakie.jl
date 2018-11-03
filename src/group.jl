@@ -6,28 +6,26 @@ function to_function(col, scale::AbstractArray)
 end
 
 struct Group
-    columns::Columns
+    columns::NamedTuple
     scales::Dict{Symbol, Any}
 end
 
-function Group(args::NamedTuple, sc = Dict())
-    columns = Columns(map(t -> isa(t, Pair) ? first(t) : t, args))
-    scales = Dict{Symbol, Any}(sc)
-    for (key, val) in pairs(args)
-        if val isa Pair
-            scales[key] = last(val)
-        end
-    end
+function Group(args::NamedTuple)
+    columns = map(t -> isa(t, Pair) ? first(t) : t, args)
+    scales = Dict{Symbol, Any}(
+        key => last(val) for (key, val) in pairs(args) if val isa Pair
+    )
     Group(columns, scales)
 end
 
 Group(v::AbstractVector) = Group(color = v)
-Group(sc::AbstractDict = Dict(); kwargs...) = Group(values(kwargs), sc)
+Group(; kwargs...) = Group(values(kwargs))
+Group(scales::AbstractDict; kwargs...) = Group(scales, values(kwargs))
 
-IndexedTables.columns(grp::Group) = columns(grp.columns)
-IndexedTables.colnames(grp::Group) = colnames(grp.columns)
+IndexedTables.columns(grp::Group) = grp.columns
+IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
-Base.length(grp::Group) = length(grp.columns)
+Base.length(grp::Group) = length(grp.columns[1])
 
 _split(v, len, idxs) = v
 _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
@@ -49,7 +47,7 @@ function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, 
     names = colnames(g)
     cols = columns(g)
     len = length(g)
-    scales = map(key -> get(g.scales, key, scale_dict[key]), names)
+    scales = map(key -> get(g.scales, key, default_scales[key]), names)
 
     funcs = Tuple(to_function(col, scale) for (col, scale) in zip(cols, scales))
     coltable = table(1:len, cols..., args...; names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
