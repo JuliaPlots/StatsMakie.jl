@@ -15,8 +15,10 @@ using Tables, IndexedTables
 # import TableTraitsUtils: create_columns_from_iterabletable
 
 # export @df
+export Group
 
 # include("df.jl")
+include("defaultscales.jl")
 include("group.jl")
 include("utils.jl")
 include("density.jl")

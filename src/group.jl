@@ -3,20 +3,27 @@ _first(x) = x
 
 to_function(p::Pair) = last(p)
 function to_function(p::Pair{<:Any, <:AbstractArray})
-    ls = unique(first(p))
-    value2index = Dict(zip(ls, 1:length(ls)))
-    t -> last(p)[value2index[t]]
+    vals, cvals = p
+    unique_vals = unique(vals)
+    value2index = Dict(zip(unique_vals, 1:length(unique_vals)))
+    t -> cvals[value2index[t] % length(cvals) + 1]
 end
 
-struct Grouped{N<:NTuple{<:Any, Pair}}
+struct Group{N<:NTuple{<:Any, Pair}}
     pairs::N
 end
 
-Grouped(args...) = Grouped(args)
+completepair(p::Pair, last::Pair) = p
+completepair(p::Pair, last) = first(p) => last => scale_dict[first(p)]
+completepair(p::Pair) = completepair(p, last(p))
 
-Base.pairs(g::Grouped) = g.pairs
+Group(args::Pair...) = Group(map(completepair, args))
 
-function plot!(p::Combined{T, <: Tuple{Grouped, Vararg{<:Any, N}}}) where {T, N}
+Group(; kwargs...) = Group(kwargs...)
+
+Base.pairs(g::Group) = g.pairs
+
+function plot!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}) where {T, N}
     g = p[1] |> to_value |> pairs
     names = Tuple(a for (a, b) in g)
     cols = Tuple(_first(b) for (a, b) in g)
