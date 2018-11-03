@@ -1,27 +1,36 @@
 _first(p::Pair) = first(p)
 _first(x) = x
 
-to_function(p::Pair) = last(p)
-function to_function(p::Pair{<:Any, <:AbstractArray})
-    vals, cvals = p
-    unique_vals = unique(vals)
-    value2index = Dict(zip(unique_vals, 1:length(unique_vals)))
-    t -> cvals[value2index[t] % length(cvals) + 1]
+to_function(col, scale) = scale
+function to_function(col, scale::AbstractArray)
+    vals = unique(col)
+    value2index = Dict(zip(vals, 1:length(vals)))
+    t -> scale[value2index[t] % length(scale) + 1]
 end
 
-struct Group{N<:NTuple{<:Any, Pair}}
-    pairs::N
+struct Group
+    columns::Columns
+    scales::Dict{Symbol, Any}
 end
 
-completepair(p::Pair, last::Pair) = p
-completepair(p::Pair, last) = first(p) => last => scale_dict[first(p)]
-completepair(p::Pair) = completepair(p, last(p))
+function Group(args::NamedTuple, sc = Dict())
+    columns = Columns(map(_first, args))
+    scales = Dict{Symbol, Any}(sc)
+    for (key, val) in pairs(args)
+        if val isa Pair
+            scales[key] = last(val)
+        end
+    end
+    Group(columns, scales)
+end
 
-Group(args::Pair...) = Group(map(completepair, args))
-Group(v) = Group(:color => v)
-Group(; kwargs...) = Group(kwargs...)
+Group(v::AbstractVector) = Group(color = v)
+Group(sc::AbstractDict = Dict(); kwargs...) = Group(values(kwargs), sc)
 
-Base.pairs(g::Group) = g.pairs
+IndexedTables.columns(grp::Group) = columns(grp.columns)
+IndexedTables.colnames(grp::Group) = colnames(grp.columns)
+
+Base.length(grp::Group) = length(grp.columns)
 
 _split(v, len, idxs) = v
 _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
@@ -29,13 +38,24 @@ _typ(::AbstractVector) = AbstractVector
 _typ(::T) where {T} = T
 
 function plot!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}) where {T, N}
-    g = p[1] |> to_value |> pairs
-    names = Tuple(a for (a, b) in g)
-    cols = Tuple(_first(b) for (a, b) in g)
-    len = length(cols[1])
+    _apply_grouping!(p, to_value.(p[1:(N+1)])...)
+    onany(p[1:(N+1)]...) do ps...
+        len = length(ps[1])
+        if all(length(col) == len for col in ps)
+            empty!(p.plots)
+            _apply_grouping!(p, ps...)
+        end
+    end
+end
 
-    funcs = Tuple(to_function(b) for (a, b) in g)
-    coltable = table(1:len, cols..., to_value.(p[2:(N+1)])...; names = [:row, names..., (Symbol("x$i") for i in 1:N)...])
+function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, args...) where {T, N}
+    names = colnames(g)
+    cols = columns(g)
+    len = length(g)
+    scales = map(key -> get(g.scales, key, scale_dict[key]), names)
+
+    funcs = Tuple(to_function(col, scale) for (col, scale) in zip(cols, scales))
+    coltable = table(1:len, cols..., args...; names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
     groupby(coltable, names, usekey = true) do key, dd
         attr = copy(Theme(p))
         idxs = column(dd, :row)
