@@ -18,7 +18,7 @@ completepair(p::Pair, last) = first(p) => last => scale_dict[first(p)]
 completepair(p::Pair) = completepair(p, last(p))
 
 Group(args::Pair...) = Group(map(completepair, args))
-
+Group(v) = Group(:color => v)
 Group(; kwargs...) = Group(kwargs...)
 
 Base.pairs(g::Group) = g.pairs
