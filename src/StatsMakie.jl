@@ -18,7 +18,7 @@ using Tables, IndexedTables
 export Group
 
 # include("df.jl")
-include("defaultscales.jl")
+include("scales.jl")
 include("group.jl")
 include("utils.jl")
 include("density.jl")

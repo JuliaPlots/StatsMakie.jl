@@ -1,6 +1,3 @@
-_first(p::Pair) = first(p)
-_first(x) = x
-
 to_function(col, scale) = scale
 function to_function(col, scale::AbstractArray)
     vals = unique(col)
@@ -14,7 +11,7 @@ struct Group
 end
 
 function Group(args::NamedTuple, sc = Dict())
-    columns = Columns(map(_first, args))
+    columns = Columns(map(t -> isa(t, Pair) ? first(t) : t, args))
     scales = Dict{Symbol, Any}(sc)
     for (key, val) in pairs(args)
         if val isa Pair
