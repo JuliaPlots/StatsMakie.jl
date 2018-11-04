@@ -31,8 +31,10 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-function plot!(p::Combined{T, <: Tuple{Any, Style}}) where T
-    t, st = to_value.(p[1:2])
+function plot!(p::Combined{T, <: Tuple{Any, GroupStyle, Vararg{GroupStyle, N}}}) where {T, N}
+    t = to_value(p[1])
+    styles = to_value.(p[2:(N+2)])
+    st = foldl(merge, styles)
     extracted = extract_columns(t, st)
     attr = copy(Theme(p))
 
@@ -42,9 +44,3 @@ function plot!(p::Combined{T, <: Tuple{Any, Style}}) where T
 
     plot!(p, Combined{T}, attr, to_args(extracted)...)
 end
-
-plot!(p::Combined{T, <: Tuple{Any, GroupStyle, GroupStyle, Vararg{<:Any, N}}}) where {T, N} =
-    plot!(p, Combined{T}, Theme(p), p[1], lift(merge, p[2], p[3]), p[4:(N+3)]...)
-
-plot!(p::Combined{T, <: Tuple{Any, Group, GroupStyle, Vararg{<:Any, N}}}) where {T, N} =
-    plot!(p, Combined{T}, Theme(p), p[1], lift(merge, p[2], p[3]), p[4:(N+3)]...)
