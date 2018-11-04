@@ -52,7 +52,7 @@ function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, 
     names = colnames(g)
     cols = columns(g)
     len = length(g)
-    scales = map(key -> get(g.scales, key, default_scales[key]), names)
+    scales = map(key -> get(() -> default_scales[key], g.scales, key), names)
 
     funcs = Tuple(to_function(col, scale) for (col, scale) in zip(cols, scales))
     coltable = table(1:len, cols..., args...; names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
