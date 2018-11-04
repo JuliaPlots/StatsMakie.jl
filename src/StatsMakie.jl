@@ -15,7 +15,7 @@ using Tables, IndexedTables
 # import TableTraitsUtils: create_columns_from_iterabletable
 
 # export @df
-export Group, Extract
+export Group, Style
 
 # include("df.jl")
 include("scales.jl")
