@@ -5,8 +5,8 @@ struct Style
 end
 
 Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; s1.kwargs..., s2.kwargs...)
-Base.merge(g, s::Style) = merge(Style(g), s)
-Base.merge(s::Style, g) = merge(s, Style(g))
+Base.merge(g::Group, s::Style) = merge(Style(g), s)
+Base.merge(s::Style, g::Group) = merge(g, s)
 
 const GroupStyle = Union{Style, Group}
 
