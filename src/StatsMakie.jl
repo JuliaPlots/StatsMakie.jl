@@ -15,11 +15,12 @@ using Tables, IndexedTables
 # import TableTraitsUtils: create_columns_from_iterabletable
 
 # export @df
-export Group
+export Group, Extract
 
 # include("df.jl")
 include("scales.jl")
 include("group.jl")
+include("tables.jl")
 include("utils.jl")
 include("density.jl")
 include("histogram.jl")

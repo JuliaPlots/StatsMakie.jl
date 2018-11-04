@@ -18,7 +18,7 @@ function Group(args::NamedTuple)
     Group(columns, scales)
 end
 
-Group(v::AbstractVector) = Group(color = v)
+Group(v) = Group(color = v)
 Group(; kwargs...) = Group(values(kwargs))
 Group(scales::AbstractDict; kwargs...) = Group(scales, values(kwargs))
 
