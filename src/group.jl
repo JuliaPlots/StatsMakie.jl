@@ -45,6 +45,9 @@ function plot!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}) where {T, N}
     end
 end
 
+convert_arguments(P::Type{<:AbstractPlot}, g1::Group, g2::Group, args...) =
+    convert_arguments(P, merge(g1, g2), args...)
+
 function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, args...) where {T, N}
     names = colnames(g)
     cols = columns(g)
