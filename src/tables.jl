@@ -13,17 +13,19 @@ end
 
 extract_columns(t, tup::Union{Tuple, NamedTuple}) = map(col -> extract_column(t, col), tup)
 
-extract_columns(t, e::Extract) =
+function extract_columns(df, e::Extract)
+    t = table(df)
     Extract(
         extract_columns(t, e.args)...;
         pairs(extract_columns(t, e.kwargs))...
     )
+end
 
 to_args(e::Extract) = e.args
 
 to_kwargs(e::Extract) = e.kwargs
 
-function plot!(p::Combined{T, <: Tuple{IndexedTables.AbstractIndexedTable, Extract}}) where T
+function plot!(p::Combined{T, <: Tuple{Any, Extract}}) where T
     t, e = to_value.(p[1:2])
     extracted = extract_columns(t, e)
     attr = copy(Theme(p))
