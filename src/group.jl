@@ -26,6 +26,7 @@ IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
 Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), merge(g1.scales, g2.scales))
+Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
 Base.length(grp::Group) = length(grp.columns[1])
 

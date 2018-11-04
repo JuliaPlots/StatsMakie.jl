@@ -4,7 +4,9 @@ struct Style
     Style(args...; kwargs...) = new(args, values(kwargs))
 end
 
-Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; s1.kwargs..., s2.kwargs...)
+Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs, s2.kwargs)...)
+Base.:*(s1::Style, s2::Style) = merge(s1, s2)
+
 Base.merge(g::Group, s::Style) = merge(Style(g), s)
 Base.merge(s::Style, g::Group) = merge(g, s)
 
@@ -23,7 +25,7 @@ function extract_columns(df, st::Style)
     t = table(df)
     Style(
         extract_columns(t, st.args)...;
-        pairs(extract_columns(t, st.kwargs))...
+        extract_columns(t, st.kwargs)...
     )
 end
 
