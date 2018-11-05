@@ -14,10 +14,7 @@ const GroupStyle = Union{Style, Group}
 
 extract_column(t, col) = column(t, col)
 
-function extract_column(t, grp::Group)
-    new_cols = extract_columns(t, columns(grp))
-    Group(new_cols, grp.scales)
-end
+extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)))
 
 extract_columns(t, tup::Union{Tuple, NamedTuple}) = map(col -> extract_column(t, col), tup)
 
