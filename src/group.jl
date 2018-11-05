@@ -1,31 +1,31 @@
-to_function(col, scale) = scale
-function to_function(col, scale::AbstractArray)
-    vals = unique(col)
-    value2index = Dict(zip(vals, 1:length(vals)))
-    t -> scale[value2index[t] % length(scale) + 1]
+struct UniqueValues{S, T1<:AbstractArray{S}, T2<:AbstractArray{S}}
+    values::T1
+    unique::T2
+    value2index::Dict{S, Int}
+end
+
+function UniqueValues(col, s = unique(sort(col)))
+    value2index = Dict(zip(s, 1:length(s)))
+    UniqueValues(col, s, value2index)
+end
+
+(cs::UniqueValues)(scale::Function, el) = scale(el)
+
+function (cs::UniqueValues)(scale::AbstractArray, el)
+    scale[cs.value2index[el] % length(scale) + 1]
 end
 
 struct Group
     columns::NamedTuple
-    scales::Dict{Symbol, Any}
-end
-
-function Group(args::NamedTuple)
-    columns = map(t -> isa(t, Pair) ? first(t) : t, args)
-    scales = Dict{Symbol, Any}(
-        key => last(val) for (key, val) in pairs(args) if val isa Pair
-    )
-    Group(columns, scales)
 end
 
 Group(v) = Group(color = v)
 Group(; kwargs...) = Group(values(kwargs))
-Group(scales::AbstractDict; kwargs...) = Group(scales, values(kwargs))
 
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
-Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), merge(g1.scales, g2.scales))
+Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns))
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
 Base.length(grp::Group) = length(grp.columns[1])
@@ -53,10 +53,11 @@ function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, 
     names = colnames(g)
     cols = columns(g)
     len = length(g)
-    scales = map(key -> get(() -> default_scales[key], g.scales, key), names)
+    funcs = map(UniqueValues, cols)
+    scales = map(key -> getscale(p, key), names)
+    coltable = table(1:len, cols..., args...;
+        names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
 
-    funcs = Tuple(to_function(col, scale) for (col, scale) in zip(cols, scales))
-    coltable = table(1:len, cols..., args...; names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
     groupby(coltable, names, usekey = true) do key, dd
         attr = copy(Theme(p))
         idxs = column(dd, :row)
@@ -64,7 +65,7 @@ function _apply_grouping!(p::Combined{T, <: Tuple{Group, Vararg{<:Any, N}}}, g, 
             attr[key] = lift(t -> _split(t, len, idxs), val, typ = _typ(val[]))
         end
         for (i, (k, v)) in enumerate(pairs(key))
-            attr[k] = lift(funcs[i], to_node(v))
+            attr[k] = lift(funcs[i], scales[i], to_node(v))
         end
         plot!(p, Combined{T}, attr, columns(dd, Not(:row))...)
     end
