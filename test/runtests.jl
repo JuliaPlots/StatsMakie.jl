@@ -1,6 +1,8 @@
 using StatsMakie
-import GeometryTypes: HyperRectangle
 using Test
+
+using GeometryTypes: HyperRectangle
+using KernelDensity: kde
 using Random: seed!
 
 seed!(0)
