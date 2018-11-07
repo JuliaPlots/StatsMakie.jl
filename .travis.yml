@@ -20,6 +20,8 @@ addons:
   apt:
     packages:
     - xorg-dev
+before_script:
+- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
 
 script:
  - julia -e 'using Pkg; pkg"add AbstractPlotting#master Makie#master"; Pkg.clone(pwd()); Pkg.build("StatsMakie"); Pkg.test("StatsMakie"; coverage=true)'
