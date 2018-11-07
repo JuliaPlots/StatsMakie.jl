@@ -26,8 +26,8 @@ function (kw::LiftedKwargs)(f, args...; kwargs...)
     end
 end
 
-function lift_plot(f, p; n = 1, syms = Symbol[])
-    v = (p[i] for i in 1:n)
+function lift_plot(f, p; n = 1, range = 1:n, syms = Symbol[])
+    v = (p[i] for i in range)
     kw = (p[sym] for sym in syms)
     function g(args...)
         v = args[1:n]

@@ -82,4 +82,13 @@ end
     @test plts[1] isa Heatmap
 
     @test plts[1][1][] == p1[end][1][]
+
+    p4 = density(Surface, v, bandwidth = (0.1, 0.1))
+
+    plts_surf = p4[end].plots
+
+    @test length(plts_surf) == 1
+    @test plts_surf[1] isa Surface
+
+    @test plts_surf[1][1][] == p1[end][1][]
 end
