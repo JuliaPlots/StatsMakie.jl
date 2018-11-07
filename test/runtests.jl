@@ -1,7 +1,9 @@
 using StatsMakie
 import GeometryTypes: HyperRectangle
 using Test
+using Random: seed!
 
+seed!(0)
 
 @testset "boxplot" begin
     a = repeat(1:5, inner = 20)
@@ -41,4 +43,24 @@ using Test
     ]
 
     @test plts[3][1][] == poly
+end
+
+@testset "density" begin
+    v = randn(1000) 
+    d = kde(v, bandwidth = 0.1)
+
+    p1 = lines(d)
+    p2 = lines(d.x, d.density)
+
+    @test p1[end][1][] == p2[end][1][]
+
+    p3 = density(v, bandwidth = 0.1)
+
+    plts = p3[end].plots
+
+    @test length(plts) == 1
+    @test plts[1] isa Lines
+
+    @test plts[1][1][] == p1[end][1][]
+
 end
