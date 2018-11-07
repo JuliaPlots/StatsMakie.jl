@@ -63,4 +63,21 @@ end
 
     @test plts[1][1][] == p1[end][1][]
 
+
+    v = randn(1000, 2) 
+    d = kde(v, bandwidth = (0.1, 0.1))
+
+    p1 = heatmap(d)
+    p2 = heatmap(d.x, d.y, d.density)
+
+    @test p1[end][1][] == p2[end][1][]
+
+    p3 = density(v, bandwidth = (0.1, 0.1))
+
+    plts = p3[end].plots
+
+    @test length(plts) == 1
+    @test plts[1] isa Heatmap
+
+    @test plts[1][1][] == p1[end][1][]
 end
