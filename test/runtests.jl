@@ -1,4 +1,5 @@
 using StatsMakie
+import GeometryTypes: HyperRectangle
 using Test
 
 
@@ -27,16 +28,16 @@ using Test
     @test plts[3] isa Poly
 
     poly = HyperRectangle{2,Float32}[
-        HyperRectangle{2,Flo​‌​at32}(Float32[0.6, 5.75], Float32[0.8, 4.75]),
-        HyperRectangl​‌​e{2,Float32}(Float32[0.6, 15.25], Float32[0.8, -4.75]),
-        Hype​‌​rRectangle{2,Float32}(Float32[1.6, 25.75], Float32[0.8, 4.75​‌​]),
-        HyperRectangle{2,Float32}(Float32[1.6, 35.25], Float32[0​‌​.8, -4.75]),
-        HyperRectangle{2,Float32}(Float32[2.6, 45.75], ​‌​Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[2.6, ​‌​55.25], Float32[0.8, -4.75]),
-        HyperRectangle{2,Float32}(Floa​‌​t32[3.6, 65.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float​‌​32}(Float32[3.6, 75.25], Float32[0.8, -4.75]),
-        HyperRectangl​‌​e{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 4.75]),
-        Hyper​‌​Rectangle{2,Float32}(Float32[4.6, 95.25], Float32[0.8, -4.75​‌​])
+        HyperRectangle{2,Float32}(Float32[0.6, 5.75], Float32[0.8, 4.75]),
+        HyperRectangle{2,Float32}(Float32[0.6, 15.25], Float32[0.8, -4.75]),
+        HyperRectangle{2,Float32}(Float32[1.6, 25.75], Float32[0.8, 4.75]),
+        HyperRectangle{2,Float32}(Float32[1.6, 35.25], Float32[0.8, -4.75]),
+        HyperRectangle{2,Float32}(Float32[2.6, 45.75], Float32[0.8, 4.75]),
+        HyperRectangle{2,Float32}(Float32[2.6, 55.25], Float32[0.8, -4.75]),
+        HyperRectangle{2,Float32}(Float32[3.6, 65.75], Float32[0.8, 4.75]),
+        HyperRectangle{2,Float32}(Float32[3.6, 75.25], Float32[0.8, -4.75]),
+        HyperRectangle{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 4.75]),
+        HyperRectangle{2,Float32}(Float32[4.6, 95.25], Float32[0.8, -4.75])
     ]
 
     @test plts[3][1][] == poly
