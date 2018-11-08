@@ -17,18 +17,18 @@ plottype(::BivariateKDE) = Heatmap
     )
 end
 
-function default_theme(scene, ::Type{<:Density{<:Tuple{P, Vararg}}}) where {P}
+function default_theme(scene, ::Type{<:Density{<:Tuple{P, Vararg}}}; args = nothing) where {P}
+    T = args === nothing ? Lines : args[1]
     Theme(;
-        default_theme(scene, P)...,
-        boundary = nothing,
-        npoints = nothing,
-        kernel = nothing,
-        bandwidth = nothing
+          default_theme(scene, T)..., boundary = nothing,
+          npoints = nothing,
+          kernel = nothing,
+          bandwidth = nothing
     )
 end
 
-_plottype(::Type{<:Density}, arg::AbstractArray{<:Any, 1}, args...) = Lines 
-_plottype(::Type{<:Density}, args...) = Heatmap 
+_plottype(::Type{<:Density}, arg::AbstractArray{<:Any, 1}, args...) = Lines
+_plottype(::Type{<:Density}, args...) = Heatmap
 
 convert_arguments(::Type{<:Density}, P::Type{<:AbstractPlot}, args...) = (P, args...)
 convert_arguments(::Type{T}, args...) where {T<:Density} =
