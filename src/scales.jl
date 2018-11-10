@@ -10,6 +10,6 @@ isscale(::Any) = false
 isscale(::Nothing) = false
 
 function getscale(p::Combined, key)
-    a = get(p, key, nothing)
+    a = get(p, key, Node(nothing))
     isscale(a[]) ? a : to_node(default_scales[key])
 end

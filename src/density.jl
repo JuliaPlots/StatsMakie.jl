@@ -1,23 +1,11 @@
-convert_arguments(P::Type{<: AbstractPlot}, d::KernelDensity.UnivariateKDE) =
-    convert_arguments(P, d.x, d.density)
-
-convert_arguments(P::Type{<: AbstractPlot}, d::KernelDensity.BivariateKDE) =
-    convert_arguments(P, d.x, d.y, d.density)
-
-plottype(::UnivariateKDE) = Lines
-plottype(::BivariateKDE) = Heatmap
-
-@recipe(Density) do scene
-    Theme(;
-        default_theme(scene)...,
-        boundary = nothing,
-        npoints = nothing,
-        kernel = nothing,
-        bandwidth = nothing
-    )
+function convert_arguments(P::PlotFunc, d::KernelDensity.UnivariateKDE)
+    ptype = plottype(P, Lines) # choose the more concrete one
+    ptype => convert_arguments(ptype, d.x, d.density)
 end
 
-function plot!(plot::Density{<:NTuple{N}}) where N
-    pdf = lift_plot(kde, plot; n = N, syms = [:boundary, :npoints, :kernel, :bandwidth])
-    plot!(plot, Theme(plot), pdf)
+function convert_arguments(P::Type{<: Combined{T}}, d::KernelDensity.BivariateKDE) where T
+    ptype = plottype(P, Heatmap)
+    ptype => convert_arguments(ptype, d.x, d.y, d.density)
 end
+
+used_attributes(::PlotFunc, ::typeof(kde), args...) = (:bandwidth, :kernel, :npoints, :boundary, :weights)
