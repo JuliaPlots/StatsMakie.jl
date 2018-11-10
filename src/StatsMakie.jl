@@ -10,6 +10,7 @@ using Statistics, KernelDensity
 import StatsBase
 using Distributions
 using Tables, IndexedTables
+using IndexedTables: AbstractIndexedTable
 # import IterableTables
 # import DataValues: DataValue
 # import TableTraits: column_types, column_names, getiterator, isiterabletable

@@ -15,6 +15,10 @@ function (cs::UniqueValues)(scale::AbstractArray, el)
     scale[cs.value2index[el] % length(scale) + 1]
 end
 
+struct PlottableTable{P}
+    table::AbstractIndexedTable
+end
+
 struct Group
     columns::NamedTuple
     f::Function
@@ -39,8 +43,12 @@ _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
 _typ(::AbstractVector) = AbstractVector
 _typ(::T) where {T} = T
 
-function plot!(p::Combined{T, <: Tuple{IndexedTables.AbstractIndexedTable}}) where {T}
-    t = p[1] |> to_value
+function default_theme(scene, ::Type{<:Combined{T, <: Tuple{PlottableTable{P}}}}) where {T, P}
+    default_theme(scene, P)
+end
+
+function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
+    t = (p[1] |> to_value).table
     cols = columns(pkeys(t))
     names = keys(cols)
     funcs = map(UniqueValues, cols)
@@ -89,5 +97,6 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
         idxs = column(dd, :row)
         tup = (rows = idxs, output = convert_arguments(P, to_tuple(f(columns(dd, Not(:row))...))...),)
     end
-    (t, )
+    P = first(t[1].output)
+    (PlottableTable{P}(t), )
 end
