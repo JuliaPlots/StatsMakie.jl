@@ -22,10 +22,9 @@ end
 struct Group
     columns::NamedTuple
     f::Function
-    kwargs::Dict{Symbol, Any}
 end
 
-Group(c::NamedTuple, f::Function = tuple) = Group(c, f, Dict{Symbol, Any}())
+Group(c::NamedTuple) = Group(c, tuple)
 
 Group(v, f::Function = tuple) = Group((color = v,), f)
 Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
@@ -33,7 +32,7 @@ Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
-Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), g2.f, g2.kwargs)
+Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), g2.f)
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
 Base.length(grp::Group) = length(grp.columns[1])
@@ -80,10 +79,9 @@ convert_arguments(P::PlotFunc, f::Function, g1::Group, g2::Group, args...; kwarg
     convert_arguments(P, f, merge(g1, g2), args...; kwargs...)
 
 convert_arguments(P::PlotFunc, f::Function, g::Group, args...; kwargs...) =
-    convert_arguments(P, Group(g.columns, f, kwargs), args...)
+    convert_arguments(P, Group(g.columns, f), args...; kwargs...)
 
 function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
-    merge!(g.kwargs, Dict(kwargs))
     N = length(args)
     f = g.f
     names = colnames(g)
@@ -95,7 +93,8 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
 
     t = groupby(coltable, names, usekey = true) do key, dd
         idxs = column(dd, :row)
-        tup = (rows = idxs, output = convert_arguments(P, to_tuple(f(columns(dd, Not(:row))...))...),)
+        out = to_tuple(f(columns(dd, Not(:row))...; kwargs...))
+        tup = (rows = idxs, output = convert_arguments(P, out...))
     end
     P = first(t[1].output)
     (PlottableTable{P}(t), )
