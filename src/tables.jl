@@ -8,13 +8,14 @@ Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs
 Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 
 Base.merge(g::Group, s::Style) = merge(Style(g), s)
-Base.merge(s::Style, g::Group) = merge(g, s)
+Base.merge(f::Function, s::Style) = merge(Group(f), s)
+Base.merge(s::Style, g::Union{Group, Function}) = merge(g, s)
 
 const GroupStyle = Union{Style, Group}
 
 extract_column(t, col) = column(t, col)
 
-extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)))
+extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)), grp.f)
 
 extract_columns(t, tup::Union{Tuple, NamedTuple}) = map(col -> extract_column(t, col), tup)
 
@@ -30,16 +31,22 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-function plot!(p::Combined{T, <: Tuple{Any, GroupStyle, Vararg{GroupStyle, N}}}) where {T, N}
-    t = to_value(p[1])
-    styles = to_value.(p[2:(N+2)])
-    st = foldl(merge, styles)
-    extracted = extract_columns(t, st)
-    attr = copy(Theme(p))
+function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupStyle, args::GroupStyle...)
+    style = extract_columns(df, foldl(merge, args, init = arg))
+    convert_arguments(P, style)
+end
 
-    for (key, val) in pairs(to_kwargs(extracted))
-        attr[key] = val
+function convert_arguments(P::PlotFunc, df, arg::GroupStyle, args::GroupStyle...)
+    style = extract_columns(df, foldl(merge, args, init = arg))
+    convert_arguments(P, style)
+end
+
+function convert_arguments(P::PlotFunc, st::Style)
+    args = to_args(st)
+    CA = convert_arguments(P, to_args(st)...)
+    P, PT = CA
+    for (key, val) in pairs(to_kwargs(st))
+        PT[1].attr[key] = to_node(val)
     end
-
-    plot!(p, Combined{T}, attr, to_args(extracted)...)
+    P => PT
 end
