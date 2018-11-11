@@ -43,7 +43,9 @@ end
 
 function convert_arguments(P::PlotFunc, st::Style)
     args = to_args(st)
-    CA = convert_arguments(P, to_args(st)...)
+    empty_grp = Group()
+    g_args = args[1] isa Group ? args : (empty_grp, args...)
+    CA = convert_arguments(P, g_args...)
     P, PT = CA
     for (key, val) in pairs(to_kwargs(st))
         PT[1].attr[key] = to_node(val)

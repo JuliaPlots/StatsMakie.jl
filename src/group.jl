@@ -48,7 +48,10 @@ Base.merge(g::Group, f::Function) = merge(f, g)
 
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
-Base.length(grp::Group) = length(grp.columns[1])
+function Base.length(grp::Group)
+    cols = grp.columns
+    isempty(cols) ? 0 : length(cols[1])
+end
 
 _split(v, len, idxs) = v
 _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
@@ -62,7 +65,7 @@ end
 function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
     pt = (p[1] |> to_value)
     t = pt.table
-    cols = columns(pkeys(t))
+    cols = columns(t, Keys())
     names = keys(cols)
     funcs = map(UniqueValues, cols)
     scales = map(key -> getscale(p, key), names)
@@ -73,19 +76,14 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
             val = getproperty(row, key)
             attr[key] = lift(funcs[i], scales[i], to_node(val))
         end
-        for (key, val) in attr
-            (key in names) || (attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[])))
-        end
-        for (key, val) in pt.attr
-            (attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[])))
+        for (key, val) in Iterators.flatten([attr, pt.attr])
+            if !(key in names)
+                attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
+            end
         end
         plot!(p, Combined{T}, attr, row.output...)
     end
 end
-
-to_tuple(t::Tuple) = t
-to_tuple(t) = (t,)
-
 
 convert_arguments(P::PlotFunc, g1::Group, g2::Group, args...; kwargs...) =
     convert_arguments(P, merge(g1, g2), args...; kwargs...)
@@ -104,6 +102,7 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
     names = colnames(g)
     cols = columns(g)
     len = length(g)
+    len == 0 && (len = length(args[1]))
     funcs = map(UniqueValues, cols)
     coltable = table(1:len, cols..., args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
@@ -116,5 +115,6 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
         PT[] = pt
         tup = (rows = idxs, output = args)
     end
+    (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
     PT[] => (PlottableTable{PT[]}(t), )
 end

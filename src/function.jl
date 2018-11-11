@@ -1,7 +1,6 @@
 to_tuple(t::Tuple) = t
 to_tuple(t) = (t,)
 
-
 function convert_arguments(P::PlotFunc, f::Function, args...; kwargs...)
     tmp = f(args...; kwargs...) |> to_tuple
     convert_arguments(P, tmp...)
