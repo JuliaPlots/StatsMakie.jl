@@ -11,7 +11,7 @@ Base.merge(g::Group, s::Style) = merge(Style(g), s)
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, g::Union{Group, Function}) = merge(g, s)
 
-const GroupStyle = Union{Style, Group}
+const GroupOrStyle = Union{Style, Group}
 
 extract_column(t, col) = column(t, col)
 
@@ -31,12 +31,12 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupStyle, args::GroupStyle...; kwargs...)
+function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupOrStyle, args::GroupOrStyle...; kwargs...)
     style = extract_columns(df, foldl(merge, args, init = arg))
     convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, df, arg::GroupStyle, args::GroupStyle...; kwargs...)
+function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args::GroupOrStyle...; kwargs...)
     style = extract_columns(df, foldl(merge, args, init = arg))
     convert_arguments(P, style; kwargs...)
 end
