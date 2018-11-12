@@ -4,7 +4,7 @@ using Test
 using Random: seed!
 using GeometryTypes: HyperRectangle
 using KernelDensity: kde
-using RDatasets
+using IndexedTables
 
 seed!(0)
 
@@ -98,4 +98,28 @@ end
     @test p[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
     @test p[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test p[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
+
+    t = table((x = 1:100, y = 1:100, m = m, c = c))
+    q = scatter(
+        t,
+        Group(color = :c, marker = :m),
+        Style(:x, :y),
+        color = [:blue, :red],
+        marker = [:cross, :circle]
+    )
+
+    @test length(q[end].plots) == 4
+    @test q[end].plots[1].color[] == :blue
+    @test q[end].plots[2].color[] == :blue
+    @test q[end].plots[3].color[] == :red
+    @test q[end].plots[4].color[] == :red
+    @test q[end].plots[1].marker[] == :cross
+    @test q[end].plots[2].marker[] == :circle
+    @test q[end].plots[3].marker[] == :cross
+    @test q[end].plots[4].marker[] == :circle
+
+    @test q[end].plots[1][1][] == Point{2, Float32}.(1:2:49, 1:2:49)
+    @test q[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
+    @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
+    @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 end
