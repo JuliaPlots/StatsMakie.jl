@@ -11,15 +11,9 @@ import StatsBase
 using Distributions
 using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
-# import IterableTables
-# import DataValues: DataValue
-# import TableTraits: column_types, column_names, getiterator, isiterabletable
-# import TableTraitsUtils: create_columns_from_iterabletable
 
-# export @df
 export Group, Style
 
-# include("df.jl")
 include("scales.jl")
 include("group.jl")
 include("tables.jl")
