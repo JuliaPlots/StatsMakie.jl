@@ -3,7 +3,7 @@ function convert_arguments(P::PlotFunc, d::KernelDensity.UnivariateKDE)
     ptype => convert_arguments(ptype, d.x, d.density)
 end
 
-function convert_arguments(P::Type{<: Combined{T}}, d::KernelDensity.BivariateKDE) where T
+function convert_arguments(P::PlotFunc, d::KernelDensity.BivariateKDE)
     ptype = plottype(P, Heatmap)
     ptype => convert_arguments(ptype, d.x, d.y, d.density)
 end

@@ -1,7 +1,11 @@
 using StatsMakie
-import GeometryTypes: HyperRectangle
 using Test
 
+using Random: seed!
+using GeometryTypes: HyperRectangle
+using KernelDensity: kde
+
+seed!(0)
 
 @testset "boxplot" begin
     a = repeat(1:5, inner = 20)
@@ -41,4 +45,27 @@ using Test
     ]
 
     @test plts[3][1][] == poly
+end
+
+
+@testset "density" begin
+    v = randn(1000)
+    d = kde(v, bandwidth = 0.1)
+    p1 = plot(d)
+    p2 = lines(d.x, d.density)
+    @test p1[end][1][] == p2[end][1][]
+    p3 = plot(kde, v, bandwidth = 0.1)
+    @test p3[end] isa Lines
+    @test p3[end][1][] == p1[end][1][]
+    v = randn(1000, 2)
+    d = kde(v, bandwidth = (0.1, 0.1))
+    p1 = heatmap(d)
+    p2 = heatmap(d.x, d.y, d.density)
+    @test p1[end][1][] == p2[end][1][]
+    p3 = plot(kde, v, bandwidth = (0.1, 0.1))
+    @test p3[end] isa Heatmap
+    @test p3[end][1][] == p1[end][1][]
+    p4 = surface(kde, v, bandwidth = (0.1, 0.1))
+    @test p4[end] isa Surface
+    @test p4[end][1][] == p1[end][1][]
 end
