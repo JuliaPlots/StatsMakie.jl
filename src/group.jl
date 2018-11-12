@@ -102,19 +102,27 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
     names = colnames(g)
     cols = columns(g)
     len = length(g)
-    len == 0 && (len = length(args[1]))
+    vec_args = map(object2vec, args)
+    len == 0 && (len = length(vec_args[1]))
     funcs = map(UniqueValues, cols)
-    coltable = table(1:len, cols..., args...;
+    coltable = table(1:len, cols..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
 
     PT = Ref{Any}(nothing)
     t = groupby(coltable, names, usekey = true) do key, dd
         idxs = column(dd, :row)
-        out = to_tuple(f(columns(dd, Not(:row))...; kwargs...))
-        pt, args = to_pair(P, convert_arguments(P, out...))
+        out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
+        pt, conv_args = to_pair(P, convert_arguments(P, out...))
         PT[] = pt
-        tup = (rows = idxs, output = args)
+        tup = (rows = idxs, output = conv_args)
     end
     (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
     PT[] => (PlottableTable{PT[]}(t), )
 end
+
+vec2object(x::Columns) = Tuple(columns(x))
+vec2object(x) = x
+
+object2vec(v::Union{Tuple, NamedTuple}) = Columns(v)
+object2vec(v::AbstractVector) = v
+object2vec(v::AbstractArray) = ViewArray(v)

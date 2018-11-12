@@ -52,3 +52,15 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     end
     to_pair(P, converted_args)
 end
+
+struct ViewArray{T, N, A <: AbstractArray{T}} <: AbstractArray{T, N}
+    w::A
+    ViewArray(w::AbstractArray{T, M}) where {T, M} = new{T, M-1, typeof(w)}(w)
+end
+
+Base.size(v::ViewArray) = size(v.w)[1:end-1]
+Base.getindex(v::ViewArray, I...) = Base.getindex(v.w, I..., :)
+
+Base.view(v::ViewArray, I...) = ViewArray(Base.view(v.w, I..., last(axes(v.w))))
+
+vec2object(v::ViewArray) = v.w
