@@ -33,7 +33,7 @@ to_kwargs(st::Style) = st.kwargs
 
 function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupStyle, args::GroupStyle...)
     style = extract_columns(df, foldl(merge, args, init = arg))
-    convert_arguments(P, style)
+    convert_arguments(P, merge(f, style))
 end
 
 function convert_arguments(P::PlotFunc, df, arg::GroupStyle, args::GroupStyle...)
@@ -45,10 +45,10 @@ function convert_arguments(P::PlotFunc, st::Style)
     args = to_args(st)
     empty_grp = Group()
     g_args = args[1] isa Group ? args : (empty_grp, args...)
-    CA = convert_arguments(P, g_args...)
-    P, PT = CA
+    converted_args = convert_arguments(P, g_args...)
+    pt = last(converted_args)[1]
     for (key, val) in pairs(to_kwargs(st))
-        PT[1].attr[key] = to_node(val)
+        pt.attr[key] = to_node(val)
     end
-    P => PT
+    to_pair(P, converted_args)
 end

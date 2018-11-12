@@ -95,7 +95,7 @@ convert_arguments(P::PlotFunc, f::Function, g::Group, args...; kwargs...) =
     convert_arguments(P, merge(f, g), args...; kwargs...)
 
 to_pair(P, t) = P => t
-to_pair(P, p::Pair) = to_pair(plottype(P => first(p)), last(p))
+to_pair(P, p::Pair) = to_pair(plottype(P, first(p)), last(p))
 function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
     N = length(args)
     f = g.f
