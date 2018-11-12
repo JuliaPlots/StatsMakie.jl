@@ -69,6 +69,11 @@ end
     p4 = surface(kde, v, bandwidth = (0.1, 0.1))
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
+
+    t = table((x = v[:, 1], y = v[:, 2]))
+    p5 = surface(kde, t, Style((:x, :y)))
+    @test p5[end] isa Surface
+    @test p5[end][1][] == p1[end][1][]
 end
 
 @testset "group" begin

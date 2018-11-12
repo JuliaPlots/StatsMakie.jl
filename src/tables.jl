@@ -13,7 +13,7 @@ Base.merge(s::Style, g::Union{Group, Function}) = merge(g, s)
 
 const GroupOrStyle = Union{Style, Group}
 
-extract_column(t, col) = column(t, col)
+extract_column(t, col) = columns(t, col)
 
 extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)), grp.f)
 
