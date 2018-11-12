@@ -4,8 +4,8 @@ using Reexport
 @reexport using Makie
 using Observables
 using AbstractPlotting
-import AbstractPlotting: plottype, Plot, PlotFunc, plot!, to_value, default_theme, to_node
-import AbstractPlotting: convert_arguments, used_attributes
+import AbstractPlotting: plottype, Plot, PlotFunc, plot!, to_value, to_node, to_tuple
+import AbstractPlotting: convert_arguments, used_attributes, default_theme
 using Statistics, KernelDensity
 import StatsBase
 using Distributions
@@ -20,7 +20,6 @@ using IndexedTables: AbstractIndexedTable
 export Group, Style
 
 # include("df.jl")
-include("function.jl")
 include("scales.jl")
 include("group.jl")
 include("tables.jl")
