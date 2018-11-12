@@ -31,21 +31,21 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupStyle, args::GroupStyle...)
+function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupStyle, args::GroupStyle...; kwargs...)
     style = extract_columns(df, foldl(merge, args, init = arg))
-    convert_arguments(P, merge(f, style))
+    convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, df, arg::GroupStyle, args::GroupStyle...)
+function convert_arguments(P::PlotFunc, df, arg::GroupStyle, args::GroupStyle...; kwargs...)
     style = extract_columns(df, foldl(merge, args, init = arg))
-    convert_arguments(P, style)
+    convert_arguments(P, style; kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, st::Style)
+function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     args = to_args(st)
     empty_grp = Group()
     g_args = args[1] isa Group ? args : (empty_grp, args...)
-    converted_args = convert_arguments(P, g_args...)
+    converted_args = convert_arguments(P, g_args...; kwargs...)
     pt = last(converted_args)[1]
     for (key, val) in pairs(to_kwargs(st))
         pt.attr[key] = to_node(val)
