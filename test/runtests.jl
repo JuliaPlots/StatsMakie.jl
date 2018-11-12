@@ -4,6 +4,7 @@ using Test
 using Random: seed!
 using GeometryTypes: HyperRectangle
 using KernelDensity: kde
+using RDatasets
 
 seed!(0)
 
@@ -68,4 +69,33 @@ end
     p4 = surface(kde, v, bandwidth = (0.1, 0.1))
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
+end
+
+@testset "group" begin
+    c = repeat(1:2, inner = 50)
+    m = repeat(1:2, outer = 50)
+    p = scatter(
+        Group(
+            color = c,
+            marker = m,
+        ),
+        1:100,
+        1:100,
+        color = [:blue, :red],
+        marker = [:cross, :circle]
+    )
+    @test length(p[end].plots) == 4
+    @test p[end].plots[1].color[] == :blue
+    @test p[end].plots[2].color[] == :blue
+    @test p[end].plots[3].color[] == :red
+    @test p[end].plots[4].color[] == :red
+    @test p[end].plots[1].marker[] == :cross
+    @test p[end].plots[2].marker[] == :circle
+    @test p[end].plots[3].marker[] == :cross
+    @test p[end].plots[4].marker[] == :circle
+
+    @test p[end].plots[1][1][] == Point{2, Float32}.(1:2:49, 1:2:49)
+    @test p[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
+    @test p[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
+    @test p[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 end
