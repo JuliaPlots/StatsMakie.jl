@@ -117,7 +117,7 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
         tup = (rows = idxs, output = conv_args)
     end
     (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
-    (PlottableTable{PT[]}(t), )
+    PT[] => (PlottableTable{PT[]}(t),)
 end
 
 vec2object(x::Columns) = Tuple(columns(x))

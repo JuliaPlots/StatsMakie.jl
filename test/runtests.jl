@@ -58,7 +58,9 @@ end
     p3 = plot(kde, v, bandwidth = 0.1)
     @test p3[end] isa Lines
     @test p3[end][1][] == p1[end][1][]
-    v = randn(1000, 2)
+    x = randn(1000)
+    y = randn(1000)
+    v = (x, y)
     d = kde(v, bandwidth = (0.1, 0.1))
     p1 = heatmap(d)
     p2 = heatmap(d.x, d.y, d.density)
@@ -70,10 +72,11 @@ end
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
 
-    t = table((x = v[:, 1], y = v[:, 2]))
-    p5 = surface(kde, t, Style((:x, :y)))
-    @test p5[end] isa Surface
-    @test p5[end][1][] == p1[end][1][]
+    t = table((x = x, y = y))
+    p5 = surface(kde, t, Style((:x, :y)), bandwidth = (0.1, 0.1))
+    plt = p5[end].plots[1]
+    @test plt isa Surface
+    @test plt[1][] == p1[end][1][]
 end
 
 @testset "group" begin
