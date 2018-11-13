@@ -22,8 +22,6 @@ end
 
 PlottableTable{P}(t) where {P} = PlottableTable{P}(t, Dict{Symbol, Any}())
 
-plottype(::Type{PlottableTable{T}}) where {T} = T
-
 struct Group
     columns::NamedTuple
     f::Function
@@ -64,7 +62,7 @@ end
 
 AbstractPlotting.calculated_attributes!(p::Combined{T, <: Tuple{PlottableTable}}) where {T} = p
 
-function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
+function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
     pt = (p[1] |> to_value)
     t = pt.table
     cols = columns(t, Keys())
@@ -83,7 +81,7 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
                 attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
             end
         end
-        plot!(p, Combined{T}, attr, row.output...)
+        plot!(p, PT, attr, row.output...)
     end
 end
 
@@ -119,7 +117,7 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
         tup = (rows = idxs, output = conv_args)
     end
     (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
-    PT[] => (PlottableTable{PT[]}(t), )
+    (PlottableTable{PT[]}(t), )
 end
 
 vec2object(x::Columns) = Tuple(columns(x))
