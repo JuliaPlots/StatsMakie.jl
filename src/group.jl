@@ -62,6 +62,8 @@ function default_theme(scene, ::Type{<:Combined{T, <: Tuple{PlottableTable{P}}}}
     default_theme(scene, P)
 end
 
+AbstractPlotting.calculated_attributes!(p::Combined{T, <: Tuple{PlottableTable}}) where {T} = p
+
 function plot!(p::Combined{T, <: Tuple{PlottableTable}}) where {T}
     pt = (p[1] |> to_value)
     t = pt.table
