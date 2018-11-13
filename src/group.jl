@@ -122,7 +122,8 @@ end
 
 vec2object(x::Columns) = Tuple(columns(x))
 vec2object(x) = x
+vec2object(v::ViewVector) = v.w
 
 object2vec(v::Union{Tuple, NamedTuple}) = Columns(v)
 object2vec(v::AbstractVector) = v
-object2vec(v::AbstractArray) = ViewArray(v)
+object2vec(v::AbstractArray) = ViewVector(v)

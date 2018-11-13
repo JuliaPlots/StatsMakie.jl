@@ -13,7 +13,10 @@ Base.merge(s::Style, g::Union{Group, Function}) = merge(g, s)
 
 const GroupOrStyle = Union{Style, Group}
 
+extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
+extract_column(t, col::AbstractArray) =
+    mapslices(v -> extract_column(t, v[1]), col, dims = 1)
 
 extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)), grp.f)
 
@@ -53,14 +56,12 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     to_pair(P, converted_args)
 end
 
-struct ViewArray{T, N, A <: AbstractArray{T}} <: AbstractArray{T, N}
+struct ViewVector{T, A <: AbstractArray{T}} <: AbstractVector{T}
     w::A
-    ViewArray(w::AbstractArray{T, M}) where {T, M} = new{T, M-1, typeof(w)}(w)
+    ViewVector(w::AbstractArray{T, M}) where {T, M} = new{T, typeof(w)}(w)
 end
 
-Base.size(v::ViewArray) = size(v.w)[1:end-1]
-Base.getindex(v::ViewArray, I...) = Base.getindex(v.w, I..., :)
+Base.size(v::ViewVector) = size(v.w)[1:1]
+Base.getindex(v::ViewVector, i) = Base.getindex(v.w, i, axes(v.w)[2:end]...)
 
-Base.view(v::ViewArray, I...) = ViewArray(Base.view(v.w, I..., last(axes(v.w))))
-
-vec2object(v::ViewArray) = v.w
+Base.view(v::ViewVector, i) = ViewVector(Base.view(v.w, i, axes(v.w)[2:end]...))
