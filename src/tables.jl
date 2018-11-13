@@ -55,13 +55,3 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     end
     to_pair(P, converted_args)
 end
-
-struct ViewVector{T, A <: AbstractArray{T}} <: AbstractVector{T}
-    w::A
-    ViewVector(w::AbstractArray{T, M}) where {T, M} = new{T, typeof(w)}(w)
-end
-
-Base.size(v::ViewVector) = size(v.w)[1:1]
-Base.getindex(v::ViewVector, i) = Base.getindex(v.w, i, axes(v.w)[2:end]...)
-
-Base.view(v::ViewVector, i) = ViewVector(Base.view(v.w, i, axes(v.w)[2:end]...))
