@@ -1,7 +1,12 @@
 using StatsMakie
-import GeometryTypes: HyperRectangle
 using Test
 
+using Random: seed!
+using GeometryTypes: HyperRectangle
+using KernelDensity: kde
+using IndexedTables
+
+seed!(0)
 
 @testset "boxplot" begin
     a = repeat(1:5, inner = 20)
@@ -41,4 +46,93 @@ using Test
     ]
 
     @test plts[3][1][] == poly
+end
+
+
+@testset "density" begin
+    v = randn(1000)
+    d = kde(v, bandwidth = 0.1)
+    p1 = plot(d)
+    p2 = lines(d.x, d.density)
+    @test p1[end][1][] == p2[end][1][]
+    p3 = plot(kde, v, bandwidth = 0.1)
+    @test p3[end] isa Lines
+    @test p3[end][1][] == p1[end][1][]
+    x = randn(1000)
+    y = randn(1000)
+    v = (x, y)
+    d = kde(v, bandwidth = (0.1, 0.1))
+    p1 = heatmap(d)
+    p2 = heatmap(d.x, d.y, d.density)
+    @test p1[end][1][] == p2[end][1][]
+    p3 = plot(kde, v, bandwidth = (0.1, 0.1))
+    @test p3[end] isa Heatmap
+    @test p3[end][1][] == p1[end][1][]
+    p4 = surface(kde, v, bandwidth = (0.1, 0.1))
+    @test p4[end] isa Surface
+    @test p4[end][1][] == p1[end][1][]
+
+    t = table((x = x, y = y))
+    p5 = surface(kde, t, Style((:x, :y)), bandwidth = (0.1, 0.1))
+    plt = p5[end].plots[1]
+    @test plt isa Surface
+    @test plt[1][] == p1[end][1][]
+
+    p6 = surface(kde, t, Style([:x :y]), bandwidth = (0.1, 0.1))
+    plt = p6[end].plots[1]
+    @test plt isa Surface
+    @test plt[1][] == p1[end][1][]
+end
+
+@testset "group" begin
+    c = repeat(1:2, inner = 50)
+    m = repeat(1:2, outer = 50)
+    p = scatter(
+        Group(
+            color = c,
+            marker = m,
+        ),
+        1:100,
+        1:100,
+        color = [:blue, :red],
+        marker = [:cross, :circle]
+    )
+    @test length(p[end].plots) == 4
+    @test p[end].plots[1].color[] == :blue
+    @test p[end].plots[2].color[] == :blue
+    @test p[end].plots[3].color[] == :red
+    @test p[end].plots[4].color[] == :red
+    @test p[end].plots[1].marker[] == :cross
+    @test p[end].plots[2].marker[] == :circle
+    @test p[end].plots[3].marker[] == :cross
+    @test p[end].plots[4].marker[] == :circle
+
+    @test p[end].plots[1][1][] == Point{2, Float32}.(1:2:49, 1:2:49)
+    @test p[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
+    @test p[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
+    @test p[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
+
+    t = table((x = 1:100, y = 1:100, m = m, c = c))
+    q = scatter(
+        t,
+        Group(color = :c, marker = :m),
+        Style(:x, :y),
+        color = [:blue, :red],
+        marker = [:cross, :circle]
+    )
+
+    @test length(q[end].plots) == 4
+    @test q[end].plots[1].color[] == :blue
+    @test q[end].plots[2].color[] == :blue
+    @test q[end].plots[3].color[] == :red
+    @test q[end].plots[4].color[] == :red
+    @test q[end].plots[1].marker[] == :cross
+    @test q[end].plots[2].marker[] == :circle
+    @test q[end].plots[3].marker[] == :cross
+    @test q[end].plots[4].marker[] == :circle
+
+    @test q[end].plots[1][1][] == Point{2, Float32}.(1:2:49, 1:2:49)
+    @test q[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
+    @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
+    @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 end
