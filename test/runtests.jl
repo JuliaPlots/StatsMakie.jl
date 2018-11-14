@@ -149,8 +149,9 @@ end
     @test plt[2][] ≈ pdf.(d, plt[1][])
 
     d = Poisson()
-    p = scatterlines(d)
+    p = plot(d)
     plt = p[end]
+    @test plt isa Lines
     @test StatsMakie.isdiscrete(d)
 
     @test first.(plt[1][]) == 0:6
