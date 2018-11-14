@@ -49,7 +49,6 @@ seed!(0)
     @test plts[3][1][] == poly
 end
 
-
 @testset "density" begin
     v = randn(1000)
     d = kde(v, bandwidth = 0.1)
@@ -83,6 +82,26 @@ end
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
+end
+
+@testset "distribution" begin
+    d = Normal()
+    p = plot(d)
+    plt = p[end]
+    @test plt isa Lines
+    @test !StatsMakie.isdiscrete(d)
+    @test first(plt[1][][1]) ≈ -3.6826972435271177 rtol = 1e-6
+    @test first(plt[1][][end]) ≈ 3.6717509992155426 rtol = 1e-6
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][])) rtol = 1e-6
+
+    d = Poisson()
+    p = plot(d)
+    @test p[end] isa ScatterLines
+    plt = p[end].plots[1]
+    @test StatsMakie.isdiscrete(d)
+
+    @test first.(plt[1][]) == 0:6
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
 end
 
 @testset "group" begin
@@ -136,26 +155,6 @@ end
     @test q[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
     @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
-end
-
-@testset "distribution" begin
-    d = Normal()
-    p = plot(d)
-    plt = p[end]
-    @test plt isa Lines
-    @test !StatsMakie.isdiscrete(d)
-    @test first(plt[1][][1]) ≈ -3.6826972435271177 rtol = 1e-6
-    @test first(plt[1][][end]) ≈ 3.6717509992155426 rtol = 1e-6
-    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][])) rtol = 1e-6
-
-    d = Poisson()
-    p = plot(d)
-    @test p[end] isa ScatterLines
-    plt = p[end].plots[1]
-    @test StatsMakie.isdiscrete(d)
-
-    @test first.(plt[1][]) == 0:6
-    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
 end
 
 @testset "histogram" begin
