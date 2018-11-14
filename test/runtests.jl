@@ -154,7 +154,7 @@ end
     @test StatsMakie.isdiscrete(d)
 
     @test first.(plt[1][]) == 0:6
-    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][])
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
 end
 
 @testset "histogram" begin
