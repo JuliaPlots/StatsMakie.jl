@@ -149,11 +149,28 @@ end
     @test plt[2][] == h.weights
 
     v = (randn(1000), randn(1000))
-    h = fit(Histogram, v)
+    h = fit(Histogram, v, nbins = 30)
     p = plot(h)
-
     plt = p[end]
     @test plt isa Heatmap
+    x = h.edges[1]
+    y = h.edges[2]
+    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
+    @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
+    @test plt[3][] == h.weights
+
+    p = surface(h)
+    plt = p[end]
+    @test plt isa Surface
+    x = h.edges[1]
+    y = h.edges[2]
+    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
+    @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
+    @test plt[3][] == h.weights
+
+    p = surface(histogram, v, nbins = 30)
+    plt = p[end]
+    @test plt isa Surface
     x = h.edges[1]
     y = h.edges[2]
     @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
