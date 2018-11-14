@@ -144,14 +144,14 @@ end
     plt = p[end]
     @test plt isa Lines
     @test !StatsMakie.isdiscrete(d)
-    @test plt[1][][1] ≈ -3.6826972435271177 rtol = 1e-10
-    @test plt[1][][end] ≈ 3.6717509992155426 rtol = 1e-10
-    @test plt[2][] ≈ pdf.(d, plt[1][])
+    @test first(plt[1][][1]) ≈ -3.6826972435271177 rtol = 1e-6
+    @test first(plt[1][][end]) ≈ 3.6717509992155426 rtol = 1e-6
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][])) rtol = 1e-6
 
     d = Poisson()
     p = plot(d)
-    plt = p[end]
-    @test plt isa Lines
+    @test p[end] isa ScatterLines
+    plt = p[end].plots[1]
     @test StatsMakie.isdiscrete(d)
 
     @test first.(plt[1][]) == 0:6
