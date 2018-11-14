@@ -210,3 +210,36 @@ end
     @test plt[3][] ≈ z[1:end-1] .+ step(z)/2
     @test plt[4][] == h.weights
 end
+
+@testset "qqplot" begin
+    v = randn(1000)
+    q = qqbuild(fit(Normal, v), v)
+    p = qqnorm(v)
+
+    @test length(p[end].plots) == 2
+    plt = p[end].plots[1]
+    @test plt isa Scatter
+    @test first.(plt[1][]) ≈ q.qx rtol = 1e-6
+    @test last.(plt[1][]) ≈ q.qy rtol = 1e-6
+
+    plt = p[end].plots[2]
+    @test plt isa LineSegments
+    @test first.(plt[1][]) ≈ [extrema(q.qx)...] rtol = 1e-6
+    @test last.(plt[1][]) ≈ [extrema(q.qx)...] rtol = 1e-6
+
+    p = qqnorm(v, qqline = nothing)
+    @test length(p[end].plots) == 1
+    plt = p[end].plots[1]
+    @test plt isa Scatter
+    @test first.(plt[1][]) ≈ q.qx rtol = 1e-6
+    @test last.(plt[1][]) ≈ q.qy rtol = 1e-6
+
+    p = qqnorm(v, qqline = :fit)
+    plt = p[end].plots[2]
+    itc, slp = hcat(fill!(similar(q.qx), 1), q.qx) \ q.qy
+    xs = [extrema(q.qx)...]
+    ys = slp .* xs .+ itc
+    @test first.(plt[1][]) ≈ xs rtol = 1e-6
+    @test last.(plt[1][]) ≈ ys rtol = 1e-6
+
+end
