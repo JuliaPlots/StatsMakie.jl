@@ -22,23 +22,21 @@ end
 # qqplots (M. K. Borregaard implementation from StatPlots)
 
 @recipe(QQNorm) do scene
-    Theme()
+    default_theme(scene, Scatter)
 end
 
 @recipe(QQPlot) do scene
-    Theme()
+    default_theme(scene, Scatter)
 end
 
-plot!(scene::SceneLike, ::Type{<:QQNorm}, attributes::Attributes, p) = plot!(scene, QQPlot, attributes, Normal, p)
-plot!(scene::SceneLike, ::Type{<:QQPlot}, attributes::Attributes, p...) = plot!(scene, attributes, qqbuild(loc(p...)...))
+convert_arguments(::Type{<:QQNorm}, args...; kwargs...) =
+    convert_arguments(QQPlot, Normal, args...; kwargs...)
 
-# function default
-plottype(::QQPair) = Scatter
+convert_arguments(::Type{<:QQPlot}, args...; kwargs...) =
+    convert_arguments(Scatter, qqbuild(loc(args...)...); kwargs...)
 
-function plot!(scene::SceneLike, P::Type{<:AbstractPlot}, attributes::Attributes, h::QQPair)
-    attr = copy(attributes)
-    qqline = pop!(attr, :qqline, Observable(:identity)) |> to_value
-    if qqline in (:fit, :quantile, :identity, :R)
+function convert_arguments(P::PlotFunc, h::QQPair; qqline = :identity)
+    line = if qqline in (:fit, :quantile, :identity, :R)
         xs = [extrema(h.qx)...]
         if qqline == :identity
             ys = xs
@@ -50,10 +48,21 @@ function plot!(scene::SceneLike, P::Type{<:AbstractPlot}, attributes::Attributes
             slp = diff(quanty) ./ diff(quantx)
             ys = quanty .+ slp .* (xs .- quantx)
         end
-        plot!(scene, LineSegments, attr, xs, ys)
+        Point{2, Float32}.(xs, ys)
+    else
+        nothing
     end
-    plot!(scene, P, attr, h.qx, h.qy)
-    scene
+    ptype = plottype(Scatter, P)
+    ptype => (h, line)
+end
+
+used_attributes(::Type{<:QQNorm}, args...) = (:qqline,)
+used_attributes(::Type{<:QQPlot}, args...) = (:qqline,)
+used_attributes(::PlotFunc, ::QQPair, args...) = (:qqline,)
+
+function plot!(p::Combined{T, <:Tuple{QQPair, L}}) where {T, L}
+    plot!(p, Scatter, Theme(p), lift(h -> Point{2, Float32}.(h.qx, h.qy), p[1]))
+    L !== Nothing && plot!(p, LineSegments, Theme(p), p[2])
 end
 
 loc(D::Type{T}, x) where T<:Distribution = fit(D, x), x
