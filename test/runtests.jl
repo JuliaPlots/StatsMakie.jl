@@ -242,4 +242,13 @@ end
     @test first.(plt[1][]) ≈ xs rtol = 1e-6
     @test last.(plt[1][]) ≈ ys rtol = 1e-6
 
+    p = qqnorm(v, qqline = :quantile)
+    plt = p[end].plots[2]
+    xs = [extrema(q.qx)...]
+    quantx, quanty = quantile(h.qx, [0.25, 0.75]), quantile(h.qy, [0.25, 0.75])
+    slp = diff(quanty) ./ diff(quantx)
+    ys = quanty .+ slp .* (xs .- quantx)
+    @test first.(plt[1][]) ≈ xs rtol = 1e-6
+    @test last.(plt[1][]) ≈ ys rtol = 1e-6
+
 end
