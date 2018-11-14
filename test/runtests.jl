@@ -5,6 +5,7 @@ using Random: seed!
 using GeometryTypes: HyperRectangle
 using KernelDensity: kde
 using IndexedTables
+using Distributions
 
 seed!(0)
 
@@ -48,7 +49,6 @@ seed!(0)
     @test plts[3][1][] == poly
 end
 
-
 @testset "density" begin
     v = randn(1000)
     d = kde(v, bandwidth = 0.1)
@@ -82,6 +82,26 @@ end
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
+end
+
+@testset "distribution" begin
+    d = Normal()
+    p = plot(d)
+    plt = p[end]
+    @test plt isa Lines
+    @test !StatsMakie.isdiscrete(d)
+    @test first(plt[1][][1]) ≈ -3.6826972435271177 rtol = 1e-6
+    @test first(plt[1][][end]) ≈ 3.6717509992155426 rtol = 1e-6
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][])) rtol = 1e-6
+
+    d = Poisson()
+    p = plot(d)
+    @test p[end] isa ScatterLines
+    plt = p[end].plots[1]
+    @test StatsMakie.isdiscrete(d)
+
+    @test first.(plt[1][]) == 0:6
+    @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
 end
 
 @testset "group" begin
@@ -189,4 +209,46 @@ end
     @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
     @test plt[3][] ≈ z[1:end-1] .+ step(z)/2
     @test plt[4][] == h.weights
+end
+
+@testset "qqplot" begin
+    v = randn(1000)
+    q = qqbuild(fit(Normal, v), v)
+    p = qqnorm(v)
+
+    @test length(p[end].plots) == 2
+    plt = p[end].plots[1]
+    @test plt isa Scatter
+    @test first.(plt[1][]) ≈ q.qx rtol = 1e-6
+    @test last.(plt[1][]) ≈ q.qy rtol = 1e-6
+
+    plt = p[end].plots[2]
+    @test plt isa LineSegments
+    @test first.(plt[1][]) ≈ [extrema(q.qx)...] rtol = 1e-6
+    @test last.(plt[1][]) ≈ [extrema(q.qx)...] rtol = 1e-6
+
+    p = qqnorm(v, qqline = nothing)
+    @test length(p[end].plots) == 1
+    plt = p[end].plots[1]
+    @test plt isa Scatter
+    @test first.(plt[1][]) ≈ q.qx rtol = 1e-6
+    @test last.(plt[1][]) ≈ q.qy rtol = 1e-6
+
+    p = qqnorm(v, qqline = :fit)
+    plt = p[end].plots[2]
+    itc, slp = hcat(fill!(similar(q.qx), 1), q.qx) \ q.qy
+    xs = [extrema(q.qx)...]
+    ys = slp .* xs .+ itc
+    @test first.(plt[1][]) ≈ xs rtol = 1e-6
+    @test last.(plt[1][]) ≈ ys rtol = 1e-6
+
+    p = qqnorm(v, qqline = :quantile)
+    plt = p[end].plots[2]
+    xs = [extrema(q.qx)...]
+    quantx, quanty = quantile(q.qx, [0.25, 0.75]), quantile(q.qy, [0.25, 0.75])
+    slp = diff(quanty) ./ diff(quantx)
+    ys = quanty .+ slp .* (xs .- quantx)
+    @test first.(plt[1][]) ≈ xs rtol = 1e-6
+    @test last.(plt[1][]) ≈ ys rtol = 1e-6
+
 end

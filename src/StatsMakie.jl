@@ -11,13 +11,13 @@ import StatsBase
 using Distributions
 using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
+using IntervalSets: Interval, endpoints
 
 export Group, Style
 
 include("scales.jl")
 include("group.jl")
 include("tables.jl")
-include("utils.jl")
 include("density.jl")
 include("histogram.jl")
 include("distribution.jl")
