@@ -6,5 +6,5 @@
 Requires AbstractPlotting and Makie master. The package is not yet registered. To install run:
 
 ```julia
-] add "AbstractPlotting#master Makie#master https://github.com/JuliaPlots/StatsMakie.jl.git"
+] add AbstractPlotting#master Makie#master https://github.com/JuliaPlots/StatsMakie.jl.git
 ```
