@@ -1,4 +1,4 @@
-using StatsMakie
+using StatsMakie, StatsBase
 using Test
 
 using Random: seed!
@@ -135,4 +135,41 @@ end
     @test q[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
     @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
+end
+
+@testset "histogram" begin
+    v = randn(1000)
+    h = fit(Histogram, v)
+    p = plot(h)
+
+    plt = p[end]
+    @test plt isa BarPlot
+    x = h.edges[1]
+    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
+    @test plt[2][] == h.weights
+
+    v = (randn(1000), randn(1000))
+    h = fit(Histogram, v)
+    p = plot(h)
+
+    plt = p[end]
+    @test plt isa Heatmap
+    x = h.edges[1]
+    y = h.edges[2]
+    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
+    @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
+    @test plt[3][] == h.weights
+
+    v = (randn(1000), randn(1000), randn(1000))
+    h = fit(Histogram, v)
+    p = plot(h)
+    plt = p[end]
+    @test plt isa Contour
+    x = h.edges[1]
+    y = h.edges[2]
+    z = h.edges[3]
+    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
+    @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
+    @test plt[3][] ≈ z[1:end-1] .+ step(z)/2
+    @test plt[4][] == h.weights
 end
