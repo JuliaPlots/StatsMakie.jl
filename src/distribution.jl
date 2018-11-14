@@ -2,17 +2,21 @@
 function default_range(dist::Distribution, alpha = 0.0001)
     minval = isfinite(minimum(dist)) ? minimum(dist) : quantile(dist, alpha)
     maxval = isfinite(maximum(dist)) ? maximum(dist) : quantile(dist, 1-alpha)
-    minval, maxval
+    minval..maxval
 end
 
+isdiscrete(::Distribution) = false
+isdiscrete(::Distribution{<:VariateForm, <:Discrete}) = true
+
 support(dist::Distribution) = default_range(dist)
-support(dist::Distribution{<:VariateForm, <:Discrete}) = (UnitRange(default_range(dist)...),)
+support(dist::Distribution{<:VariateForm, <:Discrete}) = UnitRange(endpoints(default_range(dist))...)
 
-convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution) = convert_arguments(P, dist, support(dist)...)
-convert_arguments(P::Type{<:AbstractPlot}, dist::Distribution, args...) = convert_arguments(P, x -> pdf(dist, x), args...)
+convert_arguments(P::PlotFunc, dist::Distribution) = convert_arguments(P, support(dist), dist)
 
-plottype(::Distribution, args...) = Lines
-plottype(::Distribution{<:VariateForm, <:Discrete}, args...) = ScatterLines
+function convert_arguments(P::PlotFunc, x::Union{Interval, AbstractVector}, dist::Distribution)
+    default_ptype = isdiscrete(dist) ? ScatterLines : Lines
+    plottype(P, default_ptype) => convert_arguments(P, x, x -> pdf(dist, x))
+end
 #-----------------------------------------------------------------------------
 # qqplots (M. K. Borregaard implementation from StatPlots)
 

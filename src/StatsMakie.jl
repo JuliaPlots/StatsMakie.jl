@@ -11,6 +11,7 @@ import StatsBase
 using Distributions
 using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
+using IntervalSets: Interval, endpoints
 
 export Group, Style
 
