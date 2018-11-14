@@ -18,7 +18,6 @@ export Group, Style
 include("scales.jl")
 include("group.jl")
 include("tables.jl")
-include("utils.jl")
 include("density.jl")
 include("histogram.jl")
 include("distribution.jl")
