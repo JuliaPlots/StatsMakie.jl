@@ -14,7 +14,6 @@ using IntervalSets: Interval, endpoints
 
 export Group, Style
 
-include("scales.jl")
 include("group.jl")
 include("tables.jl")
 include("density.jl")
