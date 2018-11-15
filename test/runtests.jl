@@ -1,4 +1,4 @@
-using StatsMakie, StatsBase
+using Makie, StatsMakie, StatsBase
 using Test
 
 using Random: seed!
@@ -201,7 +201,7 @@ end
     h = fit(Histogram, v)
     p = plot(h)
     plt = p[end]
-    @test plt isa Contour
+    @test plt isa Volume
     x = h.edges[1]
     y = h.edges[2]
     z = h.edges[3]

@@ -1,6 +1,6 @@
 export histogram
 
-const histogram_plot_types = [BarPlot, Heatmap, Contour]
+const histogram_plot_types = [BarPlot, Heatmap, Volume]
 
 function convert_arguments(P::Type{<:AbstractPlot}, h::StatsBase.Histogram{<:Any, N}) where N
     ptype = plottype(P, histogram_plot_types[N])
