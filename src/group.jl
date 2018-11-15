@@ -72,7 +72,7 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
     cols = columns(t, Keys())
     names = keys(cols)
     funcs = map(UniqueValues, cols)
-    scales = map(key -> get(p, key), names)
+    scales = map(key -> p[key], names)
     len = sum(length, column(t, :rows))
     for row in rows(t)
         attr = copy(Theme(p))
