@@ -52,8 +52,10 @@ function Base.length(grp::Group)
 end
 
 _split(v, len, idxs) = v
+_split(v::Palette, len, idxs) = v[1]
 _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
 _typ(::AbstractVector) = AbstractVector
+_typ(p::Palette) = eltype(p)
 _typ(::T) where {T} = T
 
 function default_theme(scene, ::Type{<:Combined{T, <: Tuple{PlottableTable{P}}}}) where {T, P}
