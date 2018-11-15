@@ -15,6 +15,8 @@ function (cs::UniqueValues)(scale::AbstractArray, el)
     scale[(cs.value2index[el] - 1) % length(scale) + 1]
 end
 
+Base.length(u::UniqueValues) = length(u.unique)
+
 struct PlottableTable{P}
     table::AbstractIndexedTable
     attr::Dict{Symbol, Any}
@@ -84,6 +86,12 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
             end
         end
         plot!(p, PT, attr, row.output...)
+    end
+    for (key, val) in Theme(p)
+        if val[] isa Palette
+            n = key in names ? length(getproperty(funcs, key)) : 1
+            AbstractPlotting.increment!(val[], n)
+        end
     end
 end
 
