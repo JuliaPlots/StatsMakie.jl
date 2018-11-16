@@ -3,7 +3,8 @@ module StatsMakie
 using Observables
 using AbstractPlotting
 import AbstractPlotting: plottype, Plot, PlotFunc, plot!, to_value, to_node, to_tuple
-import AbstractPlotting: convert_arguments, used_attributes, default_theme
+import AbstractPlotting: convert_arguments, convert_attribute, used_attributes, default_theme
+import AbstractPlotting: AbstractPalette, is_cycle
 using Statistics, KernelDensity
 import StatsBase
 using Distributions

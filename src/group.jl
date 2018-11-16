@@ -15,6 +15,10 @@ function (cs::UniqueValues)(scale::AbstractArray, el)
     scale[(cs.value2index[el] - 1) % length(scale) + 1]
 end
 
+function (cs::UniqueValues)(scale::AbstractPalette, el)
+    scale[cs.value2index[el]]
+end
+
 Base.length(u::UniqueValues) = length(u.unique)
 
 struct PlottableTable{P}
@@ -54,10 +58,10 @@ function Base.length(grp::Group)
 end
 
 _split(v, len, idxs) = v
-_split(v::Palette, len, idxs) = v[1]
+_split(v::AbstractPalette, len, idxs) = v[1]
 _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
 _typ(::AbstractVector) = AbstractVector
-_typ(p::Palette) = eltype(p)
+_typ(p::AbstractPalette) = eltype(p)
 _typ(::T) where {T} = T
 
 function default_theme(scene, ::Type{<:Combined{T, <: Tuple{PlottableTable{P}}}}) where {T, P}
@@ -75,7 +79,7 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
     scales = map(key -> p[key], names)
     len = sum(length, column(t, :rows))
     for row in rows(t)
-        attr = copy(Theme(p))
+        attr = AbstractPlotting.freeze!(copy(Theme(p)), 0)
         for (i, key) in enumerate(names)
             val = getproperty(row, key)
             attr[key] = lift(funcs[i], scales[i], to_node(val))
@@ -88,8 +92,8 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
         plot!(p, PT, attr, row.output...)
     end
     for (key, val) in Theme(p)
-        if val[] isa Palette
-            n = key in names ? length(getproperty(funcs, key)) : 1
+        if val[] isa AbstractPalette && is_cycle(val[])
+            n = (key in names) ? length(getproperty(funcs, key)) : 1
             AbstractPlotting.forward!(val[], n)
         end
     end
