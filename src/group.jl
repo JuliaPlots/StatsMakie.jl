@@ -90,7 +90,7 @@ function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
     for (key, val) in Theme(p)
         if val[] isa Palette
             n = key in names ? length(getproperty(funcs, key)) : 1
-            AbstractPlotting.increment!(val[], n)
+            AbstractPlotting.forward!(val[], n)
         end
     end
 end
