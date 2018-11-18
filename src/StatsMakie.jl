@@ -23,6 +23,6 @@ include("histogram.jl")
 include("distribution.jl")
 include("corrplot.jl")
 include("boxplot.jl")
-include("groupedbar.jl")
+include("dodge.jl")
 
 end
