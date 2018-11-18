@@ -15,13 +15,6 @@ function (cs::UniqueValues)(scale::AbstractArray, el)
     scale[(cs.value2index[el] - 1) % length(scale) + 1]
 end
 
-struct PlottableTable{P}
-    table::AbstractIndexedTable
-    attr::Dict{Symbol, Any}
-end
-
-PlottableTable{P}(t) where {P} = PlottableTable{P}(t, Dict{Symbol, Any}())
-
 struct Group
     columns::NamedTuple
     f::Function
@@ -56,35 +49,6 @@ _split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
 _typ(::AbstractVector) = AbstractVector
 _typ(::T) where {T} = T
 
-function default_theme(scene, ::Type{<:Combined{T, <: Tuple{PlottableTable{P}}}}) where {T, P}
-    default_theme(scene, P)
-end
-
-AbstractPlotting.calculated_attributes!(p::Combined{T, <: Tuple{PlottableTable}}) where {T} = p
-
-function plot!(p::Combined{T, <: Tuple{PlottableTable{PT}}}) where {T, PT}
-    pt = (p[1] |> to_value)
-    t = pt.table
-    cols = columns(t, Keys())
-    names = keys(cols)
-    funcs = map(UniqueValues, cols)
-    scales = map(key -> getscale(p, key), names)
-    len = sum(length, column(t, :rows))
-    for row in rows(t)
-        attr = copy(Theme(p))
-        for (i, key) in enumerate(names)
-            val = getproperty(row, key)
-            attr[key] = lift(funcs[i], scales[i], to_node(val))
-        end
-        for (key, val) in Iterators.flatten([attr, pt.attr])
-            if !(key in names)
-                attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
-            end
-        end
-        plot!(p, PT, attr, row.output...)
-    end
-end
-
 convert_arguments(P::PlotFunc, g1::Group, g2::Group, args...; kwargs...) =
     convert_arguments(P, merge(g1, g2), args...; kwargs...)
 
@@ -96,6 +60,7 @@ convert_arguments(P::PlotFunc, f::Function, g::Group, args...; kwargs...) =
 
 to_pair(P, t) = P => t
 to_pair(P, p::Pair) = to_pair(plottype(P, first(p)), last(p))
+
 function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
     N = length(args)
     f = g.f
@@ -108,16 +73,32 @@ function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
     coltable = table(1:len, cols..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
 
-    PT = Ref{Any}(nothing)
     t = groupby(coltable, names, usekey = true) do key, dd
         idxs = column(dd, :row)
         out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
-        pt, conv_args = to_pair(P, convert_arguments(P, out...))
-        PT[] = pt
-        tup = (rows = idxs, output = conv_args)
+        tup = (rows = idxs, output = out)
     end
     (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
-    PT[] => (PlottableTable{PT[]}(t),)
+
+    funcs = map(UniqueValues, cols)
+
+    function adapt(theme, i)
+        scales = map(key -> getscale(theme, key), names)
+        attr = copy(theme)
+        row = t[i]
+        for (ind, key) in enumerate(names)
+            val = getproperty(row, key)
+            attr[key] = lift(funcs[ind], scales[ind], to_node(val))
+        end
+        for (key, val) in attr
+            if !(key in names)
+                attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
+            end
+        end
+        attr
+    end
+    pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
+    convert_arguments(P, pl)
 end
 
 struct ViewVector{T, A <: AbstractArray{T}} <: AbstractVector{T}
