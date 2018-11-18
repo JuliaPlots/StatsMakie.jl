@@ -11,18 +11,20 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         w = width
         xs = (x for i in 1:n)
         ys = (y[:, i] for i in 1:n)
-    elseif p === dodge
-        barwidth = width === automatic ? minimum(diff(unique(sort(x)))) : width
-        w = 0.8*barwidth/n
-        xs = (x .+ i*w .- w*(n+1)/2 for i in 1:n)
-        ys = (y[:, i] for i in 1:n)
     else
-        w = width
-        xs = (x for i in 1:n)
-        y0, y1 = compute_stacked(y)
-        y = y1 .- y0
-        ft = y0
-        ys = (y[:, i] for i in 1:n)
+        barwidth = width === automatic ? minimum(diff(unique(sort(x)))) : width
+        if p === dodge
+            w = 0.8*barwidth/n
+            xs = (x .+ i*w .- w*(n+1)/2 for i in 1:n)
+            ys = (y[:, i] for i in 1:n)
+        else
+            w = 0.8*barwidth
+            xs = (x for i in 1:n)
+            y0, y1 = compute_stacked(y)
+            y = y1 .- y0
+            ft = y0
+            ys = (y[:, i] for i in 1:n)
+        end
     end
 
     function adapt_theme(theme, i)
