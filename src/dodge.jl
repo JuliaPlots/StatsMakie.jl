@@ -22,11 +22,11 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         y0, y1 = compute_stacked(y)
         y = y1 .- y0
         ft = y0
-        ys = (y[:, n+1-i] for i in 1:n)
+        ys = (y[:, i] for i in 1:n)
     end
 
     function adapt_theme(theme, i)
-        fillto = ft === automatic ? automatic : fillto = ft[:, n+1-i]
+        fillto = ft === automatic ? automatic : fillto = ft[:, i]
         attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
         new_theme = Theme(; attr...)
         merge(theme, new_theme)
