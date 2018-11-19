@@ -73,12 +73,12 @@ end
     @test p4[end][1][] == p1[end][1][]
 
     t = table((x = x, y = y))
-    p5 = surface(kde, t, Style((:x, :y)), bandwidth = (0.1, 0.1))
+    p5 = surface(kde, Data(t), (:x, :y), bandwidth = (0.1, 0.1))
     plt = p5[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
 
-    p6 = surface(kde, t, Style([:x :y]), bandwidth = (0.1, 0.1))
+    p6 = surface(kde, Data(t), [:x :y], bandwidth = (0.1, 0.1))
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
