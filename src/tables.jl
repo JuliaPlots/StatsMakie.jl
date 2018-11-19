@@ -108,7 +108,6 @@ function global_defaults!(theme::Theme, style)
     col = to_node(get(to_kwargs(style), :color, nothing))
     colrange = get(theme, :colorrange, automatic)
     if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
-        print("asada $col")
         theme[:colorrange] = lift(extrema_nan, col)
     end
 end
