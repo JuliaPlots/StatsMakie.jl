@@ -4,6 +4,7 @@ using Observables
 using AbstractPlotting
 import AbstractPlotting: plottype, Plot, PlotFunc, plot!, to_value, to_node, to_tuple
 import AbstractPlotting: convert_arguments, used_attributes, default_theme
+import AbstractPlotting: node_pairs
 using Statistics, KernelDensity
 import StatsBase
 using Distributions

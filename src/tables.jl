@@ -44,14 +44,49 @@ function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args::GroupOrStyl
     convert_arguments(P, style; kwargs...)
 end
 
+function convert_arguments(P::PlotFunc, g::Group, args...; kwargs...)
+    convert_arguments(P, Style(g, args...); kwargs...)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
-    args = to_args(st)
-    empty_grp = Group()
-    g_args = args[1] isa Group ? args : (empty_grp, args...)
-    converted_args = convert_arguments(P, g_args...; kwargs...)
-    pt = last(converted_args)[1]
-    for (key, val) in pairs(to_kwargs(st))
-        pt.attr[key] = to_node(val)
+    _args = to_args(st)
+    g_args = _args[1] isa Group ? _args : (Group(), _args...)
+    g, args = g_args[1], g_args[2:end]
+    N = length(args)
+    f = g.f
+    names = colnames(g)
+    cols = columns(g)
+    len = length(g)
+    vec_args = map(object2vec, args)
+    len == 0 && (len = length(vec_args[1]))
+    funcs = map(UniqueValues, cols)
+    coltable = table(1:len, cols..., vec_args...;
+        names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+
+    t = groupby(coltable, names, usekey = true) do key, dd
+        idxs = column(dd, :row)
+        out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
+        tup = (rows = idxs, output = out)
     end
-    to_pair(P, converted_args)
+    (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
+
+    funcs = map(UniqueValues, cols)
+
+    function adapt(theme, i)
+        scales = map(key -> getscale(theme, key), names)
+        attr = copy(theme)
+        row = t[i]
+        for (ind, key) in enumerate(names)
+            val = getproperty(row, key)
+            attr[key] = lift(funcs[ind], scales[ind], to_node(val))
+        end
+        for (key, val) in Iterators.flatten((attr, node_pairs(pairs(to_kwargs(st)))))
+            if !(key in names)
+                attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
+            end
+        end
+        attr
+    end
+    pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
+    convert_arguments(P, pl)
 end
