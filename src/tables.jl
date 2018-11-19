@@ -58,13 +58,13 @@ end
 
 function normalize(s::Style)
     args = Iterators.filter(t -> !(t isa Group), to_args(s))
-    g = combine(Group(), Iterators.filter(t -> t isa Group, to_args(s))...)
+    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s)), init = Group())
     Style(g, args...; to_kwargs(s)...)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     s = normalize(st)
-    g_args = to_args(st)
+    g_args = to_args(s)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
     f = g.f
