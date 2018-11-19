@@ -41,21 +41,18 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-combine(args::GoG...) = foldl(merge, (to_style(el) for el in args))
-
 function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
-    style = combine(arg, args...)
+    style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
     convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...)
-    style = combine(arg, args...)
-    convert_arguments(P, style; kwargs...)
-end
+convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...) =
+    convert_arguments(P, tuple, arg, args...; kwargs...)
 
 function normalize(s::Style)
-    i = findfirst(t -> (t isa Data), to_args(s))
-    s1 = Style(fiter(t -> !(t isa Data), to_args(s)); to_kwargs(s)...)
+    isdata = isa.(to_args(s), Data)
+    i = findfirst(isdata)
+    s1 = Style(to_args(s)[findall(!, isdata)]...; to_kwargs(s)...)
     s2 = i === nothing ? s1 : extract_columns(to_args(s)[i].table, s1)
 
     args = Iterators.filter(t -> !(t isa Group), to_args(s2))
