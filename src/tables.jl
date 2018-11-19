@@ -10,11 +10,11 @@ to_style(x) = Style(x)
 Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs, s2.kwargs)...)
 Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 
+const GroupOrStyle = Union{Style, Group}
+
 Base.merge(g1::GroupOrStyle, g2::GroupOrStyle) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
-
-const GroupOrStyle = Union{Style, Group}
 
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
