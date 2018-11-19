@@ -94,9 +94,9 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
             val = getproperty(row, key)
             attr[key] = lift(funcs[ind], scales[ind], to_node(val))
         end
-        for (key, val) in Iterators.flatten((attr, node_pairs(pairs(to_kwargs(s)))))
+        for (key, val) in node_pairs(pairs(to_kwargs(s)))
             if !(key in names)
-                attr[key] = lift(t -> _split(t, len, row.rows), val, typ = _typ(val[]))
+                attr[key] = lift(t -> view(t, row.rows), val)
             end
         end
         attr

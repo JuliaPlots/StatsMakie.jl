@@ -44,11 +44,6 @@ function Base.length(grp::Group)
     isempty(cols) ? 0 : length(cols[1])
 end
 
-_split(v, len, idxs) = v
-_split(v::AbstractVector, len, idxs) = length(v) == len ? view(v, idxs) : v
-_typ(::AbstractVector) = AbstractVector
-_typ(::T) where {T} = T
-
 to_pair(P, t) = P => t
 to_pair(P, p::Pair) = to_pair(plottype(P, first(p)), last(p))
 
