@@ -4,14 +4,17 @@ struct Style
     Style(args...; kwargs...) = new(args, values(kwargs))
 end
 
+to_style(s::Style) = s
+to_style(x) = Style(x)
+
 Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs, s2.kwargs)...)
 Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 
-Base.merge(g::Group, s::Style) = merge(Style(g), s)
-Base.merge(f::Function, s::Style) = merge(Group(f), s)
-Base.merge(s::Style, g::Union{Group, Function}) = merge(g, s)
-
 const GroupOrStyle = Union{Style, Group}
+
+Base.merge(g1::GroupOrStyle, g2::GroupOrStyle) = merge(to_style(g1), to_style(g2))
+Base.merge(f::Function, s::Style) = merge(Group(f), s)
+Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
@@ -34,24 +37,70 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupOrStyle, args::GroupOrStyle...; kwargs...)
-    style = extract_columns(df, foldl(merge, args, init = arg))
+combine(arg::GroupOrStyle, args...) = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
+
+function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupOrStyle, args...; kwargs...)
+    style = extract_columns(df, combine(arg, args...))
     convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args::GroupOrStyle...; kwargs...)
-    style = extract_columns(df, foldl(merge, args, init = arg))
+function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args...; kwargs...)
+    style = extract_columns(df, combine(arg, args...))
     convert_arguments(P, style; kwargs...)
 end
 
+convert_arguments(P::PlotFunc, f::Function, arg::GroupOrStyle, args...; kwargs...) =
+    convert_arguments(P, merge(f, combine(arg, args...)); kwargs...)
+
+function convert_arguments(P::PlotFunc, arg::GroupOrStyle, args...; kwargs...)
+    convert_arguments(P, combine(arg, args...); kwargs...)
+end
+
+function normalize(s::Style)
+    args = Iterators.filter(t -> !(t isa Group), to_args(s))
+    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s)), init = Group())
+    Style(g, args...; to_kwargs(s)...)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
-    args = to_args(st)
-    empty_grp = Group()
-    g_args = args[1] isa Group ? args : (empty_grp, args...)
-    converted_args = convert_arguments(P, g_args...; kwargs...)
-    pt = last(converted_args)[1]
-    for (key, val) in pairs(to_kwargs(st))
-        pt.attr[key] = to_node(val)
+    s = normalize(st)
+    g_args = to_args(s)
+    g, args = g_args[1], g_args[2:end]
+    N = length(args)
+    f = g.f
+    names = colnames(g)
+    cols = columns(g)
+    len = length(g)
+    vec_args = map(object2vec, args)
+    len == 0 && (len = length(vec_args[1]))
+    funcs = map(UniqueValues, cols)
+    coltable = table(1:len, cols..., vec_args...;
+        names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+
+    t = groupby(coltable, names, usekey = true) do key, dd
+        idxs = column(dd, :row)
+        out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
+        tup = (rows = idxs, output = out)
     end
-    to_pair(P, converted_args)
+    (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
+
+    funcs = map(UniqueValues, cols)
+
+    function adapt(theme, i)
+        scales = map(key -> getscale(theme, key), names)
+        attr = copy(theme)
+        row = t[i]
+        for (ind, key) in enumerate(names)
+            val = getproperty(row, key)
+            attr[key] = lift(funcs[ind], scales[ind], to_node(val))
+        end
+        for (key, val) in node_pairs(pairs(to_kwargs(s)))
+            if !(key in names)
+                attr[key] = lift(t -> view(t, row.rows), val)
+            end
+        end
+        attr
+    end
+    pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
+    convert_arguments(P, pl)
 end
