@@ -61,8 +61,8 @@ function normalize(s::Style)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
-    s = normalize(st)
-    g_args = to_args(s)
+    style = normalize(st)
+    g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
     f = g.f
@@ -86,13 +86,13 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     function adapt(theme, i)
         scales = map(key -> getscale(theme, key), names)
-        attr = global_defaults!(theme)
+        attr = global_defaults!(theme, style)
         row = t[i]
         for (ind, key) in enumerate(names)
             val = getproperty(row, key)
             attr[key] = lift(funcs[ind], scales[ind], to_node(val))
         end
-        for (key, val) in node_pairs(pairs(to_kwargs(s)))
+        for (key, val) in node_pairs(pairs(to_kwargs(style)))
             if !(key in names)
                 attr[key] = lift(t -> view(t, row.rows), val)
             end
@@ -103,8 +103,8 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     convert_arguments(P, pl)
 end
 
-function global_defaults!(theme::Theme)
-    col = get(theme, :color, nothing)
+function global_defaults!(theme::Theme, style)
+    col = to_node(get(to_kwargs(style), :color, nothing))
     colrange = get(theme, :colorrange, automatic)
     if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
         theme[:colorrange] = lift(extrema_nan, col)
