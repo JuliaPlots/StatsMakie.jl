@@ -2,9 +2,9 @@ module StatsMakie
 
 using Observables
 using AbstractPlotting
-import AbstractPlotting: plottype, Plot, PlotFunc, plot!, to_value, to_node, to_tuple
-import AbstractPlotting: convert_arguments, used_attributes, default_theme
-import AbstractPlotting: node_pairs
+import AbstractPlotting: convert_arguments, used_attributes, plot!
+using AbstractPlotting: plottype, Plot, PlotFunc, to_value, to_node, to_tuple
+using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme
 using Statistics, KernelDensity
 import StatsBase
 using Distributions
@@ -13,7 +13,7 @@ using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 
-export Group, Style
+export Data, Group, Style
 
 include("scales.jl")
 include("group.jl")

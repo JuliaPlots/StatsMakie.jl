@@ -1,3 +1,7 @@
+struct Data{T}
+    table::T
+end
+
 struct Style
     args::Tuple
     kwargs::NamedTuple
@@ -10,9 +14,9 @@ to_style(x) = Style(x)
 Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs, s2.kwargs)...)
 Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 
-const GroupOrStyle = Union{Style, Group}
+const GoG = Union{Data, Group, Style}
 
-Base.merge(g1::GroupOrStyle, g2::GroupOrStyle) = merge(to_style(g1), to_style(g2))
+Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
@@ -37,34 +41,28 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-combine(arg::GroupOrStyle, args...) = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
-
-function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupOrStyle, args...; kwargs...)
-    style = extract_columns(df, combine(arg, args...))
+function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
+    style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
     convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args...; kwargs...)
-    style = extract_columns(df, combine(arg, args...))
-    convert_arguments(P, style; kwargs...)
-end
-
-convert_arguments(P::PlotFunc, f::Function, arg::GroupOrStyle, args...; kwargs...) =
-    convert_arguments(P, merge(f, combine(arg, args...)); kwargs...)
-
-function convert_arguments(P::PlotFunc, arg::GroupOrStyle, args...; kwargs...)
-    convert_arguments(P, combine(arg, args...); kwargs...)
-end
+convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...) =
+    convert_arguments(P, tuple, arg, args...; kwargs...)
 
 function normalize(s::Style)
-    args = Iterators.filter(t -> !(t isa Group), to_args(s))
-    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s)), init = Group())
-    Style(g, args...; to_kwargs(s)...)
+    isdata = isa.(to_args(s), Data)
+    i = findfirst(isdata)
+    s1 = Style(to_args(s)[findall(!, isdata)]...; to_kwargs(s)...)
+    s2 = i === nothing ? s1 : extract_columns(to_args(s)[i].table, s1)
+
+    args = Iterators.filter(t -> !(t isa Group), to_args(s2))
+    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s2)), init = Group())
+    Style(g, args...; to_kwargs(s2)...)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
-    s = normalize(st)
-    g_args = to_args(s)
+    style = normalize(st)
+    g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
     f = g.f
@@ -88,13 +86,14 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     function adapt(theme, i)
         scales = map(key -> getscale(theme, key), names)
+        global_defaults!(theme, style)
         attr = copy(theme)
         row = t[i]
         for (ind, key) in enumerate(names)
             val = getproperty(row, key)
             attr[key] = lift(funcs[ind], scales[ind], to_node(val))
         end
-        for (key, val) in node_pairs(pairs(to_kwargs(s)))
+        for (key, val) in node_pairs(pairs(to_kwargs(style)))
             if !(key in names)
                 attr[key] = lift(t -> view(t, row.rows), val)
             end
@@ -103,4 +102,12 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     end
     pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
     convert_arguments(P, pl)
+end
+
+function global_defaults!(theme::Theme, style)
+    col = to_node(get(to_kwargs(style), :color, nothing))
+    colrange = get(theme, :colorrange, automatic)
+    if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
+        theme[:colorrange] = lift(extrema_nan, col)
+    end
 end
