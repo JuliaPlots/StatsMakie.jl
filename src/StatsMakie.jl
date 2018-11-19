@@ -13,7 +13,7 @@ using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 
-export Group, Style
+export Data, Group, Style
 
 include("scales.jl")
 include("group.jl")

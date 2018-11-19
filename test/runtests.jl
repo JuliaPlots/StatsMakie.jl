@@ -134,9 +134,9 @@ end
 
     t = table((x = 1:100, y = 1:100, m = m, c = c))
     q = scatter(
-        t,
+        Data(t),
         Group(color = :c, marker = :m),
-        Style(:x, :y),
+        :x, :y,
         color = [:blue, :red],
         marker = [:cross, :circle]
     )

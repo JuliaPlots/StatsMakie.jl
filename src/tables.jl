@@ -1,3 +1,7 @@
+struct Data{T}
+    table::T
+end
+
 struct Style
     args::Tuple
     kwargs::NamedTuple
@@ -10,9 +14,9 @@ to_style(x) = Style(x)
 Base.merge(s1::Style, s2::Style) = Style(s1.args..., s2.args...; merge(s1.kwargs, s2.kwargs)...)
 Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 
-const GroupOrStyle = Union{Style, Group}
+const GoG = Union{Data, Group, Style}
 
-Base.merge(g1::GroupOrStyle, g2::GroupOrStyle) = merge(to_style(g1), to_style(g2))
+Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
@@ -37,29 +41,26 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
-combine(arg::GroupOrStyle, args...) = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
+combine(args::GoG...) = foldl(merge, (to_style(el) for el in args))
 
-function convert_arguments(P::PlotFunc, f::Function, df, arg::GroupOrStyle, args...; kwargs...)
-    style = extract_columns(df, combine(arg, args...))
+function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
+    style = combine(arg, args...)
     convert_arguments(P, merge(f, style); kwargs...)
 end
 
-function convert_arguments(P::PlotFunc, df, arg::GroupOrStyle, args...; kwargs...)
-    style = extract_columns(df, combine(arg, args...))
+function convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...)
+    style = combine(arg, args...)
     convert_arguments(P, style; kwargs...)
 end
 
-convert_arguments(P::PlotFunc, f::Function, arg::GroupOrStyle, args...; kwargs...) =
-    convert_arguments(P, merge(f, combine(arg, args...)); kwargs...)
-
-function convert_arguments(P::PlotFunc, arg::GroupOrStyle, args...; kwargs...)
-    convert_arguments(P, combine(arg, args...); kwargs...)
-end
-
 function normalize(s::Style)
-    args = Iterators.filter(t -> !(t isa Group), to_args(s))
-    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s)), init = Group())
-    Style(g, args...; to_kwargs(s)...)
+    i = findfirst(t -> (t isa Data), to_args(s))
+    s1 = Style(fiter(t -> !(t isa Data), to_args(s)); to_kwargs(s)...)
+    s2 = i === nothing ? s1 : extract_columns(to_args(s)[i].table, s1)
+
+    args = Iterators.filter(t -> !(t isa Group), to_args(s2))
+    g = foldl(merge, Iterators.filter(t -> t isa Group, to_args(s2)), init = Group())
+    Style(g, args...; to_kwargs(s2)...)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; kwargs...)
