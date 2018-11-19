@@ -86,7 +86,8 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     function adapt(theme, i)
         scales = map(key -> getscale(theme, key), names)
-        attr = global_defaults!(theme, style)
+        global_defaults!(theme, style)
+        attr = copy(theme)
         row = t[i]
         for (ind, key) in enumerate(names)
             val = getproperty(row, key)
@@ -107,7 +108,7 @@ function global_defaults!(theme::Theme, style)
     col = to_node(get(to_kwargs(style), :color, nothing))
     colrange = get(theme, :colorrange, automatic)
     if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
+        print("asada $col")
         theme[:colorrange] = lift(extrema_nan, col)
     end
-    theme
 end
