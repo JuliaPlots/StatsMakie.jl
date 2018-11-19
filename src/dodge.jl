@@ -1,9 +1,9 @@
 @enum BarPosition superimpose dodge stack
 
-used_attributes(P::PlotFunc, p::BarPosition, args...) = (:width, :shrink)
+used_attributes(P::PlotFunc, p::BarPosition, args...) = (:width, :space)
 
 function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::AbstractMatrix;
-    width = automatic, shrink = 0.8)
+    width = automatic, space = 0.2)
 
     n = size(y, 2)
 
@@ -14,13 +14,13 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         xs = (x for i in 1:n)
         ys = (y[:, i] for i in 1:n)
     else
-        barwidth = width === automatic ? minimum(diff(unique(sort(x)))) : width
+        barwidth = width === automatic ? minimum(diff(unique(sort(x))))*(1-space) : width
         if p === dodge
-            w = shrink*barwidth/n
+            w = barwidth/n
             xs = (x .+ i*w .- w*(n+1)/2 for i in 1:n)
             ys = (y[:, i] for i in 1:n)
         else
-            w = shrink*barwidth
+            w = barwidth
             xs = (x for i in 1:n)
             y0, y1 = compute_stacked(y)
             y = y1 .- y0
