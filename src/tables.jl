@@ -53,7 +53,7 @@ convert_arguments(P::PlotFunc, f::Function, arg::GroupOrStyle, args...; kwargs..
     convert_arguments(P, merge(f, combine(arg, args...)); kwargs...)
 
 function convert_arguments(P::PlotFunc, arg::GroupOrStyle, args...; kwargs...)
-    convert_arguments(P, combine(arg, args); kwargs...)
+    convert_arguments(P, combine(arg, args...); kwargs...)
 end
 
 function normalize(s::Style)
