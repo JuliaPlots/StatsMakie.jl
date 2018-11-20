@@ -2,6 +2,9 @@
 
 used_attributes(P::PlotFunc, p::BarPosition, args...) = (:width, :space)
 
+convert_arguments(P::PlotFunc, p::BarPosition, y::AbstractMatrix; kwargs...) =
+    convert_arguments(P, p, 1:size(y, 1), y; kwargs...)
+
 function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::AbstractMatrix;
     width = automatic, space = 0.2)
 
@@ -36,8 +39,9 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         merge(theme, new_theme)
     end
 
-    convert_arguments(P, PlotList(collect(zip(xs, ys));
-        transform_attributes = [theme -> adapt_theme(theme, i) for i in 1:n]))
+    plts = PlotSpecs.(collect(zip(xs, ys)), [theme -> adapt_theme(theme, i) for i in 1:n])
+
+    convert_arguments(P, PlotList(plts...))
 end
 
 function compute_stacked(y::AbstractMatrix)
