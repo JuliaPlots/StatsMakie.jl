@@ -86,7 +86,6 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     function adapt(theme, i)
         scales = map(key -> getscale(theme, key), names)
-        global_defaults!(theme, style)
         attr = copy(theme)
         row = t[i]
         for (ind, key) in enumerate(names)
@@ -100,14 +99,17 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
         end
         attr
     end
-    pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
+    series = PlotSpecs.(column(t, :output), [theme -> adapt(theme, i) for i in 1:length(t)])
+    pl = PlotList(series...; transform_attributes = theme -> add_defaults(theme, style))
     convert_arguments(P, pl)
 end
 
-function global_defaults!(theme::Theme, style)
+function add_defaults(theme::Theme, style)
+    defaults = Theme()
     col = to_node(get(to_kwargs(style), :color, nothing))
     colrange = get(theme, :colorrange, automatic)
     if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
-        theme[:colorrange] = lift(extrema_nan, col)
+        defaults[:colorrange] = lift(extrema_nan, col)
     end
+    merge(theme, defaults)
 end
