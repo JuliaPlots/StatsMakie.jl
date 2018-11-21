@@ -39,7 +39,12 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         merge(theme, new_theme)
     end
 
-    plts = PlotSpecs.(collect(zip(xs, ys)), [theme -> adapt_theme(theme, i) for i in 1:n])
+    plts = PlotSpec[]
+    for (i, (x′, y′)) in enumerate(zip(xs, ys))
+        fillto = ft === automatic ? automatic : fillto = ft[:, i]
+        attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
+        push!(plts, PlotSpec(x′, y′; attr...))
+    end
 
     convert_arguments(P, PlotList(plts...))
 end
