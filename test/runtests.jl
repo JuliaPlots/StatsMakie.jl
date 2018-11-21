@@ -54,7 +54,7 @@ end
     p1 = plot(d)
     p2 = lines(d.x, d.density)
     @test p1[end][1][] == p2[end][1][]
-    p3 = plot(density, v, bandwidth = 0.1)
+    p3 = plot(density(bandwidth = 0.1), v)
     @test p3[end] isa Lines
     @test p3[end][1][] == p1[end][1][]
     x = randn(1000)
@@ -67,7 +67,7 @@ end
     p3 = plot(density(bandwidth = (0.1, 0.1)), v)
     @test p3[end] isa Heatmap
     @test p3[end][1][] == p1[end][1][]
-    p4 = surface(density(bandwidth = (0.1, 0.1)), v))
+    p4 = surface(density(bandwidth = (0.1, 0.1)), v)
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
 
