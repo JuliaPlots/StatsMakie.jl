@@ -3,7 +3,7 @@ using Test
 
 using Random: seed!
 using GeometryTypes: HyperRectangle
-using KernelDensity: kde
+using KernelDensity: density
 using IndexedTables
 using Distributions
 
@@ -51,34 +51,34 @@ end
 
 @testset "density" begin
     v = randn(1000)
-    d = kde(v, bandwidth = 0.1)
+    d = density(v, bandwidth = 0.1)
     p1 = plot(d)
     p2 = lines(d.x, d.density)
     @test p1[end][1][] == p2[end][1][]
-    p3 = plot(kde, v, bandwidth = 0.1)
+    p3 = plot(density, v, bandwidth = 0.1)
     @test p3[end] isa Lines
     @test p3[end][1][] == p1[end][1][]
     x = randn(1000)
     y = randn(1000)
     v = (x, y)
-    d = kde(v, bandwidth = (0.1, 0.1))
+    d = density(v, bandwidth = (0.1, 0.1))
     p1 = heatmap(d)
     p2 = heatmap(d.x, d.y, d.density)
     @test p1[end][1][] == p2[end][1][]
-    p3 = plot(kde, v, bandwidth = (0.1, 0.1))
+    p3 = plot(density(bandwidth = (0.1, 0.1)), v)
     @test p3[end] isa Heatmap
     @test p3[end][1][] == p1[end][1][]
-    p4 = surface(kde, v, bandwidth = (0.1, 0.1))
+    p4 = surface(density(bandwidth = (0.1, 0.1)), v))
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
 
     t = table((x = x, y = y))
-    p5 = surface(kde, Data(t), (:x, :y), bandwidth = (0.1, 0.1))
+    p5 = surface(density(bandwidth = (0.1, 0.1)), Data(t), (:x, :y))
     plt = p5[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
 
-    p6 = surface(kde, Data(t), [:x :y], bandwidth = (0.1, 0.1))
+    p6 = surface(density(bandwidth = (0.1, 0.1)), Data(t), [:x :y])
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]

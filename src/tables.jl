@@ -41,6 +41,12 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
+used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
+    Tuple(union((:colorrange,), used_attributes(P, f, args...)))
+
+used_attributes(P::PlotFunc, g::GoG, args...) =
+    Tuple(union((:colorrange,), used_attributes(P, args...)))
+
 function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
     style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
     convert_arguments(P, merge(f, style); kwargs...)
@@ -60,7 +66,7 @@ function normalize(s::Style)
     Style(g, args...; to_kwargs(s2)...)
 end
 
-function convert_arguments(P::PlotFunc, st::Style; kwargs...)
+function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
@@ -104,8 +110,14 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     end
 
     series = map(row2plotspec, t)
-    pl = PlotList(series...; transform_attributes = theme -> add_defaults(theme, style))
-    PlotSpec{MultiplePlot}(pl)
+    pl = PlotList(series...)
+
+    col = get(to_kwargs(style), :color, nothing)
+    if colorrange === automatic && col isa AbstractVector{<:Real}
+        colorrange = extrema_nan(col)
+    end
+
+    PlotSpec{MultiplePlot}(pl, colorrange = colorrange)
 end
 
 struct DelayedAttribute
@@ -114,13 +126,3 @@ end
 
 combine(val, d::DelayedAttribute) = d.f(val)
 combine(d::DelayedAttribute) = d.f()
-
-function add_defaults(theme::Theme, style)
-    defaults = Theme()
-    col = to_node(get(to_kwargs(style), :color, nothing))
-    colrange = get(theme, :colorrange, automatic)
-    if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
-        defaults[:colorrange] = lift(extrema_nan, col)
-    end
-    merge(theme, defaults)
-end
