@@ -3,7 +3,6 @@ using Test
 
 using Random: seed!
 using GeometryTypes: HyperRectangle
-using KernelDensity: density
 using IndexedTables
 using Distributions
 
