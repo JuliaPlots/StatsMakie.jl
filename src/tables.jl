@@ -84,25 +84,36 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     funcs = map(UniqueValues, cols)
 
-    function adapt(theme, i)
-        scales = map(key -> getscale(theme, key), names)
-        attr = copy(theme)
-        row = t[i]
+    function row2plotspec(row)
+        plotspec = to_plotspec(P, convert_arguments(P, row.output...))
+        d = Dict{Symbol, Node}()
         for (ind, key) in enumerate(names)
-            val = getproperty(row, key)
-            attr[key] = lift(funcs[ind], scales[ind], to_node(val))
+            f = function (scale)
+                isscale(scale) || (scale = default_scales[key])
+                val = getproperty(row, key)
+                funcs[ind](scale, val)
+            end
+            d[key] = Delayed(f)
         end
         for (key, val) in node_pairs(pairs(to_kwargs(style)))
             if !(key in names)
-                attr[key] = lift(t -> view(t, row.rows), val)
+                d[key] = lift(t -> view(t, row.rows), val)
             end
         end
-        attr
+        to_plotspec(P, plotspec; d...)
     end
-    series = PlotSpecs.(column(t, :output), [theme -> adapt(theme, i) for i in 1:length(t)])
+
+    series = map(row2plotspec, t)
     pl = PlotList(series...; transform_attributes = theme -> add_defaults(theme, style))
-    convert_arguments(P, pl)
+    PlotSpec{MultiplePlot}(pl)
 end
+
+struct DelayedAttribute{T}
+    f::Function
+    default::T
+end
+
+combine(val, d::Delayed) = d.f(val)
 
 function add_defaults(theme::Theme, style)
     defaults = Theme()

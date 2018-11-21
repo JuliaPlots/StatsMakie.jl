@@ -2,9 +2,9 @@ module StatsMakie
 
 using Observables
 using AbstractPlotting
-import AbstractPlotting: convert_arguments, used_attributes, plot!
+import AbstractPlotting: convert_arguments, used_attributes, plot!, combine
 using AbstractPlotting: plottype, Plot, PlotFunc, to_value, to_node, to_tuple
-using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme
+using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme, to_plotspec
 using Statistics, KernelDensity
 import StatsBase
 using Distributions
