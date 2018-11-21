@@ -88,12 +88,12 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
         plotspec = to_plotspec(P, convert_arguments(P, row.output...))
         d = Dict{Symbol, Node}()
         for (ind, key) in enumerate(names)
-            f = function (scale)
+            f = function (scale = nothing)
                 isscale(scale) || (scale = default_scales[key])
                 val = getproperty(row, key)
                 funcs[ind](scale, val)
             end
-            d[key] = Delayed(f)
+            d[key] = DelayedAttribute(f)
         end
         for (key, val) in node_pairs(pairs(to_kwargs(style)))
             if !(key in names)
@@ -108,12 +108,12 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
     PlotSpec{MultiplePlot}(pl)
 end
 
-struct DelayedAttribute{T}
+struct DelayedAttribute
     f::Function
-    default::T
 end
 
-combine(val, d::Delayed) = d.f(val)
+combine(val, d::DelayedAttribute) = d.f(val)
+combine(d::DelayedAttribute) = d.f()
 
 function add_defaults(theme::Theme, style)
     defaults = Theme()
