@@ -32,13 +32,6 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
         end
     end
 
-    function adapt_theme(theme, i)
-        fillto = ft === automatic ? automatic : fillto = ft[:, i]
-        attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
-        new_theme = Theme(; attr...)
-        merge(theme, new_theme)
-    end
-
     plts = PlotSpec[]
     for (i, (x′, y′)) in enumerate(zip(xs, ys))
         fillto = ft === automatic ? automatic : fillto = ft[:, i]
