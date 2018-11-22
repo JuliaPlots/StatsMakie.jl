@@ -187,7 +187,7 @@ end
     @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
     @test plt[3][] == h.weights
 
-    p = surface(histogram, v, nbins = 30)
+    p = surface(histogram(nbins = 30), v)
     plt = p[end]
     @test plt isa Surface
     x = h.edges[1]

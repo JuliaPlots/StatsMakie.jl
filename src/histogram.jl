@@ -11,5 +11,3 @@ end
 
 histogram(args...; kwargs...) = fit(StatsBase.Histogram, args...; kwargs...)
 histogram(; kwargs...) = (args...) -> histogram(args...; kwargs...)
-
-used_attributes(::PlotFunc, ::typeof(histogram), args...) = (:closed, :nbins)
