@@ -15,13 +15,14 @@ function convert_arguments(P::PlotFunc, p::BarPosition, args...;
 end
 
 function adjust_to_x(x, x′, y′)
+    x === x′ && return y′
     d = Dict(zip(x′, y′))
     [get(d, el, NaN) for el in x]
 end
 
 series2matrix(x, xs, ys) = hcat((adjust_to_x(x, x′, y′) for (x′, y′) in zip(xs, ys))...)
 
-function convert_arguments(P::Type{<:MultiplePlot}, p::BarPosition, pl::PlotList; width = automatic, space = 0.2)
+function convert_arguments(P::PlotFunc, p::BarPosition, pl::PlotList; width = automatic, space = 0.2)
     xs_input = (ps[1] for ps in pl)
     ys_input = (ps[2] for ps in pl)
     n = length(pl)
@@ -30,8 +31,9 @@ function convert_arguments(P::Type{<:MultiplePlot}, p::BarPosition, pl::PlotList
         w = width
         xs, ys = xs_input, ys_input
     else
-        x = vcat(xs_input...)
-        unique_x = union(sort(x))
+        x1 = first(xs_input)
+        x = all(t -> t === x1, xs_input) ? x1 : vcat(xs_input...)
+        unique_x = unique(sort(x))
         barwidth = width === automatic ? minimum(diff(unique_x))*(1-space) : width
         if p === dodge
             w = barwidth/n
@@ -64,37 +66,11 @@ function convert_arguments(P::PlotFunc, p::BarPosition, x::AbstractVector, y::Ab
     width = automatic, space = 0.2)
 
     n = size(y, 2)
-
-    ft = automatic
-
-    if p === superimpose
-        w = width
-        xs = (x for i in 1:n)
-        ys = (y[:, i] for i in 1:n)
-    else
-        barwidth = width === automatic ? minimum(diff(unique(sort(x))))*(1-space) : width
-        if p === dodge
-            w = barwidth/n
-            xs = (x .+ i*w .- w*(n+1)/2 for i in 1:n)
-            ys = (y[:, i] for i in 1:n)
-        else
-            w = barwidth
-            xs = (x for i in 1:n)
-            y0, y1 = compute_stacked(y)
-            y = y1 .- y0
-            ft = y0
-            ys = (y[:, i] for i in 1:n)
-        end
+    plots = PlotSpec[]
+    for i in 1:n
+        push!(plots, PlotSpec{P}(x, y[:, i]))
     end
-
-    plts = PlotSpec[]
-    for (i, (x′, y′)) in enumerate(zip(xs, ys))
-        fillto = ft === automatic ? automatic : ft[:, i]
-        attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
-        push!(plts, PlotSpec(x′, y′; attr...))
-    end
-
-    convert_arguments(P, PlotList(plts...))
+    convert_arguments(MultiplePlot, p, PlotList(plots...); width = width, space = space)
 end
 
 function compute_stacked(y::AbstractMatrix)
