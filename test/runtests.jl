@@ -332,7 +332,7 @@ end
 
 end
 
-@testest "violin" begin
+@testset "violin" begin
     x = repeat(1:4, 250)
     y = x .+ randn.()
     p = violin(x, y, side = :left, color = :blue)
