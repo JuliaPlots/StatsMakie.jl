@@ -339,7 +339,7 @@ end
     @test p[end] isa Violin
     @test p[end].plots[1] isa Mesh
     @test p[end].plots[1][:color][] == :blue
-    @test p[end].plots[1] isa LineSegments
-    @test p[end].plots[1][:color][] == :black
-    @test p[end].plots[1][:visible][] == :false
+    @test p[end].plots[2] isa LineSegments
+    @test p[end].plots[2][:color][] == :black
+    @test p[end].plots[2][:visible][] == :false
 end
