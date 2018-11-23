@@ -13,6 +13,7 @@ using IntervalSets
 using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
+using Loess
 
 export Data, Group, Style
 

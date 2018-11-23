@@ -11,3 +11,20 @@ function linear(x, y)
     ys = slp .* xs .+ itc
     Linear(xs, ys)
 end
+
+struct Smooth{S, T}
+    x::Vector{S}
+    y::Vector{T}
+end
+
+convert_arguments(P::PlotFunc, l::Smooth) = PlotSpec{Lines}(Point2f0.(l.x,l.y))
+
+function smooth(x, y; length = 100, kwargs...)
+    model = loess(x, y; kwargs...)
+    min, max = extrema(x)
+    us = collect(range(min, stop = max, length = length))
+    vs = predict(model, us)
+    Smooth(us, vs)
+end
+
+smooth(; kwargs...) = (args...) -> smooth(args...; kwargs...)
