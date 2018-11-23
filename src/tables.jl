@@ -41,6 +41,12 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
+used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
+    Tuple(union((:colorrange,), used_attributes(P, f, args...)))
+
+used_attributes(P::PlotFunc, g::GoG, args...) =
+    Tuple(union((:colorrange,), used_attributes(P, args...)))
+
 function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
     style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
     convert_arguments(P, merge(f, style); kwargs...)
@@ -60,7 +66,7 @@ function normalize(s::Style)
     Style(g, args...; to_kwargs(s2)...)
 end
 
-function convert_arguments(P::PlotFunc, st::Style; kwargs...)
+function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
@@ -84,30 +90,39 @@ function convert_arguments(P::PlotFunc, st::Style; kwargs...)
 
     funcs = map(UniqueValues, cols)
 
-    function adapt(theme, i)
-        scales = map(key -> getscale(theme, key), names)
-        global_defaults!(theme, style)
-        attr = copy(theme)
-        row = t[i]
+    function row2plotspec(row)
+        plotspec = to_plotspec(P, convert_arguments(P, row.output...))
+        d = Dict{Symbol, Node}()
         for (ind, key) in enumerate(names)
-            val = getproperty(row, key)
-            attr[key] = lift(funcs[ind], scales[ind], to_node(val))
+            f = function (scale = nothing)
+                isscale(scale) || (scale = default_scales[key])
+                val = getproperty(row, key)
+                funcs[ind](scale, val)
+            end
+            d[key] = DelayedAttribute(f)
         end
         for (key, val) in node_pairs(pairs(to_kwargs(style)))
             if !(key in names)
-                attr[key] = lift(t -> view(t, row.rows), val)
+                d[key] = lift(t -> view(t, row.rows), val)
             end
         end
-        attr
+        to_plotspec(P, plotspec; d...)
     end
-    pl = PlotList(column(t, :output); transform_attributes = [theme -> adapt(theme, i) for i in 1:length(t)])
-    convert_arguments(P, pl)
+
+    series = map(row2plotspec, t)
+    pl = PlotList(series...)
+
+    col = get(to_kwargs(style), :color, nothing)
+    if colorrange === automatic && col isa AbstractVector{<:Real}
+        colorrange = extrema_nan(col)
+    end
+
+    PlotSpec{MultiplePlot}(pl, colorrange = colorrange)
 end
 
-function global_defaults!(theme::Theme, style)
-    col = to_node(get(to_kwargs(style), :color, nothing))
-    colrange = get(theme, :colorrange, automatic)
-    if to_value(col) isa AbstractVector{<:Real} && to_value(colrange) === automatic
-        theme[:colorrange] = lift(extrema_nan, col)
-    end
+struct DelayedAttribute
+    f::Function
 end
+
+combine(val, d::DelayedAttribute) = d.f(val)
+combine(d::DelayedAttribute) = d.f()

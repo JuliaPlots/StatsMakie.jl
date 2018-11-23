@@ -16,7 +16,7 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         range = 1.5,
         outliers = true,
         whisker_width = :match,
-        bar_width = 0.8,
+        width = 0.8,
         markershape = :circle,
         strokecolor = :black,
         strokewidth = 1.0,
@@ -29,7 +29,7 @@ _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
 function AbstractPlotting.plot!(plot::BoxPlot)
-    args = @extract plot (bar_width, range, outliers, whisker_width, notch)
+    args = @extract plot (width, range, outliers, whisker_width, notch)
 
     signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch
         glabels = sort(collect(unique(x)))
@@ -105,7 +105,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         plot,
         color = plot[:outliercolor],
         strokecolor = plot[:strokecolor],
-        markersize = lift(*, bar_width, 0.1),
+        markersize = lift(*, width, 0.1),
         strokewidth = plot[:strokewidth],
         outliers,
     )

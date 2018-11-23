@@ -3,7 +3,6 @@ using Test
 
 using Random: seed!
 using GeometryTypes: HyperRectangle
-using KernelDensity: kde
 using IndexedTables
 using Distributions
 
@@ -51,34 +50,34 @@ end
 
 @testset "density" begin
     v = randn(1000)
-    d = kde(v, bandwidth = 0.1)
+    d = density(v, bandwidth = 0.1)
     p1 = plot(d)
     p2 = lines(d.x, d.density)
     @test p1[end][1][] == p2[end][1][]
-    p3 = plot(kde, v, bandwidth = 0.1)
+    p3 = plot(density(bandwidth = 0.1), v)
     @test p3[end] isa Lines
     @test p3[end][1][] == p1[end][1][]
     x = randn(1000)
     y = randn(1000)
     v = (x, y)
-    d = kde(v, bandwidth = (0.1, 0.1))
+    d = density(v, bandwidth = (0.1, 0.1))
     p1 = heatmap(d)
     p2 = heatmap(d.x, d.y, d.density)
     @test p1[end][1][] == p2[end][1][]
-    p3 = plot(kde, v, bandwidth = (0.1, 0.1))
+    p3 = plot(density(bandwidth = (0.1, 0.1)), v)
     @test p3[end] isa Heatmap
     @test p3[end][1][] == p1[end][1][]
-    p4 = surface(kde, v, bandwidth = (0.1, 0.1))
+    p4 = surface(density(bandwidth = (0.1, 0.1)), v)
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
 
     t = table((x = x, y = y))
-    p5 = surface(kde, Data(t), (:x, :y), bandwidth = (0.1, 0.1))
+    p5 = surface(density(bandwidth = (0.1, 0.1)), Data(t), (:x, :y))
     plt = p5[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
 
-    p6 = surface(kde, Data(t), [:x :y], bandwidth = (0.1, 0.1))
+    p6 = surface(density(bandwidth = (0.1, 0.1)), Data(t), [:x :y])
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
@@ -102,6 +101,86 @@ end
 
     @test first.(plt[1][]) == 0:6
     @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
+end
+
+@testset "dodge" begin
+    a = [1, 2, 3, 4]
+    b = [1 11
+         2 12
+         3 13
+         4 14]
+    a_long = vcat(a, a)
+    b_long = vec(b)
+    c = [1, 1, 1, 1, 2, 2, 2, 2]
+
+    p1 = barplot(StatsMakie.dodge, a, b)
+    p2 = barplot(StatsMakie.dodge, b)
+    p3 = barplot(StatsMakie.stack, a, b)
+    p4 = barplot(StatsMakie.stack, Group(c), a_long, b_long)
+
+    @test p1[end][1][] isa PlotList
+    series = p1[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [0.8, 1.8, 2.8, 3.8]
+    @test series[2] == [1, 2, 3, 4]
+    @test series[:width] == 0.4
+
+    series = p1[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [1.2, 2.2, 3.2, 4.2]
+    @test series[2] == [11, 12, 13, 14]
+    @test series[:width] == 0.4
+
+    @test p2[end][1][] isa PlotList
+    series = p2[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [0.8, 1.8, 2.8, 3.8]
+    @test series[2] == [1, 2, 3, 4]
+    @test series[:width] == 0.4
+
+    series = p2[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [1.2, 2.2, 3.2, 4.2]
+    @test series[2] == [11, 12, 13, 14]
+    @test series[:width] == 0.4
+
+    @test p3[end][1][] isa PlotList
+    series = p3[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-1, -2, -3, -4]
+    @test series[:fillto] == [1, 2, 3, 4]
+    @test series[:width] == 0.8
+
+    series = p3[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-11, -12, -13, -14]
+    @test series[:fillto] == [12, 14, 16, 18]
+    @test series[:width] == 0.8
+
+    @test p4[end][1][] isa PlotList
+    series = p4[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-1, -2, -3, -4]
+    @test series[:fillto] == [1, 2, 3, 4]
+    @test series[:width] == 0.8
+
+    series = p4[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-11, -12, -13, -14]
+    @test series[:fillto] == [12, 14, 16, 18]
+    @test series[:width] == 0.8
 end
 
 @testset "group" begin
@@ -188,7 +267,7 @@ end
     @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
     @test plt[3][] == h.weights
 
-    p = surface(histogram, v, nbins = 30)
+    p = surface(histogram(nbins = 30), v)
     plt = p[end]
     @test plt isa Surface
     x = h.edges[1]

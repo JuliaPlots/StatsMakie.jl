@@ -28,12 +28,12 @@ Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
-combine(f1, f2) = (args...) -> f1(to_tuple(f2(args...))...)
-combine(f1, f2::typeof(tuple)) = f1
-combine(f1::typeof(tuple), f2) = f2
-combine(f1::typeof(tuple), f2::typeof(tuple)) = tuple
+combine_gog(f1, f2) = (args...) -> f1(to_tuple(f2(args...))...)
+combine_gog(f1, f2::typeof(tuple)) = f1
+combine_gog(f1::typeof(tuple), f2) = f2
+combine_gog(f1::typeof(tuple), f2::typeof(tuple)) = tuple
 
-Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), combine(g1.f, g2.f))
+Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), combine_gog(g1.f, g2.f))
 Base.merge(f::Function, g::Group) = merge(Group(f), g)
 Base.merge(g::Group, f::Function) = merge(g, Group(f))
 

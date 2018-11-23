@@ -16,7 +16,7 @@ convert_arguments(P::PlotFunc, dist::Distribution) = convert_arguments(P, suppor
 function convert_arguments(P::PlotFunc, x::Union{Interval, AbstractVector}, dist::Distribution)
     default_ptype = isdiscrete(dist) ? ScatterLines : Lines
     ptype = plottype(P, default_ptype)
-    ptype => convert_arguments(ptype, x, x -> pdf(dist, x))
+    to_plotspec(ptype, convert_arguments(ptype, x, x -> pdf(dist, x)))
 end
 #-----------------------------------------------------------------------------
 # qqplots (M. K. Borregaard implementation from StatPlots)
@@ -53,7 +53,7 @@ function convert_arguments(P::PlotFunc, h::QQPair; qqline = :identity)
         nothing
     end
     ptype = plottype(Scatter, P)
-    ptype => (h, line)
+    PlotSpec{ptype}(h, line)
 end
 
 used_attributes(::Type{<:QQNorm}, args...) = (:qqline,)
