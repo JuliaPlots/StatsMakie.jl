@@ -25,6 +25,7 @@ include("distribution.jl")
 include("corrplot.jl")
 include("boxplot.jl")
 include("violin.jl")
+include("smooth.jl")
 include("dodge.jl")
 
 end
