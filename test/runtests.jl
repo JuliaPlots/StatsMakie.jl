@@ -103,6 +103,86 @@ end
     @test last.(plt[1][]) ≈ pdf.(d, first.(plt[1][]))
 end
 
+@testset "dodge" begin
+    a = [1, 2, 3, 4]
+    b = [1 11
+         2 12
+         3 13
+         4 14]
+    a_long = vcat(a, a)
+    b_long = vec(b)
+    c = [1, 1, 1, 1, 2, 2, 2, 2]
+
+    p1 = barplot(StatsMakie.dodge, a, b)
+    p2 = barplot(StatsMakie.dodge, b)
+    p3 = barplot(StatsMakie.stack, a, b)
+    p4 = barplot(StatsMakie.stack, Group(c), a_long, b_long)
+
+    @test p1[end][1][] isa PlotList
+    series = p1[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [0.8, 1.8, 2.8, 3.8]
+    @test series[2] == [1, 2, 3, 4]
+    @test series[:width] == 0.4
+
+    series = p1[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [1.2, 2.2, 3.2, 4.2]
+    @test series[2] == [11, 12, 13, 14]
+    @test series[:width] == 0.4
+
+    @test p2[end][1][] isa PlotList
+    series = p2[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [0.8, 1.8, 2.8, 3.8]
+    @test series[2] == [1, 2, 3, 4]
+    @test series[:width] == 0.4
+
+    series = p2[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] ≈ [1.2, 2.2, 3.2, 4.2]
+    @test series[2] == [11, 12, 13, 14]
+    @test series[:width] == 0.4
+
+    @test p3[end][1][] isa PlotList
+    series = p3[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-1, -2, -3, -4]
+    @test series[:fillto] == [1, 2, 3, 4]
+    @test series[:width] == 0.8
+
+    series = p3[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-11, -12, -13, -14]
+    @test series[:fillto] == [12, 14, 16, 18]
+    @test series[:width] == 0.8
+
+    @test p4[end][1][] isa PlotList
+    series = p4[end][1][][1]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-1, -2, -3, -4]
+    @test series[:fillto] == [1, 2, 3, 4]
+    @test series[:width] == 0.8
+
+    series = p4[end][1][][2]
+    @test series isa PlotSpec
+    @test AbstractPlotting.plottype(series) <: BarPlot
+    @test series[1] == [1, 2, 3, 4]
+    @test series[2] == [-11, -12, -13, -14]
+    @test series[:fillto] == [12, 14, 16, 18]
+    @test series[:width] == 0.8
+end
+
 @testset "group" begin
     c = repeat(1:2, inner = 50)
     m = repeat(1:2, outer = 50)
