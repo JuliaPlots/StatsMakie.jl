@@ -13,6 +13,7 @@ using IntervalSets
 using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
+using Loess
 
 export Data, Group, Style
 
@@ -25,6 +26,7 @@ include("distribution.jl")
 include("corrplot.jl")
 include("boxplot.jl")
 include("violin.jl")
+include("smooth.jl")
 include("dodge.jl")
 
 end
