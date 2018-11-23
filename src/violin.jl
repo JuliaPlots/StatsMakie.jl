@@ -28,6 +28,5 @@ function plot!(plot::Violin)
         end
         return merge(meshes)
     end
-
-    mesh!(plot, bigmesh)
+    mesh!(plot, bigmesh, color = plot[:color], visible = plot[:visible])
 end

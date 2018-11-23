@@ -1,7 +1,8 @@
 const default_scales = Dict(
-    :color => AbstractPlotting.to_colormap(:Dark2),
-    :marker => collect(keys(AbstractPlotting._marker_map)),
+    :color => AbstractPlotting.to_colormap(:Dark2, 8),
+    :marker => [:circle, :xcross, :utriangle, :diamond, :dtriangle, :star6, :pentagon, :rect],
     :linestyle => [nothing, :dash, :dot, :dashdot, :dashdotdot],
+    :side => [:left, :right]
 )
 
 isscale(::Function) = true
