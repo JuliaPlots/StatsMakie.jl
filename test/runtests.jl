@@ -331,3 +331,12 @@ end
     @test last.(plt[1][]) ≈ ys rtol = 1e-6
 
 end
+
+@testest "violin" begin
+    x = repeat(1:4, 250)
+    y = x .+ randn.()
+    p = violin(x, y, side = :left, color = :blue)
+    @test p[end] isa Violin
+    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1][:color][] == :blue
+end
