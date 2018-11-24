@@ -14,7 +14,7 @@ using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 using Loess
-using NamedArrays
+using NamedArrays: NamedArray
 
 export Data, Group, Style
 
