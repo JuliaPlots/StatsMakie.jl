@@ -1,14 +1,15 @@
-struct Enumerator{E<:Enum}
+struct Enumerator{E<:Enum, N<:NamedTuple}
     enum::Type{E}
-    instances::OrderedDict{Symbol, E}
+    instances::N
     function Enumerator(e::Type{E}) where {E<:Enum}
-        inst = OrderedDict{Symbol, E}(Symbol(i) => i for i in instances(e))
-        new{E}(e, inst)
+        inst = instances(e)
+        nt = NamedTuple{map(Symbol, inst)}(inst)
+        new{E, typeof(nt)}(e, nt)
     end
 end
 
-Base.getproperty(en::Enumerator, s::Symbol) = getindex(getfield(en, :instances), s)
-Base.propertynames(en::Enumerator) = Tuple(keys(getfield(en, :instances)))
+Base.getproperty(en::Enumerator, s::Symbol) = getproperty(getfield(en, :instances), s)
+Base.propertynames(en::Enumerator) = propertynames(getfield(en, :instances))
 
 @enum Position superimpose dodge stack
 

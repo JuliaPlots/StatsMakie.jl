@@ -14,7 +14,6 @@ using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 using Loess
-using OrderedCollections
 
 export Data, Group, Style
 export position
