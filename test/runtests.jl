@@ -5,6 +5,7 @@ using Random: seed!
 using GeometryTypes: HyperRectangle
 using IndexedTables
 using Distributions
+using FreqTables
 
 seed!(0)
 
@@ -288,6 +289,17 @@ end
     @test plt[2][] ≈ y[1:end-1] .+ step(y)/2
     @test plt[3][] ≈ z[1:end-1] .+ step(z)/2
     @test plt[4][] == h.weights
+end
+
+@testset "named" begin
+    v = rand(1:3, 1000)
+    p = plot(freqtable, v)
+    n1 = count(==(1), v)
+    n2 = count(==(2), v)
+    n3 = count(==(3), v)
+    @test p[end] isa BarPlot
+    @test p[end][1][] == [1, 2, 3]
+    @test p[end][2][] == [n1, n2, n3]
 end
 
 @testset "qqplot" begin

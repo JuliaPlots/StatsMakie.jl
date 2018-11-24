@@ -14,6 +14,7 @@ using Tables, IndexedTables
 using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 using Loess
+using NamedArrays: NamedArray
 
 export Data, Group, Style
 
@@ -27,6 +28,7 @@ include("corrplot.jl")
 include("boxplot.jl")
 include("violin.jl")
 include("smooth.jl")
+include("namedarray.jl")
 include("dodge.jl")
 
 end
