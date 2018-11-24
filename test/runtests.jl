@@ -113,10 +113,10 @@ end
     b_long = vec(b)
     c = [1, 1, 1, 1, 2, 2, 2, 2]
 
-    p1 = barplot(barposition.dodge, a, b)
-    p2 = barplot(barposition.dodge, b)
-    p3 = barplot(barposition.stack, a, b)
-    p4 = barplot(barposition.stack, Group(c), a_long, b_long)
+    p1 = barplot(position.dodge, a, b)
+    p2 = barplot(position.dodge, b)
+    p3 = barplot(position.stack, a, b)
+    p4 = barplot(position.stack, Group(c), a_long, b_long)
 
     @test p1[end][1][] isa PlotList
     series = p1[end][1][][1]

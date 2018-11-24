@@ -17,7 +17,7 @@ using Loess
 using OrderedCollections
 
 export Data, Group, Style
-export barposition
+export position
 
 include("scales.jl")
 include("group.jl")
