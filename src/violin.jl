@@ -33,6 +33,6 @@ function plot!(plot::Violin)
         end
         return polys, lines
     end
-    ploy!(plot, lift(first, signals), color = plot[:color], visible = plot[:visible])
+    poly!(plot, lift(first, signals), color = plot[:color], visible = plot[:visible])
     linesegments!(plot, lift(last, signals), color = plot[:linecolor], visible = plot[:show_median])
 end
