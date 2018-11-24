@@ -1,4 +1,18 @@
+struct Enumerator{E<:Enum}
+    enum::Type{E}
+    instances::OrderedDict{Symbol, E}
+    function Enumerator(e::Type{E}) where {E<:Enum}
+        inst = OrderedDict{Symbol, E}(Symbol(i) => i for i in instances(e))
+        new{E}(e, inst)
+    end
+end
+
+Base.getproperty(en::Enumerator, s::Symbol) = getindex(getfield(en, :instances), s)
+Base.propertynames(en::Enumerator) = Tuple(keys(getfield(en, :instances)))
+
 @enum BarPosition superimpose dodge stack
+
+const barposition = Enumerator(BarPosition)
 
 used_attributes(P::PlotFunc, p::BarPosition, args...) =
     Tuple(union((:width, :space), used_attributes(P, args...)))
