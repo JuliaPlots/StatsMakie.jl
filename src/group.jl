@@ -9,6 +9,13 @@ function UniqueValues(col, s = unique(sort(col)))
     UniqueValues(col, s, value2index)
 end
 
+function (cs::UniqueValues)(s, el)
+    scale = to_scale(s)
+    @assert scale !== nothing
+    @assert typeof(scale) !== typeof(s)
+    cs(scale, el)
+end
+
 (cs::UniqueValues)(scale::Function, el) = scale(el)
 
 function (cs::UniqueValues)(scale::AbstractArray, el)
