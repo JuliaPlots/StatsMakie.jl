@@ -95,9 +95,10 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
         d = Dict{Symbol, Node}()
         for (ind, key) in enumerate(names)
             f = function (scale = nothing)
-                isscale(scale) || (scale = default_scales[key])
+                def = get(default_scales, key, nothing)
+                s = something(to_scale(scale), def)
                 val = getproperty(row, key)
-                funcs[ind](scale, val)
+                funcs[ind](s, val)
             end
             d[key] = DelayedAttribute(f)
         end
