@@ -66,6 +66,36 @@ function normalize(s::Style)
     Style(g, args...; to_kwargs(s2)...)
 end
 
+struct TraceSpec{N<:NamedTuple, T<:Tuple}
+    primary::N
+    idxs::Vector{Int}
+    output::T
+end
+
+TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
+    TraceSpec(p, convert(Vector{Int}, idxs), output)
+
+function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
+    plotspec = to_plotspec(P, convert_arguments(P, g.output...))
+    names = propertynames(g.primary)
+    d = Dict{Symbol, Node}()
+    for (ind, key) in enumerate(names)
+        f = function (scale = nothing)
+            def = get(default_scales, key, nothing)
+            s = something(to_scale(scale), def)
+            val = getproperty(g.primary, key)
+            uniquevalues[ind](s, val)
+        end
+        d[key] = DelayedAttribute(f)
+    end
+    for (key, val) in node_pairs(kwargs)
+        if !(key in names)
+            d[key] = lift(t -> view(t, g.idxs), val)
+        end
+    end
+    to_plotspec(P, plotspec; d...)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     g_args = to_args(style)
@@ -74,10 +104,9 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     f = g.f
     names = colnames(g)
     cols = columns(g)
-    len = length(g)
     vec_args = map(object2vec, args)
+    len = length(g)
     len == 0 && (len = length(vec_args[1]))
-    funcs = map(UniqueValues, cols)
     coltable = table(1:len, cols..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
 
@@ -86,31 +115,16 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
         out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
         tup = (rows = idxs, output = out)
     end
-    (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
-
-    funcs = map(UniqueValues, cols)
-
-    function row2plotspec(row)
-        plotspec = to_plotspec(P, convert_arguments(P, row.output...))
-        d = Dict{Symbol, Node}()
-        for (ind, key) in enumerate(names)
-            f = function (scale = nothing)
-                def = get(default_scales, key, nothing)
-                s = something(to_scale(scale), def)
-                val = getproperty(row, key)
-                funcs[ind](s, val)
-            end
-            d[key] = DelayedAttribute(f)
-        end
-        for (key, val) in node_pairs(pairs(to_kwargs(style)))
-            if !(key in names)
-                d[key] = lift(t -> view(t, row.rows), val)
-            end
-        end
-        to_plotspec(P, plotspec; d...)
+    if (t isa NamedTuple)
+        t = table((row = [1], rows = [t.rows], output = [t.output]))
+        primary = fill(NamedTuple(), 1)
+    else
+        primary = rows(t, Keys())
     end
-
-    series = map(row2plotspec, t)
+    idxs, output = columns(t, (:rows, :output))
+    traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
+    uniquevalues = map(UniqueValues, cols)
+    series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
     col = get(to_kwargs(style), :color, nothing)
