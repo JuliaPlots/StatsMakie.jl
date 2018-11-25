@@ -1,5 +1,5 @@
 module Position
-    @enum Arrange superimpose dodge stack
+    @enum Arrangement superimpose dodge stack
 end
 
 used_attributes(P::PlotFunc, p::Position.Arrange, args...) =
