@@ -2,10 +2,10 @@ module Position
     @enum Arrangement superimpose dodge stack
 end
 
-used_attributes(P::PlotFunc, p::Position.Arrange, args...) =
+used_attributes(P::PlotFunc, p::Position.Arrangement, args...) =
     Tuple(union((:width, :space), used_attributes(P, args...)))
 
-function convert_arguments(P::PlotFunc, p::Position.Arrange, args...;
+function convert_arguments(P::PlotFunc, p::Position.Arrangement, args...;
     width = automatic, space = 0.2, kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, args...; kwargs...))
     ptype = plottype(plotspec)
@@ -24,7 +24,7 @@ end
 
 series2matrix(x, xs, ys) = hcat((adjust_to_x(x, x′, y′) for (x′, y′) in zip(xs, ys))...)
 
-function convert_arguments(P::PlotFunc, p::Position.Arrange, pl::PlotList; width = automatic, space = 0.2)
+function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; width = automatic, space = 0.2)
     xs_input = (ps[1] for ps in pl)
     ys_input = (ps[2] for ps in pl)
     n = length(pl)
@@ -61,10 +61,10 @@ function convert_arguments(P::PlotFunc, p::Position.Arrange, pl::PlotList; width
     PlotSpec{MultiplePlot}(PlotList(plts...))
 end
 
-convert_arguments(P::PlotFunc, p::Position.Arrange, y::AbstractMatrix; kwargs...) =
+convert_arguments(P::PlotFunc, p::Position.Arrangement, y::AbstractMatrix; kwargs...) =
     convert_arguments(P, p, 1:size(y, 1), y; kwargs...)
 
-function convert_arguments(P::PlotFunc, p::Position.Arrange, x::AbstractVector, y::AbstractMatrix;
+function convert_arguments(P::PlotFunc, p::Position.Arrangement, x::AbstractVector, y::AbstractMatrix;
     width = automatic, space = 0.2)
 
     n = size(y, 2)
