@@ -17,6 +17,7 @@ using Loess
 using NamedArrays: NamedArray
 
 export Data, Group, Style
+export Position
 
 include("scales.jl")
 include("group.jl")

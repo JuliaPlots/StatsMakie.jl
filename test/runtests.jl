@@ -114,10 +114,10 @@ end
     b_long = vec(b)
     c = [1, 1, 1, 1, 2, 2, 2, 2]
 
-    p1 = barplot(StatsMakie.dodge, a, b)
-    p2 = barplot(StatsMakie.dodge, b)
-    p3 = barplot(StatsMakie.stack, a, b)
-    p4 = barplot(StatsMakie.stack, Group(c), a_long, b_long)
+    p1 = barplot(Position.dodge, a, b)
+    p2 = barplot(Position.dodge, b)
+    p3 = barplot(Position.stack, a, b)
+    p4 = barplot(Position.stack, Group(c), a_long, b_long)
 
     @test p1[end][1][] isa PlotList
     series = p1[end][1][][1]
