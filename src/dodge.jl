@@ -29,7 +29,7 @@ function convert_arguments(P::PlotFunc, p::Position.Arrange, pl::PlotList; width
     ys_input = (ps[2] for ps in pl)
     n = length(pl)
     ft = automatic
-    if p === superimpose
+    if p === Position.superimpose
         w = width
         xs, ys = xs_input, ys_input
     else
@@ -37,7 +37,7 @@ function convert_arguments(P::PlotFunc, p::Position.Arrange, pl::PlotList; width
         x = all(t -> t === x1, xs_input) ? x1 : vcat(xs_input...)
         unique_x = unique(sort(x))
         barwidth = width === automatic ? minimum(diff(unique_x))*(1-space) : width
-        if p === dodge
+        if p === Position.dodge
             w = barwidth/n
             xs = (x .+ i*w .- w*(n+1)/2 for (i, x) in enumerate(xs_input))
             ys = ys_input
