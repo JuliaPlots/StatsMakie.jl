@@ -77,7 +77,7 @@ TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
 
 function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, g.output...))
-    names = propertynames(g.primary)[2:end]
+    names = propertynames(g.primary)
     d = Dict{Symbol, Node}()
     for (ind, key) in enumerate(names)
         f = function (scale = nothing)
@@ -115,8 +115,12 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
         out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
         tup = (rows = idxs, output = out)
     end
-    (t isa NamedTuple) && (t = table((row = [1], rows = [t.rows], output = [t.output]), pkey = :row))
-    primary = rows(t, Keys())
+    if (t isa NamedTuple)
+        t = table((row = [1], rows = [t.rows], output = [t.output]))
+        primary = fill((), 1)
+    else
+        primary = rows(t, Keys())
+    end
     idxs, output = columns(t, (:rows, :output))
     traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
     uniquevalues = map(UniqueValues, cols)
