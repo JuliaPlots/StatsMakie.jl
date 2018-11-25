@@ -66,6 +66,36 @@ function normalize(s::Style)
     Style(g, args...; to_kwargs(s2)...)
 end
 
+struct TraceSpec{N<:NamedTuple, T<:Tuple}
+    primary::N
+    idxs::Vector{Int}
+    output::T
+end
+
+TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
+    TraceSpec(p, convert(Vector{Int}, idxs), output)
+
+function to_plotspec(P::PlotFunc, g::TraceSpec, funcs; kwargs...)
+    plotspec = to_plotspec(P, convert_arguments(P, g.output...))
+    names = propertynames(g.primary)
+    d = Dict{Symbol, Node}()
+    for (ind, key) in enumerate(names)
+        f = function (scale = nothing)
+            def = get(default_scales, key, nothing)
+            s = something(to_scale(scale), def)
+            val = getproperty(g.primary, key)
+            funcs[ind](s, val)
+        end
+        d[key] = DelayedAttribute(f)
+    end
+    for (key, val) in node_pairs(kwargs)
+        if !(key in names)
+            d[key] = lift(t -> view(t, g.idxs), val)
+        end
+    end
+    to_plotspec(P, plotspec; d...)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     g_args = to_args(style)
@@ -88,29 +118,11 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     end
     (t isa NamedTuple) && (t = table((rows = [t.rows], output = [t.output])))
 
+    primary = rows(t, names)
+    idxs, output = columns(t, (:rows, :output))
+    traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
     funcs = map(UniqueValues, cols)
-
-    function row2plotspec(row)
-        plotspec = to_plotspec(P, convert_arguments(P, row.output...))
-        d = Dict{Symbol, Node}()
-        for (ind, key) in enumerate(names)
-            f = function (scale = nothing)
-                def = get(default_scales, key, nothing)
-                s = something(to_scale(scale), def)
-                val = getproperty(row, key)
-                funcs[ind](s, val)
-            end
-            d[key] = DelayedAttribute(f)
-        end
-        for (key, val) in node_pairs(pairs(to_kwargs(style)))
-            if !(key in names)
-                d[key] = lift(t -> view(t, row.rows), val)
-            end
-        end
-        to_plotspec(P, plotspec; d...)
-    end
-
-    series = map(row2plotspec, t)
+    series = (to_plotspec(P, trace, funcs; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
     col = get(to_kwargs(style), :color, nothing)
