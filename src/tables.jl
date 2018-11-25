@@ -117,7 +117,7 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     end
     if (t isa NamedTuple)
         t = table((row = [1], rows = [t.rows], output = [t.output]))
-        primary = fill((), 1)
+        primary = fill(NamedTuple(), 1)
     else
         primary = rows(t, Keys())
     end
