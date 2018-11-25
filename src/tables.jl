@@ -75,7 +75,7 @@ end
 TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
     TraceSpec(p, convert(Vector{Int}, idxs), output)
 
-function to_plotspec(P::PlotFunc, g::TraceSpec, funcs; kwargs...)
+function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, g.output...))
     names = propertynames(g.primary)
     d = Dict{Symbol, Node}()
@@ -84,7 +84,7 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, funcs; kwargs...)
             def = get(default_scales, key, nothing)
             s = something(to_scale(scale), def)
             val = getproperty(g.primary, key)
-            funcs[ind](s, val)
+            uniquevalues[ind](s, val)
         end
         d[key] = DelayedAttribute(f)
     end
@@ -104,10 +104,9 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     f = g.f
     names = colnames(g)
     cols = columns(g)
-    len = length(g)
     vec_args = map(object2vec, args)
+    len = length(g)
     len == 0 && (len = length(vec_args[1]))
-    funcs = map(UniqueValues, cols)
     coltable = table(1:len, cols..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
 
@@ -121,8 +120,8 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     primary = rows(t, names)
     idxs, output = columns(t, (:rows, :output))
     traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
-    funcs = map(UniqueValues, cols)
-    series = (to_plotspec(P, trace, funcs; to_kwargs(style)...) for trace in traces)
+    uniquevalues = map(UniqueValues, cols)
+    series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
     col = get(to_kwargs(style), :color, nothing)
