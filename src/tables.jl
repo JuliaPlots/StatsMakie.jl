@@ -96,19 +96,27 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     to_plotspec(P, plotspec; d...)
 end
 
-function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
-    style = normalize(st)
+# convert a normalized style to a table
+function to_table(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
     f = g.f
     names = colnames(g)
-    cols = columns(g)
     vec_args = map(object2vec, args)
     len = length(g)
     len == 0 && (len = length(vec_args[1]))
-    coltable = table(1:len, cols..., vec_args...;
+    t = table(1:len, columns(g)..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+end
+
+function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
+    style = normalize(st)
+    grp = to_args(style)[1]
+    f = grp.f
+    names = colnames(grp)
+    coltable = to_table(style)
+    cols = columns(coltable, names)
 
     t = groupby(coltable, names, usekey = true) do key, dd
         idxs = column(dd, :row)
