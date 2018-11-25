@@ -1,11 +1,20 @@
 #=
-Color scheme taken from https://github.com/mkborregaard/MakieThemes.jl
-The MakieThemes.jl package is licensed under the GNU Public License:
-    Copyright (c) 2018: Michael Krabbe Borregaard.
+Conservative 7-color palette from Points of view: Color blindness, Bang Wong - Nature Methods
+https://www.nature.com/articles/nmeth.1618?WT.ec_id=NMETH-201106
 =#
 
+const conservative_colors = [
+    AbstractPlotting.RGB(230/255, 159/255, 0/255),
+    AbstractPlotting.RGB(86/255, 180/255, 233/255),
+    AbstractPlotting.RGB(0/255, 158/255, 115/255),
+    AbstractPlotting.RGB(240/255, 228/255, 66/255),
+    AbstractPlotting.RGB(0/255, 114/255, 178/255),
+    AbstractPlotting.RGB(213/255, 94/255, 0/255),
+    AbstractPlotting.RGB(204/255, 121/255, 167/255),
+]
+
 const default_scales = Dict(
-    :color => ["#9b3950", "#f79b57", "#6b3241", "#e65e62", "#9e7587", "#4C8659", "#6B6C69", "#0b0e0a"],
+    :color => conservative_colors,
     :marker => [:circle, :xcross, :utriangle, :diamond, :dtriangle, :star8, :pentagon, :rect],
     :linestyle => [nothing, :dash, :dot, :dashdot, :dashdotdot],
     :side => [:left, :right]
