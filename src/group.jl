@@ -35,6 +35,9 @@ Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 
+struct Colwise end
+const colwise = Colwise()
+
 combine_gog(f1, f2) = (args...) -> f1(to_tuple(f2(args...))...)
 combine_gog(f1, f2::typeof(tuple)) = f1
 combine_gog(f1::typeof(tuple), f2) = f2
