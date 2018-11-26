@@ -110,12 +110,15 @@ end
 function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
-    N = length(args)
-    names = colnames(g)
+    to_traces(args...; columns(g)...)
+end
+
+function to_traces(args::Vararg{Any, N}; kwargs...) where {N}
+    pcols = values(kwargs)
+    names = propertynames(pcols)
     vec_args = map(object2vec, args)
-    len = length(g)
-    len == 0 && (len = length(vec_args[1]))
-    t = table(1:len, columns(g)..., vec_args...;
+    len = length(vec_args[1])
+    t = table(1:len, pcols..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
     traces = TraceSpec[]
     groupby(t, names, usekey = true) do key, dd
