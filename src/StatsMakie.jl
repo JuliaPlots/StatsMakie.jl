@@ -18,7 +18,7 @@ using NamedArrays: NamedArray
 
 export Data, Group, Style
 export Position
-export colwise
+export bycolumn
 
 include("scales.jl")
 include("group.jl")
