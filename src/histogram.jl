@@ -9,11 +9,15 @@ function convert_arguments(P::Type{<:AbstractPlot}, h::StatsBase.Histogram{<:Any
     to_plotspec(ptype, convert_arguments(ptype, map(f, h.edges)..., Float64.(h.weights)); kwargs...)
 end
 
-function  histogram(args...; edges = automatic, kwargs...)
+to_weights(v) = StatsBase.weights(v)
+to_weights(v::StatsBase.AbstractWeights) = v
+
+function  histogram(args...; edges = automatic, weights = automatic, kwargs...)
     ea = edges === automatic ? () : (edges,)
     n = length(args)
     nw = args[n] isa StatsBase.AbstractWeights ? n : n+1
     ha, wa = args[1:(nw-1)], args[nw:n]
+    isempty(wa) && (weights !== automatic) && (wa = (to_weights(weights),))
     length(ha) == 1 && (ha = ha[1])
     fit(StatsBase.Histogram, ha, wa..., ea...; kwargs...)
 end
