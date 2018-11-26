@@ -81,7 +81,7 @@ TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
 TraceSpec(::Tuple{}, args...) = TraceSpec(NamedTuple(), args...)
 
 function map_traces(f, traces::AbstractArray{<:TraceSpec})
-    ft = TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...))
+    ft = trace -> TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...)))
     map(ft, traces)
 end
 
