@@ -309,7 +309,7 @@ end
 
     w = rand(1000)
     h = fit(Histogram, v, weights(w), nbins = 30)
-    p = surface(histogram(nbins = 30), v..., weights(w))
+    p = surface(histogram(nbins = 30), v..., w => :weights)
     plt = p[end]
     @test plt isa Surface
     x = h.edges[1]

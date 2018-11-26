@@ -70,3 +70,5 @@ function extract_view(v::AbstractArray, idxs, n)
     c = CartesianIndices(ax)[n]
     view(v, idxs, Tuple(c)...)
 end
+
+extract_view(v::Pair{<:Any, Symbol}, args...) = extract_view(first(v), args...) => last(v)

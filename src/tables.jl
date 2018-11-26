@@ -20,6 +20,13 @@ Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
+function apply_keywords(f, args...; kwargs...)
+    new_args = (arg for arg in args if !(arg isa Pair{<:Any, Symbol}))
+    new_kwargs = (reverse(arg) for arg in args if (arg isa Pair{<:Any, Symbol}))
+    f(new_args...; kwargs..., new_kwargs...)
+end
+
+extract_column(t, c::Pair{<:Any, Symbol}) = extract_column(t, first(c)) => last(c)
 extract_column(t, c::Colwise) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)

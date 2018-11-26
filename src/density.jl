@@ -10,8 +10,7 @@ function convert_arguments(P::PlotFunc, d::KernelDensity.BivariateKDE)
     to_plotspec(ptype, convert_arguments(ptype, d.x, d.y, d.density))
 end
 
-density(x; kwargs...) = kde(x; kwargs...)
-density(x, w::StatsBase.AbstractWeights; kwargs...) = kde(x; weights = w, kwargs...)
-density(x, y; kwargs...) = kde((x, y); kwargs...)
-density(x, y, w::StatsBase.AbstractWeights; kwargs...) = kde((x, y); weights = w, kwargs...)
+_density(x; kwargs...) = kde(x; kwargs...)
+_density(x, y; kwargs...) = kde((x, y); kwargs...)
+density(args...; kwargs...) = apply_keywords(_density, args...; kwargs...)
 density(; kwargs...) = (args...) -> density(args...; kwargs...)

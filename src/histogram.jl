@@ -12,14 +12,12 @@ end
 to_weights(v) = StatsBase.weights(v)
 to_weights(v::StatsBase.AbstractWeights) = v
 
-function  histogram(args...; edges = automatic, weights = automatic, kwargs...)
+function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
     ea = edges === automatic ? () : (edges,)
-    n = length(args)
-    nw = args[n] isa StatsBase.AbstractWeights ? n : n+1
-    ha, wa = args[1:(nw-1)], args[nw:n]
-    isempty(wa) && (weights !== automatic) && (wa = (to_weights(weights),))
-    length(ha) == 1 && (ha = ha[1])
+    wa = weights === automatic ? () : (to_weights(weights),)
+    ha = length(args) == 1 ? args[1] : args
     fit(StatsBase.Histogram, ha, wa..., ea...; kwargs...)
 end
 
+histogram(args...; kwargs...) = apply_keywords(_histogram, args...; kwargs...)
 histogram(; kwargs...) = (args...) -> histogram(args...; kwargs...)
