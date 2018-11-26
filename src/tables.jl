@@ -20,7 +20,6 @@ Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
-extract_column(t, c::Pair{<:Any, Symbol}) = extract_column(t, first(c)) => last(c)
 extract_column(t, c::Colwise) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
@@ -81,17 +80,8 @@ TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
 
 TraceSpec(::Tuple{}, args...) = TraceSpec(NamedTuple(), args...)
 
-function apply_keywords(f, input::Tuple)
-    args = (t for t in input if !(t isa Pair{<:Any, Symbol}))
-    kwargs = (reverse(t) for t in input if (t isa Pair{<:Any, Symbol}))
-    f(args...; kwargs...)
-end
-
 function map_traces(f, traces::AbstractArray{<:TraceSpec})
-    ft = function (trace)
-        res = to_tuple(apply_keywords(f, trace.output))
-        TraceSpec(trace.primary, trace.idxs, res)
-    end
+    ft = TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...))
     map(ft, traces)
 end
 

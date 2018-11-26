@@ -11,5 +11,7 @@ function convert_arguments(P::PlotFunc, d::KernelDensity.BivariateKDE)
 end
 
 density(x; kwargs...) = kde(x; kwargs...)
+density(x, w::StatsBase.AbstractWeights; kwargs...) = kde(x; weights = w, kwargs...)
 density(x, y; kwargs...) = kde((x, y); kwargs...)
+density(x, y, w::StatsBase.AbstractWeights; kwargs...) = kde((x, y); weights = w, kwargs...)
 density(; kwargs...) = (args...) -> density(args...; kwargs...)
