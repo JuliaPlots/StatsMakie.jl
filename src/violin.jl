@@ -32,7 +32,7 @@ function plot!(plot::Violin)
             median_right = Point2f0(vside == :left ? row.x : row.x+(0.4*bw), row.median)
             push!(lines, median_left => median_right)
         end
-        return merge(meshes), lines
+        return meshes, lines
     end
     mesh!(plot, lift(first, signals), color = plot[:color], visible = plot[:visible])
     linesegments!(plot, lift(last, signals), color = plot[:linecolor], visible = plot[:show_median])
