@@ -42,6 +42,8 @@ to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
 
+to_function(s::Style) = to_args(s)[1].f
+
 used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
     Tuple(union((:colorrange,), used_attributes(P, f, args...)))
 
@@ -104,12 +106,11 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     to_plotspec(P, plotspec; d...)
 end
 
-# convert a normalized style to a table
+# convert a normalized style to a vector of TraceSpec
 function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
-    f = g.f
     names = colnames(g)
     vec_args = map(object2vec, args)
     len = length(g)
@@ -127,9 +128,7 @@ end
 
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
-    grp = to_args(style)[1]
-    f = grp.f
-    traces = map_traces(f, to_traces(style))
+    traces = map_traces(to_function(style), to_traces(style))
 
     cols = collect_columns(trace.primary for trace in traces)
     uniquevalues = map(UniqueValues, columns(cols))
