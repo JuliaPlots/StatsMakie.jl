@@ -113,18 +113,27 @@ function to_traces(style::Style)
     to_traces(args...; columns(g)...)
 end
 
-function to_traces(args::Vararg{Any, N}; kwargs...) where {N}
-    pcols = values(kwargs)
+function to_traces(args...; kwargs...)
+    len = column_length(args[1])
+    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
     names = propertynames(pcols)
-    vec_args = map(object2vec, args)
-    len = length(vec_args[1])
-    t = table(1:len, pcols..., vec_args...;
-        names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+
+    rowname = gensym()
+    t = table(pcols..., 1:len; names = [names..., rowname], pkey = names)
+
     traces = TraceSpec[]
-    groupby(t, names, usekey = true) do key, dd
-        idxs = column(dd, :row)
-        output = map(vec2object, columns(dd, Not(:row)))
-        push!(traces, TraceSpec(key, idxs, Tuple(output)))
+    groupby(t, usekey = true, select = rowname) do key, idxs
+        if any(x -> isa(x, Colwise), key)
+            m = maximum(width, args)
+            for i in 1:m
+                output = map(x -> extract_view(x, idxs, i), args)
+                new_key = map(x -> x isa Colwise ? i : x, key)
+                push!(traces, TraceSpec(new_key, idxs, Tuple(output)))
+            end
+        else
+            output =  map(x -> extract_view(x, idxs), args)
+            push!(traces, TraceSpec(key, idxs, Tuple(output)))
+        end
     end
     traces
 end

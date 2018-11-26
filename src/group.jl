@@ -38,6 +38,8 @@ IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
 struct Colwise end
 const colwise = Colwise()
 
+Base.isless(::Colwise, ::Colwise) = false
+
 combine_gog(f1, f2) = (args...) -> f1(to_tuple(f2(args...))...)
 combine_gog(f1, f2::typeof(tuple)) = f1
 combine_gog(f1::typeof(tuple), f2) = f2
@@ -49,30 +51,22 @@ Base.merge(g::Group, f::Function) = merge(g, Group(f))
 
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
-function Base.length(grp::Group)
-    cols = grp.columns
-    isempty(cols) ? 0 : length(cols[1])
+width(v::Union{Tuple, NamedTuple}) = length(v)
+width(v::AbstractVector) = 1
+width(v::AbstractArray) = mapreduce(length, *, axes(v)[2:end])
+
+column_length(v::Union{Tuple, NamedTuple}) = column_length(v[1])
+column_length(v::AbstractVector) = length(v)
+column_length(v::AbstractArray) = length(axes(v)[1])
+
+extract_view(v::Union{Tuple, NamedTuple}, idxs) = map(x -> extract_view(x, idxs), Tuple(v))
+extract_view(v::AbstractVector, idxs) = view(v, idxs)
+extract_view(v::AbstractArray, idxs) = view(v, idxs, axes(v)[2:end]...)
+
+extract_view(v::Union{Tuple, NamedTuple}, idxs, n) = extract_view(v[n], idxs)
+extract_view(v::AbstractVector, idxs, n) = view(v, idxs)
+function extract_view(v::AbstractArray, idxs, n)
+    ax = axes(v)[2:end]
+    c = CartesianIndices(ax)[n]
+    view(v, idxs, Tuple(c)...)
 end
-
-to_pair(P, t) = P => t
-to_pair(P, p::Pair) = to_pair(plottype(P, first(p)), last(p))
-
-
-struct ViewVector{T, A <: AbstractArray{T}} <: AbstractVector{T}
-    w::A
-    ViewVector(w::AbstractArray{T, M}) where {T, M} = new{T, typeof(w)}(w)
-end
-
-Base.size(v::ViewVector) = size(v.w)[1:1]
-Base.getindex(v::ViewVector, i) = Base.getindex(v.w, i, axes(v.w)[2:end]...)
-
-Base.view(v::ViewVector, i) = ViewVector(Base.view(v.w, i, axes(v.w)[2:end]...))
-
-
-vec2object(x::Columns) = Tuple(columns(x))
-vec2object(x) = x
-vec2object(v::ViewVector) = v.w
-
-object2vec(v::Union{Tuple, NamedTuple}) = Columns(v)
-object2vec(v::AbstractVector) = v
-object2vec(v::AbstractArray) = ViewVector(v)
