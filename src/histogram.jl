@@ -9,5 +9,11 @@ function convert_arguments(P::Type{<:AbstractPlot}, h::StatsBase.Histogram{<:Any
     to_plotspec(ptype, convert_arguments(ptype, map(f, h.edges)..., Float64.(h.weights)); kwargs...)
 end
 
-histogram(args...; kwargs...) = fit(StatsBase.Histogram, args...; kwargs...)
+function  histogram(args...; edges = automatic, weights = automatic, kwargs...)
+    attr = Dict{Symbol, Any}()
+    edges !== automatic && (attr[:edges] = edges)
+    weights !== automatic && (attr[:weights] = StatsBase.weights(weights))
+    fit(StatsBase.Histogram, args; attr..., kwargs...)
+end
+
 histogram(; kwargs...) = (args...) -> histogram(args...; kwargs...)
