@@ -13,7 +13,8 @@ function  histogram(args...; edges = automatic, weights = automatic, kwargs...)
     attr = Dict{Symbol, Any}()
     edges !== automatic && (attr[:edges] = edges)
     weights !== automatic && (attr[:weights] = StatsBase.weights(weights))
-    fit(StatsBase.Histogram, args; attr..., kwargs...)
+    ha = length(args) > 1 ? args : args[1]
+    fit(StatsBase.Histogram, ha; attr..., kwargs...)
 end
 
 histogram(; kwargs...) = (args...) -> histogram(args...; kwargs...)
