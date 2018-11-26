@@ -20,6 +20,7 @@ Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
+extract_column(t, c::Colwise) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
 extract_column(t, col::AbstractArray) =
@@ -75,6 +76,13 @@ end
 TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
     TraceSpec(p, convert(Vector{Int}, idxs), output)
 
+TraceSpec(::Tuple{}, args...) = TraceSpec(NamedTuple(), args...)
+
+function map_traces(f, traces::AbstractArray{<:TraceSpec})
+    ft = trace -> TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...)))
+    map(ft, traces)
+end
+
 function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, g.output...))
     names = propertynames(g.primary)
@@ -97,7 +105,7 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
 end
 
 # convert a normalized style to a table
-function to_table(style::Style)
+function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
     N = length(args)
@@ -108,30 +116,23 @@ function to_table(style::Style)
     len == 0 && (len = length(vec_args[1]))
     t = table(1:len, columns(g)..., vec_args...;
         names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+    traces = TraceSpec[]
+    groupby(t, names, usekey = true) do key, dd
+        idxs = column(dd, :row)
+        output = map(vec2object, columns(dd, Not(:row)))
+        push!(traces, TraceSpec(key, idxs, Tuple(output)))
+    end
+    traces
 end
 
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     grp = to_args(style)[1]
     f = grp.f
-    names = colnames(grp)
-    coltable = to_table(style)
-    cols = columns(coltable, names)
+    traces = map_traces(f, to_traces(style))
 
-    t = groupby(coltable, names, usekey = true) do key, dd
-        idxs = column(dd, :row)
-        out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
-        tup = (rows = idxs, output = out)
-    end
-    if (t isa NamedTuple)
-        t = table((row = [1], rows = [t.rows], output = [t.output]))
-        primary = fill(NamedTuple(), 1)
-    else
-        primary = rows(t, Keys())
-    end
-    idxs, output = columns(t, (:rows, :output))
-    traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
-    uniquevalues = map(UniqueValues, cols)
+    cols = collect_columns(trace.primary for trace in traces)
+    uniquevalues = map(UniqueValues, columns(cols))
     series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
