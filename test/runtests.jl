@@ -212,7 +212,7 @@ end
     @test p[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test p[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 
-    t = table((x = 1:100, y = 1:100, m = m, c = c))
+    t = table((x = 1:100, y = 1:100, z = 2:2:200, m = m, c = c))
     q = scatter(
         Data(t),
         Group(color = :c, marker = :m),
@@ -235,6 +235,27 @@ end
     @test q[end].plots[2][1][] == Point{2, Float32}.(2:2:50, 2:2:50)
     @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
+
+    colors = StatsMakie.default_scales[:color]
+    r = scatter(
+        Data(t),
+        Group(color = :c, marker = colwise),
+        :x, (:y, :z), color = colors, marker = [:cross, :circle]
+    )
+
+    @test r[end].plots[1].color[] == colors[1]
+    @test r[end].plots[2].color[] == colors[1]
+    @test r[end].plots[3].color[] == colors[2]
+    @test r[end].plots[4].color[] == colors[2]
+    @test r[end].plots[1].marker[] == :cross
+    @test r[end].plots[2].marker[] == :circle
+    @test r[end].plots[3].marker[] == :cross
+    @test r[end].plots[4].marker[] == :circle
+
+    @test r[end].plots[1][1][] == Point{2, Float32}.(1:50, 1:50)
+    @test r[end].plots[2][1][] == Point{2, Float32}.(1:50, 2:2:100)
+    @test r[end].plots[3][1][] == Point{2, Float32}.(51:100, 51:100)
+    @test r[end].plots[4][1][] == Point{2, Float32}.(51:100, 102:2:200)
 end
 
 @testset "histogram" begin

@@ -20,6 +20,7 @@ Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
+extract_column(t, c::Colwise) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
 extract_column(t, col::AbstractArray) =
@@ -40,6 +41,8 @@ end
 to_args(st::Style) = st.args
 
 to_kwargs(st::Style) = st.kwargs
+
+to_function(s::Style) = to_args(s)[1].f
 
 used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
     Tuple(union((:colorrange,), used_attributes(P, f, args...)))
@@ -75,6 +78,13 @@ end
 TraceSpec(p::NamedTuple, idxs::AbstractVector{<:Integer}, output) =
     TraceSpec(p, convert(Vector{Int}, idxs), output)
 
+TraceSpec(::Tuple{}, args...) = TraceSpec(NamedTuple(), args...)
+
+function map_traces(f, traces::AbstractArray{<:TraceSpec})
+    ft = trace -> TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...)))
+    map(ft, traces)
+end
+
 function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, g.output...))
     names = propertynames(g.primary)
@@ -96,34 +106,44 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     to_plotspec(P, plotspec; d...)
 end
 
-function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
-    style = normalize(st)
+# convert a normalized style to a vector of TraceSpec
+function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
-    N = length(args)
-    f = g.f
-    names = colnames(g)
-    cols = columns(g)
-    vec_args = map(object2vec, args)
-    len = length(g)
-    len == 0 && (len = length(vec_args[1]))
-    coltable = table(1:len, cols..., vec_args...;
-        names = [:row, names..., (Symbol("x$i") for i in 1:N)...], copy = false)
+    to_traces(args...; columns(g)...)
+end
 
-    t = groupby(coltable, names, usekey = true) do key, dd
-        idxs = column(dd, :row)
-        out = to_tuple(f(map(vec2object, columns(dd, Not(:row)))...; kwargs...))
-        tup = (rows = idxs, output = out)
+function to_traces(args...; kwargs...)
+    len = column_length(args[1])
+    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
+    names = propertynames(pcols)
+
+    rowname = gensym()
+    t = table(pcols..., 1:len; names = [names..., rowname], pkey = names)
+
+    traces = TraceSpec[]
+    groupby(t, usekey = true, select = rowname) do key, idxs
+        if any(x -> isa(x, Colwise), key)
+            m = maximum(width, args)
+            for i in 1:m
+                output = map(x -> extract_view(x, idxs, i), args)
+                new_key = map(x -> x isa Colwise ? i : x, key)
+                push!(traces, TraceSpec(new_key, idxs, Tuple(output)))
+            end
+        else
+            output =  map(x -> extract_view(x, idxs), args)
+            push!(traces, TraceSpec(key, idxs, Tuple(output)))
+        end
     end
-    if (t isa NamedTuple)
-        t = table((row = [1], rows = [t.rows], output = [t.output]))
-        primary = fill(NamedTuple(), 1)
-    else
-        primary = rows(t, Keys())
-    end
-    idxs, output = columns(t, (:rows, :output))
-    traces = (TraceSpec(p, i, o) for (p, i, o) in zip(primary, idxs, output))
-    uniquevalues = map(UniqueValues, cols)
+    traces
+end
+
+function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
+    style = normalize(st)
+    traces = map_traces(to_function(style), to_traces(style))
+
+    cols = collect_columns(trace.primary for trace in traces)
+    uniquevalues = map(UniqueValues, columns(cols))
     series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
