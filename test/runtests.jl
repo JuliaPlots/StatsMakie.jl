@@ -6,6 +6,7 @@ using GeometryTypes: HyperRectangle
 using IndexedTables
 using Distributions
 using FreqTables
+using KernelDensity: kde
 
 seed!(0)
 
@@ -82,6 +83,22 @@ end
     plt = p6[end].plots[1]
     @test plt isa Surface
     @test plt[1][] == p1[end][1][]
+
+    x = randn(1000)
+    y = rand(1000)
+    z = rand(1:3, 1000)
+    t = table((x=x, y=y, z=z))
+    p7 = plot(density, Data(t), Group(:z), :x, (weights = :y,))
+
+    m1 = findall(==(1), z)
+    m2 = findall(==(2), z)
+    m3 = findall(==(3), z)
+    k1 = kde(x[m1], weights = y[m1])
+    k2 = kde(x[m2], weights = y[m2])
+    k3 = kde(x[m3], weights = y[m3])
+    @test p7[end].plots[1][1][] ≈ Point2f0.(k1.x, k1.density)
+    @test p7[end].plots[2][1][] ≈ Point2f0.(k2.x, k2.density)
+    @test p7[end].plots[3][1][] ≈ Point2f0.(k3.x, k3.density)
 end
 
 @testset "distribution" begin
@@ -309,7 +326,7 @@ end
 
     w = rand(1000)
     h = fit(Histogram, v, weights(w), nbins = 30)
-    p = surface(histogram(nbins = 30), v..., w => :weights)
+    p = surface(histogram(nbins = 30), v..., (weights = w,))
     plt = p[end]
     @test plt isa Surface
     x = h.edges[1]
