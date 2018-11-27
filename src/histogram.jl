@@ -20,3 +20,9 @@ function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
 end
 
 const histogram = Analysis(_histogram)
+
+function apply_globally!(hist::Analysis{typeof(_histogram)}, traces)
+    global_trace = map(concatenate, (trace.output for trace in traces)...)
+    h = hist(global_trace.output...)
+    get!(hist.kwargs, :edges, h.edges)
+end
