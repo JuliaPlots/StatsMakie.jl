@@ -16,4 +16,4 @@ end
 
 const FunctionOrAnalysis = Union{Function, AbstractAnalysis}
 
-apply_globally(s::FunctionOrAnalysis, traces) = s
+adjust_globally(s::FunctionOrAnalysis, traces) = s

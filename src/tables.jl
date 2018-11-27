@@ -155,7 +155,7 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     style = normalize(st)
     pre_f = to_function(style)
     pre_traces = to_traces(style)
-    f = apply_globally(pre_f, pre_traces)
+    f = adjust_globally(pre_f, pre_traces)
     traces = map_traces(f, pre_traces)
 
     cols = collect_columns(trace.primary for trace in traces)

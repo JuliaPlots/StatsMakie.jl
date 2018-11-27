@@ -23,7 +23,7 @@ end
 
 const histogram = Analysis(_histogram)
 
-function apply_globally(hist::Analysis{typeof(_histogram)}, traces)
+function adjust_globally(hist::Analysis{typeof(_histogram)}, traces)
     global_output = map(concatenate, (trace.output for trace in traces)...)
     h = hist(global_output...)
     Analysis(hist.f; merge((edges = h.edges,), hist.kwargs)...)
