@@ -2,8 +2,8 @@ abstract type AbstractAnalysis{T} end
 
 struct Analysis{T} <: AbstractAnalysis{T}
     f::T
-    kwargs::Dict{Symbol, Any}
-    Analysis(f::T; kwargs...) where {T} = new{T}(f, Dict{Symbol, Any}(kwargs))
+    kwargs::NamedTuple
+    Analysis(f::T; kwargs...) where {T} = new{T}(f, values(kwargs))
 end
 
 (an::Analysis)(; kwargs...) = Analysis(an.f; kwargs..., an.kwargs...)
@@ -16,4 +16,4 @@ end
 
 const FunctionOrAnalysis = Union{Function, AbstractAnalysis}
 
-apply_globally!(s::FunctionOrAnalysis, traces) = nothing
+apply_globally(s::FunctionOrAnalysis, traces) = s
