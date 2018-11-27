@@ -30,7 +30,7 @@ end
 remove_name(v::NamedTuple) = Tuple(v)
 remove_name(v) = v
 
-extract_column(t, c::NamedTuple) = map(extract_column, c)
+extract_column(t, c::NamedTuple) = map(x -> extract_column(t, x), c)
 extract_column(t, c::ByColumn) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = remove_name(columns(t, col))
