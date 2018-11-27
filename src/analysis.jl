@@ -15,3 +15,5 @@ function convert_arguments(P::PlotFunc, f::AbstractAnalysis, args...; kwargs...)
 end
 
 const FunctionOrAnalysis = Union{Function, AbstractAnalysis}
+
+apply_globally!(s::FunctionOrAnalysis, args...) = nothing

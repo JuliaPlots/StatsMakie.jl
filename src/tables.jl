@@ -145,7 +145,7 @@ function to_traces(args...; kwargs...)
             end
         else
             output =  map(x -> extract_view(x, idxs), args)
-            push!(traces, TraceSpec(key, idxs, Tuple(output)))
+            push!(traces, TraceSpec(key, idxs, output))
         end
     end
     traces
@@ -153,7 +153,10 @@ end
 
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
-    traces = map_traces(to_function(style), to_traces(style))
+    f = to_function(style)
+    pre_traces = to_traces(style)
+    apply_globally!(f, pre_traces)
+    traces = map_traces(f, pre_traces)
 
     cols = collect_columns(trace.primary for trace in traces)
     uniquevalues = map(UniqueValues, columns(cols))
