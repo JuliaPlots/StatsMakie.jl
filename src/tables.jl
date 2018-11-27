@@ -17,8 +17,8 @@ Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 const GoG = Union{Data, Group, Style}
 
 Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
-Base.merge(f::Function, s::Style) = merge(Group(f), s)
-Base.merge(s::Style, f::Function) = merge(s, Group(f))
+Base.merge(f::FunctionOrAnalysis, s::Style) = merge(Group(f), s)
+Base.merge(s::Style, f::FunctionOrAnalysis) = merge(s, Group(f))
 
 function apply_keywords(f, args...; kwargs...)
     is_nt = t -> (t isa NamedTuple)
@@ -61,9 +61,11 @@ used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
 used_attributes(P::PlotFunc, g::GoG, args...) =
     Tuple(union((:colorrange,), used_attributes(P, args...)))
 
-function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
-    style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
-    convert_arguments(P, merge(f, style); kwargs...)
+for typ in (:Function, :AbstractAnalysis)
+    @eval function convert_arguments(P::PlotFunc, f::($typ), arg::GoG, args...; kwargs...)
+        style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
+        convert_arguments(P, merge(f, style); kwargs...)
+    end
 end
 
 convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...) =

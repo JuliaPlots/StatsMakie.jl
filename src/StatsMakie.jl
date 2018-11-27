@@ -20,6 +20,7 @@ export Data, Group, Style
 export Position
 export bycolumn
 
+include("analysis.jl")
 include("scales.jl")
 include("group.jl")
 include("tables.jl")

@@ -24,13 +24,13 @@ end
 
 struct Group
     columns::NamedTuple
-    f::Function
+    f::FunctionOrAnalysis
 end
 
 Group(c::NamedTuple) = Group(c, tuple)
 
-Group(v, f::Function = tuple) = Group((color = v,), f)
-Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
+Group(v, f::FunctionOrAnalysis = tuple) = Group((color = v,), f)
+Group(f::FunctionOrAnalysis = tuple; kwargs...) = Group(values(kwargs), f)
 
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
@@ -46,8 +46,8 @@ combine_gog(f1::typeof(tuple), f2) = f2
 combine_gog(f1::typeof(tuple), f2::typeof(tuple)) = tuple
 
 Base.merge(g1::Group, g2::Group) = Group(merge(g1.columns, g2.columns), combine_gog(g1.f, g2.f))
-Base.merge(f::Function, g::Group) = merge(Group(f), g)
-Base.merge(g::Group, f::Function) = merge(g, Group(f))
+Base.merge(f::FunctionOrAnalysis, g::Group) = merge(Group(f), g)
+Base.merge(g::Group, f::FunctionOrAnalysis) = merge(g, Group(f))
 
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 

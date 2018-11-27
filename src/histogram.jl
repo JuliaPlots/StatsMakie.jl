@@ -19,5 +19,4 @@ function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
     fit(StatsBase.Histogram, ha, wa..., ea...; kwargs...)
 end
 
-histogram(args...; kwargs...) = apply_keywords(_histogram, args...; kwargs...)
-histogram(; kwargs...) = (args...) -> histogram(args...; kwargs...)
+const histogram = Analysis(_histogram)
