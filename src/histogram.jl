@@ -17,7 +17,7 @@ function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
     wa = weights === automatic ? () : (to_weights(weights),)
     ha = length(args) == 1 ? args[1] : args
     attr = Dict(kwargs)
-    isempty(ea) || pop!(attr, :nbins)
+    isempty(ea) || pop!(attr, :nbins, nothing)
     fit(StatsBase.Histogram, to_tuple(ha), wa..., ea...; attr...)
 end
 
