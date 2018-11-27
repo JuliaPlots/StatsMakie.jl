@@ -96,9 +96,9 @@ end
     k1 = kde(x[m1], weights = y[m1])
     k2 = kde(x[m2], weights = y[m2])
     k3 = kde(x[m3], weights = y[m3])
-    @test p7[end].plots[1][1][] == Point2f0.(k1.x, k1.density)
-    @test p7[end].plots[2][1][] == Point2f0.(k2.x, k2.density)
-    @test p7[end].plots[3][1][] == Point2f0.(k3.x, k3.density)
+    @test p7[end].plots[1][1][] ≈ Point2f0.(k1.x, k1.density)
+    @test p7[end].plots[2][1][] ≈ Point2f0.(k2.x, k2.density)
+    @test p7[end].plots[3][1][] ≈ Point2f0.(k3.x, k3.density)
 end
 
 @testset "distribution" begin
