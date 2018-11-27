@@ -24,13 +24,13 @@ end
 
 struct Group
     columns::NamedTuple
-    f::Function
+    f::Union{Function, AbstractAnalysis}
 end
 
 Group(c::NamedTuple) = Group(c, tuple)
 
-Group(v, f::Function = tuple) = Group((color = v,), f)
-Group(f::Function = tuple; kwargs...) = Group(values(kwargs), f)
+Group(v, f::Union{Function, AbstractAnalysis} = tuple) = Group((color = v,), f)
+Group(f::Union{Function, AbstractAnalysis} = tuple; kwargs...) = Group(values(kwargs), f)
 
 IndexedTables.columns(grp::Group) = grp.columns
 IndexedTables.colnames(grp::Group) = propertynames(columns(grp))

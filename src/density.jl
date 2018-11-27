@@ -12,5 +12,5 @@ end
 
 _density(x; kwargs...) = kde(x; kwargs...)
 _density(x, y; kwargs...) = kde((x, y); kwargs...)
-density(args...; kwargs...) = apply_keywords(_density, args...; kwargs...)
-density(; kwargs...) = (args...) -> density(args...; kwargs...)
+
+const density = Analysis(_density)

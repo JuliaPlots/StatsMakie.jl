@@ -61,9 +61,11 @@ used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
 used_attributes(P::PlotFunc, g::GoG, args...) =
     Tuple(union((:colorrange,), used_attributes(P, args...)))
 
-function convert_arguments(P::PlotFunc, f::Function, arg::GoG, args...; kwargs...)
-    style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
-    convert_arguments(P, merge(f, style); kwargs...)
+for typ in (:Function, :AbstractAnalysis)
+    @eval function convert_arguments(P::PlotFunc, f::($typ), arg::GoG, args...; kwargs...)
+        style = foldl(merge, (to_style(el) for el in args), init = to_style(arg))
+        convert_arguments(P, merge(f, style); kwargs...)
+    end
 end
 
 convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...) =
