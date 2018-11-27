@@ -7,3 +7,5 @@ function convert_arguments(P::PlotFunc, m::NamedArray)
     v = convert(Array, m)
     to_plotspec(ptype, convert_arguments(ptype, args..., v))
 end
+
+const frequency = Analysis(freqtable)

@@ -358,6 +358,11 @@ end
     @test p[end] isa BarPlot
     @test p[end][1][] == [1, 2, 3]
     @test p[end][2][] == [n1, n2, n3]
+
+    p = plot(frequency, v)
+    @test p[end] isa BarPlot
+    @test p[end][1][] == [1, 2, 3]
+    @test p[end][2][] == [n1, n2, n3]
 end
 
 @testset "qqplot" begin
