@@ -17,8 +17,8 @@ Base.:*(s1::Style, s2::Style) = merge(s1, s2)
 const GoG = Union{Data, Group, Style}
 
 Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
-Base.merge(f::Function, s::Style) = merge(Group(f), s)
-Base.merge(s::Style, f::Function) = merge(s, Group(f))
+Base.merge(f::FunctionOrAnalysis, s::Style) = merge(Group(f), s)
+Base.merge(s::Style, f::FunctionOrAnalysis) = merge(s, Group(f))
 
 function apply_keywords(f, args...; kwargs...)
     is_nt = t -> (t isa NamedTuple)
