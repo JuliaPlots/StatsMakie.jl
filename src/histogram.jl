@@ -12,13 +12,18 @@ end
 to_weights(v) = StatsBase.weights(v)
 to_weights(v::StatsBase.AbstractWeights) = v
 
-function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
+bool2options(t::Bool, a, b) = t ? a : b
+bool2options(t, a, b) = t
+
+function _histogram(args...; edges = automatic, weights = automatic, normalize = false, kwargs...)
     ea = edges === automatic ? () : (to_tuple(edges),)
     wa = weights === automatic ? () : (to_weights(weights),)
     ha = length(args) == 1 ? args[1] : args
     attr = Dict(kwargs)
     isempty(ea) || pop!(attr, :nbins, nothing)
-    fit(StatsBase.Histogram, to_tuple(ha), wa..., ea...; attr...)
+    h = fit(StatsBase.Histogram, to_tuple(ha), wa..., ea...; attr...)
+    norm_option = bool2options(normalize, :pdf, :none)
+    StatsBase.normalize(h, mode = norm_option)
 end
 
 const histogram = Analysis(_histogram)
