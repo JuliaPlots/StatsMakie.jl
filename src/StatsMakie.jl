@@ -15,10 +15,12 @@ using IndexedTables: AbstractIndexedTable
 using IntervalSets: Interval, endpoints
 using Loess
 using NamedArrays: NamedArray
+using FreqTables: freqtable
 
 export Data, Group, Style
 export Position
 export bycolumn
+export frequency
 
 include("analysis.jl")
 include("scales.jl")
