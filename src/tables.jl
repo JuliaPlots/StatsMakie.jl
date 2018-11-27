@@ -21,15 +21,19 @@ Base.merge(f::Function, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::Function) = merge(s, Group(f))
 
 function apply_keywords(f, args...; kwargs...)
-    new_args = (arg for arg in args if !(arg isa Pair{<:Any, Symbol}))
-    new_kwargs = (reverse(arg) for arg in args if (arg isa Pair{<:Any, Symbol}))
-    f(new_args...; kwargs..., new_kwargs...)
+    is_nt = t -> (t isa NamedTuple)
+    new_args = Iterators.filter(!is_nt, args)
+    new_kwargs = Iterators.filter(is_nt, args)
+    f(new_args...; kwargs..., reduce(merge, new_kwargs, init = NamedTuple())...)
 end
 
-extract_column(t, c::Pair{<:Any, Symbol}) = extract_column(t, first(c)) => last(c)
+remove_name(v::NamedTuple) = Tuple(v)
+remove_name(v) = v
+
+extract_column(t, c::NamedTuple) = map(extract_column, c)
 extract_column(t, c::ByColumn) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
-extract_column(t, col) = columns(t, col)
+extract_column(t, col) = remove_name(columns(t, col))
 extract_column(t, col::AbstractArray) =
     mapslices(v -> extract_column(t, v[1]), col, dims = 1)
 
@@ -135,7 +139,7 @@ function to_traces(args...; kwargs...)
             for i in 1:m
                 output = map(x -> extract_view(x, idxs, i), args)
                 new_key = map(x -> x isa ByColumn ? i : x, key)
-                push!(traces, TraceSpec(new_key, idxs, Tuple(output)))
+                push!(traces, TraceSpec(new_key, idxs, output))
             end
         else
             output =  map(x -> extract_view(x, idxs), args)
