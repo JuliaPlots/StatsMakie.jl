@@ -6,6 +6,7 @@ using GeometryTypes: HyperRectangle
 using IndexedTables
 using Distributions
 using FreqTables
+using KernelDensity: kde
 
 seed!(0)
 
