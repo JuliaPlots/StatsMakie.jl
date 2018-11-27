@@ -73,3 +73,6 @@ function extract_view(v::AbstractArray, idxs, n)
 end
 
 extract_view(v::NamedTuple, idxs, n) = map(t -> extract_view(t, idxs, n), v)
+
+concatenate(v::Union{Tuple, NamedTuple}...) = map(concatenate, v...)
+concatenate(v::AbstractArray...) = vcat(v...)

@@ -13,10 +13,19 @@ to_weights(v) = StatsBase.weights(v)
 to_weights(v::StatsBase.AbstractWeights) = v
 
 function _histogram(args...; edges = automatic, weights = automatic, kwargs...)
-    ea = edges === automatic ? () : (edges,)
+    ea = edges === automatic ? () : (to_tuple(edges),)
     wa = weights === automatic ? () : (to_weights(weights),)
     ha = length(args) == 1 ? args[1] : args
-    fit(StatsBase.Histogram, ha, wa..., ea...; kwargs...)
+    attr = Dict(kwargs)
+    isempty(ea) || pop!(attr, :nbins, nothing)
+    fit(StatsBase.Histogram, to_tuple(ha), wa..., ea...; attr...)
 end
 
 const histogram = Analysis(_histogram)
+
+function adjust_globally(hist::Analysis{typeof(_histogram)}, traces)
+    (length(traces) == 1 || get(hist.kwargs, :edges, automatic) !== automatic) && return hist
+    global_output = map(concatenate, (trace.output for trace in traces)...)
+    h = hist(global_output...)
+    Analysis(hist.f; merge(hist.kwargs, (edges = h.edges,))...)
+end
