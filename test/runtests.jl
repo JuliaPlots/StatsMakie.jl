@@ -239,7 +239,7 @@ end
     colors = StatsMakie.default_scales[:color]
     r = scatter(
         Data(t),
-        Group(color = :c, marker = colwise),
+        Group(color = :c, marker = bycolumn),
         :x, (:y, :z), color = colors, marker = [:cross, :circle]
     )
 

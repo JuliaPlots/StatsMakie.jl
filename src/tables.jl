@@ -27,7 +27,7 @@ function apply_keywords(f, args...; kwargs...)
 end
 
 extract_column(t, c::Pair{<:Any, Symbol}) = extract_column(t, first(c)) => last(c)
-extract_column(t, c::Colwise) = c
+extract_column(t, c::ByColumn) = c
 extract_column(t, col::AbstractVector) = columns(t, col)
 extract_column(t, col) = columns(t, col)
 extract_column(t, col::AbstractArray) =
@@ -130,11 +130,11 @@ function to_traces(args...; kwargs...)
 
     traces = TraceSpec[]
     groupby(t, usekey = true, select = rowname) do key, idxs
-        if any(x -> isa(x, Colwise), key)
+        if any(x -> isa(x, ByColumn), key)
             m = maximum(width, args)
             for i in 1:m
                 output = map(x -> extract_view(x, idxs, i), args)
-                new_key = map(x -> x isa Colwise ? i : x, key)
+                new_key = map(x -> x isa ByColumn ? i : x, key)
                 push!(traces, TraceSpec(new_key, idxs, Tuple(output)))
             end
         else
