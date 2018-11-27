@@ -24,7 +24,8 @@ end
 const histogram = Analysis(_histogram)
 
 function adjust_globally(hist::Analysis{typeof(_histogram)}, traces)
+    (length(traces) == 1 || get(hist.kwargs, :edges, automatic) !== automatic) && return hist
     global_output = map(concatenate, (trace.output for trace in traces)...)
     h = hist(global_output...)
-    Analysis(hist.f; merge((edges = h.edges,), hist.kwargs)...)
+    Analysis(hist.f; merge(hist.kwargs, (edges = h.edges,))...)
 end
