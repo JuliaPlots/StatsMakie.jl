@@ -253,7 +253,7 @@ end
     @test q[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test q[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 
-    colors = StatsMakie.default_scales[:color]
+    colors = AbstractPlotting.wong_colors
     r = scatter(
         Data(t),
         Group(color = :c, marker = bycolumn),
