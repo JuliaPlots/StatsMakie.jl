@@ -103,11 +103,10 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, uniquevalues; kwargs...)
     names = propertynames(g.primary)
     d = Dict{Symbol, Node}()
     for (ind, key) in enumerate(names)
-        f = function (scale = nothing)
-            def = get(default_scales, key, nothing)
-            s = something(to_scale(scale), def)
+        f = function (user; palette = theme_scale)
+            scale = something(to_scale(user), to_scale(palette))
             val = getproperty(g.primary, key)
-            uniquevalues[ind](s, val)
+            uniquevalues[ind](scale, val)
         end
         d[key] = DelayedAttribute(f)
     end
@@ -175,5 +174,4 @@ struct DelayedAttribute
     f::Function
 end
 
-combine(val, d::DelayedAttribute) = d.f(val)
-combine(d::DelayedAttribute) = d.f()
+combine(theme_val, d::DelayedAttribute; palette = nothing, kwargs...) = d.f(theme_val; palette = palette)
