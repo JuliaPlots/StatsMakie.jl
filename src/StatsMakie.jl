@@ -22,18 +22,20 @@ export Position
 export bycolumn
 export frequency
 
-include("analysis.jl")
-include("scales.jl")
-include("group.jl")
-include("tables.jl")
-include("density.jl")
-include("histogram.jl")
-include("distribution.jl")
-include("corrplot.jl")
-include("boxplot.jl")
-include("violin.jl")
-include("smooth.jl")
-include("namedarray.jl")
-include("dodge.jl")
+include(joinpath("group", "analysis.jl"))
+include(joinpath("group", "scales.jl"))
+include(joinpath("group", "group.jl"))
+include(joinpath("group", "tables.jl"))
+include(joinpath("group", "dodge.jl"))
+
+include(joinpath("typerecipes", "density.jl"))
+include(joinpath("typerecipes", "histogram.jl"))
+include(joinpath("typerecipes", "distribution.jl"))
+include(joinpath("typerecipes", "smooth.jl"))
+include(joinpath("typerecipes", "namedarray.jl"))
+
+include(joinpath("recipes", "corrplot.jl"))
+include(joinpath("recipes", "boxplot.jl"))
+include(joinpath("recipes", "violin.jl"))
 
 end
