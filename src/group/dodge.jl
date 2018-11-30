@@ -24,9 +24,12 @@ end
 
 series2matrix(x, xs, ys) = hcat((adjust_to_x(x, x′, y′) for (x′, y′) in zip(xs, ys))...)
 
+extract_var(ps, i) =
+    ps[1] isa AbstractArray{<:AbstractArray} ? getindex.(ps[1], i) : ps[i]
+
 function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; width = automatic, space = 0.2)
-    xs_input = (ps[1] for ps in pl)
-    ys_input = (ps[2] for ps in pl)
+    xs_input = (extract_var(ps, 1) for ps in pl)
+    ys_input = (extract_var(ps, 2) for ps in pl)
     n = length(pl)
     ft = automatic
     if p === Position.superimpose
