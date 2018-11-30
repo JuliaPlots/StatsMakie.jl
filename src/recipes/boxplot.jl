@@ -20,6 +20,8 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         markershape = :circle,
         strokecolor = :black,
         strokewidth = 1.0,
+        mediancolor = :white,
+        show_median = true,
     )
     t[:outliercolor] = t[:color]
     t
@@ -41,6 +43,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         ww = whisker_width == :match ? bw : whisker_width
         boxes = FRect2D[]
         t_segments = Point2f0[]
+        medians = Point2f0[]
         for (i, glabel) in enumerate(glabels)
             # filter y
             values = y[filter(i -> _cycle(x, i) == glabel, 1:length(y))]
@@ -89,18 +92,15 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 push!(t_segments, (m, q5), (l, q5), (r, q5), (m, q5), (m, q4))# upper T
             else
                 push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
-                if abs(q3 - q2) > 0.0
-                    push!(boxes, FRect(l, q2, 2hw, (q3 - q2)))
-                end
-                if abs(q3 - q4) > 0.0
-                    push!(boxes, FRect(l, q4, 2hw, (q3 - q4)))
-                end
+                push!(boxes, FRect(l, q2, 2hw, (q4 - q2)))
+                push!(medians, (l, q3), (r, q3))
                 push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
             end
         end
-        boxes, outlier_points, t_segments
+        boxes, outlier_points, medians, t_segments
     end
     outliers = lift(getindex, signals, Node(2))
+    medians = lift(getindex, signals, Node(3))
     scatter!(
         plot,
         color = plot[:outliercolor],
@@ -121,5 +121,11 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         color = plot[:color],
         strokecolor = plot[:strokecolor],
         strokewidth = plot[:strokewidth]
+    )
+    linesegments!(
+        plot,
+        color = plot[:mediancolor],
+        visible = plot[:show_median],
+        medians,
     )
 end
