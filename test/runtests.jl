@@ -15,7 +15,7 @@ seed!(0)
     b = 1:100
     p = boxplot(a, b)
     plts = p[end].plots
-    @test length(plts) == 3
+    @test length(plts) == 4
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
@@ -35,16 +35,11 @@ seed!(0)
     @test plts[3] isa Poly
 
     poly = HyperRectangle{2,Float32}[
-        HyperRectangle{2,Float32}(Float32[0.6, 5.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[0.6, 15.25], Float32[0.8, -4.75]),
-        HyperRectangle{2,Float32}(Float32[1.6, 25.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[1.6, 35.25], Float32[0.8, -4.75]),
-        HyperRectangle{2,Float32}(Float32[2.6, 45.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[2.6, 55.25], Float32[0.8, -4.75]),
-        HyperRectangle{2,Float32}(Float32[3.6, 65.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[3.6, 75.25], Float32[0.8, -4.75]),
-        HyperRectangle{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 4.75]),
-        HyperRectangle{2,Float32}(Float32[4.6, 95.25], Float32[0.8, -4.75])
+        HyperRectangle{2,Float32}(Float32[0.6, 5.75], Float32[0.8, 9.5]),
+        HyperRectangle{2,Float32}(Float32[1.6, 25.75], Float32[0.8, 9.5]),
+        HyperRectangle{2,Float32}(Float32[2.6, 45.75], Float32[0.8, 9.5]),
+        HyperRectangle{2,Float32}(Float32[3.6, 65.75], Float32[0.8, 9.5]),
+        HyperRectangle{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 9.5]),
     ]
 
     @test plts[3][1][] == poly
