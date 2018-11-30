@@ -3,7 +3,7 @@
         default_theme(scene, Poly)...,
         side = :both,
         width = automatic,
-        linecolor = :black,
+        mediancolor = :white,
         show_median = false
     )
 end
@@ -35,5 +35,5 @@ function plot!(plot::Violin)
         return meshes, lines
     end
     mesh!(plot, lift(first, signals), color = plot[:color], visible = plot[:visible])
-    linesegments!(plot, lift(last, signals), color = plot[:linecolor], visible = plot[:show_median])
+    linesegments!(plot, lift(last, signals), color = plot[:mediancolor], visible = plot[:show_median])
 end
