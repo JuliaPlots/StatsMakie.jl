@@ -37,5 +37,6 @@ include(joinpath("typerecipes", "namedarray.jl"))
 # include(joinpath("recipes", "corrplot.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))
+include(joinpath("recipes", "ribbon.jl"))
 
 end
