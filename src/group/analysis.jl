@@ -1,9 +1,12 @@
 abstract type AbstractAnalysis{T} end
 
-struct Analysis{T} <: AbstractAnalysis{T}
+struct Analysis{T, N<:NamedTuple} <: AbstractAnalysis{T}
     f::T
-    kwargs::NamedTuple
-    Analysis(f::T; kwargs...) where {T} = new{T}(f, values(kwargs))
+    kwargs::N
+    function Analysis(f::T; kwargs...) where {T}
+        nt = values(kwargs)
+        new{T, typeof(nt)}(f, nt)
+    end
 end
 
 (an::Analysis)(; kwargs...) = Analysis(an.f; kwargs..., an.kwargs...)
