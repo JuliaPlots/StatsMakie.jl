@@ -55,7 +55,7 @@ scatter(Group(marker = a, color = b), x, y, markersize = 0.2)
 
 ## Styling data with continuous variables
 
-One of the advantage of using an inherently discrete quantity (like the shape of the marker) to encode a discrete variable is that we are "save" continuous variables (e.g. color within a colorscale) for continuous variable. In this case, if we want to see how `a, x, y, z` interact, we could choose the marker according to `a` and style the color according to `z`:
+One of the advantage of using an inherently discrete quantity (like the shape of the marker) to encode a discrete variable is that we can use continuous attributes (e.g. color within a colorscale) for continuous variable. In this case, if we want to see how `a, x, y, z` interact, we could choose the marker according to `a` and style the color according to `z`:
 
 ```julia
 scatter(Group(marker = a), Style(color = z), x, y)
