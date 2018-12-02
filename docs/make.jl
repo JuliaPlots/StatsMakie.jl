@@ -1,4 +1,4 @@
-using Documenter, StatsMakie
+using Documenter
 
 makedocs(
     format = :html,
