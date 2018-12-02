@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Styling data with continuous variables",
     "category": "section",
-    "text": "One of the advantage of using an inherently discrete quantity (like the shape of the marker) to encode a discrete variable is that we are \"save\" continuous variables (e.g. color within a colorscale) for continuous variable. In this case, if we want to see how a, x, y, z interact, we could choose the marker according to a and style the color according to z:scatter(Group(marker = a), Style(color = z), x, y)(Image: screenshot from 2018-11-28 11-50-33)Just like with Group, we can Style any number of attributes in the same plot. color is probably the most common, markersize is another sensible option (especially if we are using color already for the grouping):scatter(Group(color = a), x, y, Style(markersize = z ./ 10))(Image: screenshot from 2018-11-29 10-30-59)"
+    "text": "One of the advantage of using an inherently discrete quantity (like the shape of the marker) to encode a discrete variable is that we can use continuous attributes (e.g. color within a colorscale) for continuous variable. In this case, if we want to see how a, x, y, z interact, we could choose the marker according to a and style the color according to z:scatter(Group(marker = a), Style(color = z), x, y)(Image: screenshot from 2018-11-28 11-50-33)Just like with Group, we can Style any number of attributes in the same plot. color is probably the most common, markersize is another sensible option (especially if we are using color already for the grouping):scatter(Group(color = a), x, y, Style(markersize = z ./ 10))(Image: screenshot from 2018-11-29 10-30-59)"
 },
 
 {
