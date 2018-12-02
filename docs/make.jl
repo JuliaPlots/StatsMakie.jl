@@ -3,7 +3,6 @@ using Documenter
 makedocs(
     format = :html,
     sitename = "StatsMakie",
-    authors = "JuliaPlots",
     pages = [
         "Home" => "index.md",
         "Manual" => Any[
@@ -15,7 +14,4 @@ makedocs(
 deploydocs(
     repo = "github.com/JuliaPlots/StatsMakie.jl.git",
     target = "build",
-    osname = "linux",
-    deps   = nothing,
-    make   = nothing
 )
