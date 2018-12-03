@@ -30,8 +30,8 @@ extract_var(ps, i) =
 function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; width = automatic, space = 0.2)
     xs_input = (extract_var(ps, 1) for ps in pl)
     ys_input = (extract_var(ps, 2) for ps in pl)
+    fts = (automatic for ps in pl)
     n = length(pl)
-    ft = automatic
     if p === Position.superimpose
         w = width
         xs, ys = xs_input, ys_input
@@ -47,16 +47,17 @@ function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; w
         else
             w = barwidth
             xs = xs_input
-            y0, y1 = compute_stacked(series2matrix(x, xs_input, ys_input))
+            y_mat = series2matrix(x, xs_input, ys_input)
+            y0, y1 = compute_stacked(y_mat; reverse = true)
             y = y1 .- y0
             ft = y0
             ys = (adjust_to_x(x′, x, y[:, i]) for (i, x′) in enumerate(xs))
-            fts = [adjust_to_x(x′, x, ft[:, i]) for (i, x′) in enumerate(xs)]
+            fts = (adjust_to_x(x′, x, ft[:, i]) for (i, x′) in enumerate(xs))
         end
     end
     plts = PlotSpec[]
-    for (i, (x′, y′)) in enumerate(zip(xs, ys))
-        fillto = ft === automatic ? automatic : fts[i]
+    for (i, (x′, y′, ft)) in enumerate(zip(xs, ys, fts))
+        fillto = ft
         attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
         push!(plts, PlotSpec{plottype(pl[i])}(x′, y′; attr..., pl[i].kwargs...))
     end
@@ -78,14 +79,15 @@ function convert_arguments(P::PlotFunc, p::Position.Arrangement, x::AbstractVect
     convert_arguments(MultiplePlot, p, PlotList(plots...); width = width, space = space)
 end
 
-function compute_stacked(y::AbstractMatrix)
+function compute_stacked(y::AbstractMatrix; reverse = false)
     nr, nc = size(y)
     y1 = zeros(nr, nc)
     y0 = copy(y)
     y0[.!isfinite.(y0)] .= 0
+    col_idxs = reverse ? (nc:-1:1) : (1:nc)
     for r = 1:nr
         y_pos = y_neg = 0.0
-        for c = 1:nc
+        for c = col_idxs
             el = y0[r, c]
             if el >= 0
                 y1[r, c] = y_pos
