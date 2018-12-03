@@ -57,8 +57,7 @@ function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; w
     end
     plts = PlotSpec[]
     for (i, (x′, y′, ft)) in enumerate(zip(xs, ys, fts))
-        fillto = ft
-        attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [fillto, w]))
+        attr = Iterators.filter(p -> last(p) !== automatic, zip([:fillto, :width], [ft, w]))
         push!(plts, PlotSpec{plottype(pl[i])}(x′, y′; attr..., pl[i].kwargs...))
     end
 
