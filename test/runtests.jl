@@ -1,8 +1,8 @@
-using Makie, StatsMakie, StatsBase
+using AbstractPlotting, StatsMakie, StatsBase
 using Test
 
 using Random: seed!
-using GeometryTypes: HyperRectangle
+using AbstractPlotting.GeometryTypes: HyperRectangle
 using IndexedTables
 using Distributions
 using FreqTables

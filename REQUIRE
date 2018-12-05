@@ -1,5 +1,5 @@
 julia 0.7
-AbstractPlotting
+AbstractPlotting 0.9.1
 KernelDensity
 StatsBase
 Observables
