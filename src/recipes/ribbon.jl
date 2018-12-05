@@ -7,7 +7,6 @@ end
     Theme(;
         default_theme(scene, Band)...,
         color = theme(scene, :color),
-        fillcolor = theme(scene, :color),
         fillalpha = 0.2,
         error = 0.0
     )
@@ -29,6 +28,6 @@ function plot!(p::Ribbon)
     yhigh = lift(_get_broadcast, y, err, Node(2))
 
     theme = copy(Theme(p))
-    theme[:color] = lift(combine_color_alpha, Theme(p)[:fillcolor], Theme(p)[:fillalpha])
+    theme[:color] = lift(combine_color_alpha, Theme(p)[:color], Theme(p)[:fillalpha])
     plot!(p, Band, theme, x, ylow, yhigh)
 end
