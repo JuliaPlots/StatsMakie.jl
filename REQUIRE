@@ -10,3 +10,5 @@ IntervalSets
 Loess
 NamedArrays
 FreqTables 0.3.1
+Widgets
+OrderedCollections
