@@ -2,6 +2,11 @@ using Widgets, Observables, OrderedCollections
 using Widgets: div, @nodeps, Widget
 using Observables: @map
 
+_empty(s::AbstractString) = s == ""
+_empty(s::Symbol) = s == Symbol("")
+_empty(p::Pair) = _empty(last(p))
+exclude_empty(v) = Iterators.filter(!_empty, v)
+
 function gui(df)
     t = Observable{Any}(table(df))
     names = @map collect(colnames(&t))
@@ -44,9 +49,13 @@ function gui(df)
         ),
         output = output
     )
-    map!(output, plot_button) do x
-        vars = Iterators.filter(!isempty∘string, [x[], y[], z[]])
-        plot_func[](analysis[], Data(t[]), vars...) 
+    map!(output, plot_button) do _
+        vars = exclude_empty([x[], y[], z[]])
+        grps = exclude_empty([(key => val[]) for (key, val) in zip(group_attr, groups)])
+        stls = exclude_empty((key => val[]) for (key, val) in zip(style_attr, styles))
+        g = Group(; grps...)
+        s = Style(; stls...)
+        plot_func[](analysis[], Data(t[]), g, s, vars...) 
     end
     row_style = Dict("display" => "flex", "direction" => "row")
     column_style = Dict("display" => "flex", "direction" => "column")
@@ -72,9 +81,9 @@ function gui(df)
             :save_button,
             style = row_style
         )
-        groups = div(title("Group"), vspace, :group...)
-        styles = div(title("Style"), vspace, :style...)
-        bottom_row = div(_.output, hspace, groups, hspace, styles, style = row_style)
+        group_column = div(title("Group"), vspace, :group...)
+        style_column = div(title("Style"), vspace, :style...)
+        bottom_row = div(_.output, hspace, group_column, hspace, style_column, style = row_style)
         div(top_row, vspace, button_row, vspace, bottom_row)
     end
 end
