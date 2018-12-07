@@ -12,25 +12,23 @@ function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
-        gt = lazymap(GroupIdxsIterator(x)) do (key, idxs)
-            v = view(y, idxs)
-            (x = key, kde = kde(v), median = median(v))
-        end
         meshes = GeometryTypes.GLPlainMesh[]
         lines = Pair{Point2f0, Point2f0}[]
-        for row in gt
-            min, max = extrema_nan(row.kde.density)
-            xl = reverse(row.x .- row.kde.density .* (0.5*bw/max))
-            xr = row.x .+ row.kde.density .* (0.5*bw/max)
-            yl = reverse(row.kde.x)
-            yr = row.kde.x
+        for (key, idxs) in GroupIdxsIterator(x)
+            v = view(y, idxs)
+            spec = (x = key, kde = kde(v), median = median(v))
+            min, max = extrema_nan(spec.kde.density)
+            xl = reverse(spec.x .- spec.kde.density .* (0.5*bw/max))
+            xr = spec.x .+ spec.kde.density .* (0.5*bw/max)
+            yl = reverse(spec.kde.x)
+            yr = spec.kde.x
 
             x_coord = vside == :left ? xl : vside == :right ? xr : vcat(xr, xl)
             y_coord = vside == :left ? yl : vside == :right ? yr : vcat(yr, yl)
             mesh = GeometryTypes.GLPlainMesh(Point2f0.(x_coord, y_coord))
             push!(meshes, mesh)
-            median_left = Point2f0(vside == :right ? row.x : row.x-(0.5*bw), row.median)
-            median_right = Point2f0(vside == :left ? row.x : row.x+(0.5*bw), row.median)
+            median_left = Point2f0(vside == :right ? spec.x : spec.x-(0.5*bw), spec.median)
+            median_right = Point2f0(vside == :left ? spec.x : spec.x+(0.5*bw), spec.median)
             push!(lines, median_left => median_right)
         end
         return meshes, lines
