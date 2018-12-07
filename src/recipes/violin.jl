@@ -12,11 +12,14 @@ function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
-        t = table((x = x, y = y), copy = false, presorted = true)
-        gt = groupby(v -> (kde = kde(v), median = median(v)), t, :x, select = :y)
+        t = StructArray(x = x, y = y)
+        gt = map(GroupIdxsIterator(t)) do key, idxs
+            v = view(y, idxs)
+            (x = key.x, kde = kde(v), median = median(v))
+        end
         meshes = GeometryTypes.GLPlainMesh[]
         lines = Pair{Point2f0, Point2f0}[]
-        for row in rows(gt)
+        for row in gt
             min, max = extrema_nan(row.kde.density)
             xl = reverse(row.x .- row.kde.density .* (0.5*bw/max))
             xr = row.x .+ row.kde.density .* (0.5*bw/max)

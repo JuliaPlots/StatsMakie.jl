@@ -7,7 +7,7 @@ GroupIdxsIterator(vec::AbstractVector) = GroupIdxsIterator(vec, sortperm(vec))
 
 function to_namedtuple(t)
     pn = propertynames(t)
-    NamedTuple{pn}(Tuple(getproperty(t, n) for n in pn))
+    NamedTuple{pn}(map(x -> getproperty(t, x), pn))
 end
 
 to_namedtuple(t::NamedTuple) = t
