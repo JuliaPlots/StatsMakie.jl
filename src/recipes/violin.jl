@@ -13,7 +13,7 @@ function plot!(plot::Violin)
 
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
         t = StructArray(x = x, y = y)
-        gt = map(GroupIdxsIterator(t)) do key, idxs
+        gt = lazymap(GroupIdxsIterator(t)) do (key, idxs)
             v = view(y, idxs)
             (x = key.x, kde = kde(v), median = median(v))
         end

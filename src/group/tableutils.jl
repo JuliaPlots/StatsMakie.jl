@@ -23,3 +23,5 @@ function Base.iterate(n::GroupIdxsIterator, i = 1)
     end
     return (to_namedtuple(row) => perm[i:(i1-1)], i1)
 end
+
+lazymap(f, v) = (f(el) for el in v)
