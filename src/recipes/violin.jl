@@ -12,10 +12,9 @@ function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
-        t = StructArray(x = x, y = y)
-        gt = lazymap(GroupIdxsIterator(t)) do (key, idxs)
+        gt = lazymap(GroupIdxsIterator(x)) do (key, idxs)
             v = view(y, idxs)
-            (x = key.x, kde = kde(v), median = median(v))
+            (x = key, kde = kde(v), median = median(v))
         end
         meshes = GeometryTypes.GLPlainMesh[]
         lines = Pair{Point2f0, Point2f0}[]

@@ -5,13 +5,6 @@ end
 
 GroupIdxsIterator(vec::AbstractVector) = GroupIdxsIterator(vec, sortperm(vec))
 
-function to_namedtuple(t)
-    pn = propertynames(t)
-    NamedTuple{pn}(map(x -> getproperty(t, x), pn))
-end
-
-to_namedtuple(t::NamedTuple) = t
-
 function Base.iterate(n::GroupIdxsIterator, i = 1)
     vec, perm = n.vec, n.perm
     l = length(perm)
@@ -21,7 +14,7 @@ function Base.iterate(n::GroupIdxsIterator, i = 1)
     while i1 <= l && isequal(row, vec[perm[i1]])
         i1 += 1
     end
-    return (to_namedtuple(row) => perm[i:(i1-1)], i1)
+    return (row => perm[i:(i1-1)], i1)
 end
 
 lazymap(f, v) = (f(el) for el in v)
