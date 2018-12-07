@@ -1,4 +1,4 @@
-struct UniqueValues{S, T1<:AbstractArray{S}, T2<:AbstractArray{S}}
+struct UniqueValues{S, T1<:AbstractArray, T2<:AbstractArray{S}}
     values::T1
     unique::T2
     value2index::Dict{S, Int}
