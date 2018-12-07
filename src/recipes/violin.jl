@@ -25,9 +25,9 @@ function plot!(plot::Violin)
             yl = reverse(row.kde.x)
             yr = row.kde.x
 
-            x = vside == :left ? xl : vside == :right ? xr : vcat(xr, xl)
-            y = vside == :left ? yl : vside == :right ? yr : vcat(yr, yl)
-            mesh = GeometryTypes.GLPlainMesh(Point2f0.(x, y))
+            x_coord = vside == :left ? xl : vside == :right ? xr : vcat(xr, xl)
+            y_coord = vside == :left ? yl : vside == :right ? yr : vcat(yr, yl)
+            mesh = GeometryTypes.GLPlainMesh(Point2f0.(x_coord, y_coord))
             push!(meshes, mesh)
             median_left = Point2f0(vside == :right ? row.x : row.x-(0.5*bw), row.median)
             median_right = Point2f0(vside == :left ? row.x : row.x+(0.5*bw), row.median)
