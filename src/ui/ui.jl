@@ -1,6 +1,6 @@
 using Widgets, Observables, OrderedCollections
 using Widgets: div, @nodeps, Widget
-using Observables: @map
+using Observables: @map, AbstractObservable
 
 _empty(s::AbstractString) = s == ""
 _empty(s::Symbol) = s == Symbol("")
@@ -8,16 +8,17 @@ _empty(p::Pair) = _empty(last(p))
 exclude_empty(v) = Iterators.filter(!_empty, v)
 
 function gui(df)
-    t = Observable{Any}(table(df))
+    df isa AbstractObservable || (df = Observable{Any}(df))
+    t = map(table, df)
     names = @map collect(colnames(&t))
     maybe_names = @map vcat(Symbol(""), &names)
     x = @nodeps dropdown(names, label = "First axis")
     y = @nodeps dropdown(maybe_names, label = "Second axis")
     z = @nodeps dropdown(maybe_names, label = "Third axis")
-    plot_func = @nodeps dropdown([plot, scatter, lines, barplot, heatmap, surface,
+    plot_func = @nodeps dropdown([plot, scatter, lines, barplot, heatmap, surface, wireframe,
         volume, contour, boxplot, violin], label = "Plot function")
     analysis_options = OrderedDict(
-        "none" => tuple,
+        "" => tuple,
         "density" => density,
         "histogram" => histogram,
         "linear" => linear,
