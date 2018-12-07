@@ -1,6 +1,7 @@
 using Widgets, Observables, OrderedCollections
 using Widgets: div, @nodeps, Widget
 using Observables: @map, AbstractObservable
+import FileIO
 
 _empty(s::AbstractString) = s == ""
 _empty(s::Symbol) = s == Symbol("")
@@ -34,11 +35,13 @@ function gui(df)
     
     plot_button = @nodeps(button("Plot"))
     save_button = @nodeps(button("Save"))
+    save_name = @nodeps(textbox(placeholder = "Save as..."))
 
     ui = Widget{:gui}(
         OrderedDict(
             "plot_button" => plot_button,
             "save_button" => save_button,
+            "save_name" => save_name,
             "table" => t,
             "plot_func" => plot_func,
             "analysis" => analysis,
@@ -57,6 +60,9 @@ function gui(df)
         g = Group(; grps...)
         s = Style(; stls...)
         plot_func[](analysis[], Data(t[]), g, s, vars...) 
+    end
+    on(save_button) do _
+        save_plot(save_name[], output[])
     end
     row_style = Dict("display" => "flex", "direction" => "row")
     column_style = Dict("display" => "flex", "direction" => "column")
@@ -80,6 +86,8 @@ function gui(df)
             :plot_button,
             hspace,
             :save_button,
+            hspace,
+            :save_name,
             style = row_style
         )
         group_column = div(title("Group"), vspace, :group...)
@@ -89,4 +97,8 @@ function gui(df)
     end
 end
     
-
+function save_plot(name, scene)
+    fp = joinpath(homedir(), ".StatsMakie", "plots")
+    ispath(fp) || mkpath(fp)
+    FileIO.save(joinpath(fp, name), scene)
+end
