@@ -126,15 +126,9 @@ function to_traces(style::Style)
     to_traces(args...; g.columns...)
 end
 
-function to_traces(args...; kwargs...)
-    len = column_length(args[1])
-    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
-    names = propertynames(pcols)
-
-    rowname = gensym()
-
+function to_traces(gidx::GroupIdxsIterator, args::Tuple)
     traces = TraceSpec[]
-    for (key, idxs) in GroupIdxsIterator(StructArray(pcols))
+    for (key, idxs) in gidx
         if any(x -> isa(x, ByColumn), key)
             m = maximum(width, args)
             for i in 1:m
@@ -150,6 +144,13 @@ function to_traces(args...; kwargs...)
     traces
 end
 
+function to_traces(args...; kwargs...)
+    len = column_length(args[1])
+    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
+    sa = isempty(pcols) ? fill(NamedTuple(), len) : StructArray(pcols)
+    to_traces(GroupIdxsIterator(sa), args)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     pre_f = to_function(style)
@@ -157,8 +158,7 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     f = adjust_globally(pre_f, pre_traces)
     traces = map_traces(f, pre_traces)
 
-    cols = collect_columns(trace.primary for trace in traces)
-    uniquevalues = map(UniqueValues, columns(cols))
+    uniquevalues = map(UniqueValues, Tables.columns([trace.primary for trace in traces]))
     series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
