@@ -10,8 +10,7 @@ using Statistics, KernelDensity
 import StatsBase
 using Distributions
 using IntervalSets
-using Tables, IndexedTables
-using IndexedTables: AbstractIndexedTable
+using Tables, StructArrays
 using IntervalSets: Interval, endpoints
 using Loess
 using NamedArrays: NamedArray
@@ -26,6 +25,7 @@ include(joinpath("group", "analysis.jl"))
 include(joinpath("group", "scales.jl"))
 include(joinpath("group", "group.jl"))
 include(joinpath("group", "tables.jl"))
+include(joinpath("group", "tableutils.jl"))
 include(joinpath("group", "dodge.jl"))
 
 include(joinpath("typerecipes", "density.jl"))

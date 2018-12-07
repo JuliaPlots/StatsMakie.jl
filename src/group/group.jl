@@ -32,9 +32,6 @@ Group(c::NamedTuple) = Group(c, tuple)
 Group(v, f::FunctionOrAnalysis = tuple) = Group((color = v,), f)
 Group(f::FunctionOrAnalysis = tuple; kwargs...) = Group(values(kwargs), f)
 
-IndexedTables.columns(grp::Group) = grp.columns
-IndexedTables.colnames(grp::Group) = propertynames(columns(grp))
-
 struct ByColumn end
 const bycolumn = ByColumn()
 

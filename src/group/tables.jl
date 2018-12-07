@@ -30,19 +30,20 @@ end
 remove_name(v::NamedTuple) = Tuple(v)
 remove_name(v) = v
 
-extract_column(t, c::NamedTuple) = map(x -> extract_column(t, x), c)
+extract_column(t, c::Union{Tuple, NamedTuple}) = map(x -> extract_column(t, x), c)
 extract_column(t, c::ByColumn) = c
-extract_column(t, col::AbstractVector) = columns(t, col)
-extract_column(t, col) = remove_name(columns(t, col))
+extract_column(t, col::AbstractVector) = col
+extract_column(t, col::Symbol) = getproperty(t, col)
+extract_column(t, col::Integer) = getindex(t, col)
 extract_column(t, col::AbstractArray) =
     mapslices(v -> extract_column(t, v[1]), col, dims = 1)
 
-extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)), grp.f)
+extract_column(t, grp::Group) = Group(extract_columns(t, grp.columns), grp.f)
 
 extract_columns(t, tup::Union{Tuple, NamedTuple}) = map(col -> extract_column(t, col), tup)
 
 function extract_columns(df, st::Style)
-    t = table(df)
+    t = columntable(df)
     Style(
         extract_columns(t, st.args)...;
         extract_columns(t, st.kwargs)...
@@ -122,7 +123,7 @@ end
 function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
-    to_traces(args...; columns(g)...)
+    to_traces(args...; g.columns...)
 end
 
 function to_traces(args...; kwargs...)
@@ -131,10 +132,9 @@ function to_traces(args...; kwargs...)
     names = propertynames(pcols)
 
     rowname = gensym()
-    t = table(pcols..., 1:len; names = [names..., rowname], pkey = names)
 
     traces = TraceSpec[]
-    groupby(t, usekey = true, select = rowname) do key, idxs
+    for (key, idxs) in GroupIdxsIterator(StructArray(pcols))
         if any(x -> isa(x, ByColumn), key)
             m = maximum(width, args)
             for i in 1:m
