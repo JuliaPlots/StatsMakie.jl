@@ -5,7 +5,7 @@ StatsBase
 Observables
 Distributions
 Tables
-IndexedTables
+StructArrays
 IntervalSets
 Loess
 NamedArrays

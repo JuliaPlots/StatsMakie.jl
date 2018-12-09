@@ -30,19 +30,20 @@ end
 remove_name(v::NamedTuple) = Tuple(v)
 remove_name(v) = v
 
-extract_column(t, c::NamedTuple) = map(x -> extract_column(t, x), c)
+extract_column(t, c::Union{Tuple, NamedTuple}) = map(x -> extract_column(t, x), c)
 extract_column(t, c::ByColumn) = c
-extract_column(t, col::AbstractVector) = columns(t, col)
-extract_column(t, col) = remove_name(columns(t, col))
+extract_column(t, col::AbstractVector) = col
+extract_column(t, col::Symbol) = getproperty(t, col)
+extract_column(t, col::Integer) = getindex(t, col)
 extract_column(t, col::AbstractArray) =
     mapslices(v -> extract_column(t, v[1]), col, dims = 1)
 
-extract_column(t, grp::Group) = Group(extract_columns(t, columns(grp)), grp.f)
+extract_column(t, grp::Group) = Group(extract_columns(t, grp.columns), grp.f)
 
 extract_columns(t, tup::Union{Tuple, NamedTuple}) = map(col -> extract_column(t, col), tup)
 
 function extract_columns(df, st::Style)
-    t = table(df)
+    t = columntable(df)
     Style(
         extract_columns(t, st.args)...;
         extract_columns(t, st.kwargs)...
@@ -122,19 +123,12 @@ end
 function to_traces(style::Style)
     g_args = to_args(style)
     g, args = g_args[1], g_args[2:end]
-    to_traces(args...; columns(g)...)
+    to_traces(args...; g.columns...)
 end
 
-function to_traces(args...; kwargs...)
-    len = column_length(args[1])
-    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
-    names = propertynames(pcols)
-
-    rowname = gensym()
-    t = table(pcols..., 1:len; names = [names..., rowname], pkey = names)
-
+function to_traces(gidx::GroupIdxsIterator, args::Tuple)
     traces = TraceSpec[]
-    groupby(t, usekey = true, select = rowname) do key, idxs
+    for (key, idxs) in gidx
         if any(x -> isa(x, ByColumn), key)
             m = maximum(width, args)
             for i in 1:m
@@ -150,6 +144,13 @@ function to_traces(args...; kwargs...)
     traces
 end
 
+function to_traces(args...; kwargs...)
+    len = column_length(args[1])
+    pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
+    sa = isempty(pcols) ? fill(NamedTuple(), len) : StructArray(pcols)
+    to_traces(GroupIdxsIterator(sa), args)
+end
+
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
     style = normalize(st)
     pre_f = to_function(style)
@@ -157,8 +158,7 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     f = adjust_globally(pre_f, pre_traces)
     traces = map_traces(f, pre_traces)
 
-    cols = collect_columns(trace.primary for trace in traces)
-    uniquevalues = map(UniqueValues, columns(cols))
+    uniquevalues = map(UniqueValues, Tables.columns([trace.primary for trace in traces]))
     series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 

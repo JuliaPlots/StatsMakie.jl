@@ -3,7 +3,6 @@ using Test
 
 using Random: seed!
 using AbstractPlotting.GeometryTypes: HyperRectangle
-using IndexedTables
 using Distributions
 using FreqTables
 using KernelDensity: kde
@@ -68,7 +67,7 @@ end
     @test p4[end] isa Surface
     @test p4[end][1][] == p1[end][1][]
 
-    t = table((x = x, y = y))
+    t = (x = x, y = y)
     p5 = surface(density(bandwidth = (0.1, 0.1)), Data(t), (:x, :y))
     plt = p5[end].plots[1]
     @test plt isa Surface
@@ -82,7 +81,7 @@ end
     x = randn(1000)
     y = rand(1000)
     z = rand(1:3, 1000)
-    t = table((x=x, y=y, z=z))
+    t = (x=x, y=y, z=z)
     p7 = plot(density, Data(t), Group(:z), :x, (weights = :y,))
 
     m1 = findall(==(1), z)
@@ -224,7 +223,7 @@ end
     @test p[end].plots[3][1][] == Point{2, Float32}.(51:2:99, 51:2:99)
     @test p[end].plots[4][1][] == Point{2, Float32}.(52:2:100, 52:2:100)
 
-    t = table((x = 1:100, y = 1:100, z = 2:2:200, m = m, c = c))
+    t = (x = 1:100, y = 1:100, z = 2:2:200, m = m, c = c)
     q = scatter(
         Data(t),
         Group(color = :c, marker = :m),

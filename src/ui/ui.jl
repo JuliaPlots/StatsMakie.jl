@@ -10,8 +10,8 @@ exclude_empty(v) = Iterators.filter(!_empty, v)
 
 function gui(df)
     df isa AbstractObservable || (df = Observable{Any}(df))
-    t = map(table, df)
-    names = @map collect(colnames(&t))
+    t = map(columntable, df)
+    names = @map collect(propertynames(&t))
     maybe_names = @map vcat(Symbol(""), &names)
     x = @nodeps dropdown(names, label = "First axis")
     y = @nodeps dropdown(maybe_names, label = "Second axis")
@@ -30,9 +30,9 @@ function gui(df)
     style_attr = [:color, :markersize]
     groups = [@nodeps(dropdown(maybe_names, label = string(l))) for l in group_attr]
     styles = [@nodeps(dropdown(maybe_names, label = string(l))) for l in style_attr]
-    
+
     output = Observable{Any}(text("Welcome to the StatsMakie GUI", align = (:center, :center)))
-    
+
     plot_button = @nodeps(button("Plot"))
     save_button = @nodeps(button("Save"))
     save_name = @nodeps(textbox(placeholder = "Save as..."))
@@ -59,7 +59,7 @@ function gui(df)
         stls = exclude_empty((key => val[]) for (key, val) in zip(style_attr, styles))
         g = Group(; grps...)
         s = Style(; stls...)
-        plot_func[](analysis[], Data(t[]), g, s, vars...) 
+        plot_func[](analysis[], Data(t[]), g, s, vars...)
     end
     on(save_button) do _
         save_plot(save_name[], output[])
@@ -81,7 +81,7 @@ function gui(df)
             hspace,
             :z,
             style = row_style
-        ) 
+        )
         button_row = div(
             :plot_button,
             hspace,
@@ -96,7 +96,7 @@ function gui(df)
         div(top_row, vspace, button_row, vspace, bottom_row)
     end
 end
-    
+
 function save_plot(name, scene)
     fp = joinpath(homedir(), ".StatsMakie", "plots")
     ispath(fp) || mkpath(fp)
