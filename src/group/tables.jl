@@ -126,9 +126,10 @@ function to_traces(style::Style)
     to_traces(args...; g.columns...)
 end
 
-function to_traces(gidx::GroupIdxsIterator, args::Tuple)
+function to_traces(gidx::TiedIndices, args::Tuple)
     traces = TraceSpec[]
-    for (key, idxs) in gidx
+    for (key, ii) in gidx
+        idxs = sortperm(gidx)[ii]
         if any(x -> isa(x, ByColumn), key)
             m = maximum(width, args)
             for i in 1:m
@@ -148,7 +149,7 @@ function to_traces(args...; kwargs...)
     len = column_length(args[1])
     pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
     sa = isempty(pcols) ? fill(NamedTuple(), len) : StructArray(pcols)
-    to_traces(GroupIdxsIterator(sa), args)
+    to_traces(TiedIndices(sa), args)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)

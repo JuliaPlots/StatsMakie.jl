@@ -1,4 +1,4 @@
 [deps]
 AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-StatsMakie = "9d48ccf0-4268-5716-84ff-21228f561db3"
+StatsMakie = "65254759-4cff-5aa5-8326-61ce017a8c70"
