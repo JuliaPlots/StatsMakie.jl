@@ -1,5 +1,5 @@
 using Widgets, Observables, OrderedCollections
-using Widgets: div, @nodeps, Widget
+using Widgets: div, @nodeps, Widget, dropdown, button, textbox
 using Observables: @map, AbstractObservable
 import FileIO
 
@@ -13,10 +13,10 @@ function gui(df)
     t = map(columntable, df)
     names = @map collect(propertynames(&t))
     maybe_names = @map vcat(Symbol(""), &names)
-    x = @nodeps dropdown(names, label = "First axis")
-    y = @nodeps dropdown(maybe_names, label = "Second axis")
-    z = @nodeps dropdown(maybe_names, label = "Third axis")
-    plot_func = @nodeps dropdown([plot, scatter, lines, barplot, heatmap, surface, wireframe,
+    x = dropdown(names, label = "First axis")
+    y = dropdown(maybe_names, label = "Second axis")
+    z = dropdown(maybe_names, label = "Third axis")
+    plot_func = dropdown([plot, scatter, lines, barplot, heatmap, surface, wireframe,
         volume, contour, boxplot, violin], label = "Plot function")
     analysis_options = OrderedDict(
         "" => tuple,
@@ -25,17 +25,17 @@ function gui(df)
         "linear" => linear,
         "smooth" => smooth
     )
-    analysis = @nodeps dropdown(analysis_options, label = "Analysis")
+    analysis = dropdown(analysis_options, label = "Analysis")
     group_attr = [:color, :marker, :linestyle]
     style_attr = [:color, :markersize]
-    groups = [@nodeps(dropdown(maybe_names, label = string(l))) for l in group_attr]
-    styles = [@nodeps(dropdown(maybe_names, label = string(l))) for l in style_attr]
+    groups = [dropdown(maybe_names, label = string(l)) for l in group_attr]
+    styles = [dropdown(maybe_names, label = string(l)) for l in style_attr]
 
     output = Observable{Any}(text("Welcome to the StatsMakie GUI", align = (:center, :center)))
 
-    plot_button = @nodeps(button("Plot"))
-    save_button = @nodeps(button("Save"))
-    save_name = @nodeps(textbox(placeholder = "Save as..."))
+    plot_button = button("Plot")
+    save_button = button("Save")
+    save_name = textbox(placeholder = "Save as...")
 
     ui = Widget{:gui}(
         OrderedDict(
