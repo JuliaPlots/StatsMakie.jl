@@ -277,8 +277,7 @@ end
     plt = p[end]
     @test plt isa BarPlot
     x = h.edges[1]
-    @test plt[1][] ≈ x[1:end-1] .+ step(x)/2
-    @test plt[2][] == h.weights
+    @test plt[1][] ≈ Point{2, Float32}.(x[1:end-1] .+ step(x)/2, h.weights)
 
     v = (randn(1000), randn(1000))
     h = fit(Histogram, v, nbins = 30)
@@ -350,13 +349,11 @@ end
     n2 = count(==(2), v)
     n3 = count(==(3), v)
     @test p[end] isa BarPlot
-    @test p[end][1][] == [1, 2, 3]
-    @test p[end][2][] == [n1, n2, n3]
+    @test p[end][1][] == Point{2, Float32}.([1, 2, 3], [n1, n2, n3])
 
     p = plot(frequency, v)
     @test p[end] isa BarPlot
-    @test p[end][1][] == [1, 2, 3]
-    @test p[end][2][] == [n1, n2, n3]
+    @test p[end][1][] == Point{2, Float32}.([1, 2, 3], [n1, n2, n3])
 end
 
 @testset "qqplot" begin
