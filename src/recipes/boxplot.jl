@@ -85,24 +85,26 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 # using maximum and minimum values inside the limits
                 q1, q5 = extrema_nan(inside)
             end
+            push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
+            push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
             # Box
             if notch
-                push!(t_segments, (m, q1), (l, q1), (r, q1), (m, q1), (m, q2))# lower T
-                push!(boxes, FRect(l, q2, hw, n)) # lower box
-                #push!(notched_boxes, (l,q1),(r,q1),(r, qn),
+                push!(notched_boxes, (l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2))
                 # push!(boxes, FRect(l, q4, hw, n)) # lower box
-                push!(t_segments, (m, q5), (l, q5), (r, q5), (m, q5), (m, q4))# upper T
+                push!(medians, (L, q3), (R, q3))
             else
-                push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
                 push!(boxes, FRect(l, q2, 2hw, (q4 - q2)))
                 push!(medians, (l, q3), (r, q3))
-                push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
             end
         end
-        boxes, outlier_points, medians, t_segments
+        if notch
+            return notched_boxes, outlier_points, medians, t_segments
+        end
+        return boxes, outlier_points, medians, t_segments
     end
     outliers = lift(getindex, signals, Node(2))
     medians = lift(getindex, signals, Node(3))
+    boxes = lift(getindex, signals, Node(1))
     scatter!(
         plot,
         color = plot[:outliercolor],
@@ -119,10 +121,11 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         lift(last, signals),
     )
     poly!(
-        plot, lift(first, signals),
+        plot,
         color = plot[:color],
         strokecolor = plot[:strokecolor],
-        strokewidth = plot[:strokewidth]
+        strokewidth = plot[:strokewidth],
+        boxes,
     )
     linesegments!(
         plot,
