@@ -9,7 +9,7 @@ Taken from https://github.com/JuliaPlots/StatPlots.jl/blob/master/src/boxplot.jl
 The StatPlots.jl package is licensed under the MIT "Expat" License:
     Copyright (c) 2016: Thomas Breloff.
 =#
-@recipe(BoxPlot, x, y) do scene
+@recipe(BoxPlot) do scene
     t = Theme(
         color = theme(scene, :color),
         notch = false,
@@ -33,7 +33,8 @@ _cycle(v, idx::Integer) = v
 function AbstractPlotting.plot!(plot::BoxPlot)
     args = @extract plot (width, range, outliers, whisker_width, notch)
 
-    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch
+    x_obs, y_obs = xy_constant_default(plot)
+    signals = lift(x_obs, y_obs, args...) do x, y, bw, range, outliers, whisker_width, notch
         glabels = sort(collect(unique(x)))
         warning = false
         outlier_points = Point2f0[]
