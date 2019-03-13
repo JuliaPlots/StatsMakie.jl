@@ -42,7 +42,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         end
         ww = whisker_width == :match ? bw : whisker_width
         boxes = FRect2D[]
-        notched_boxes = Point2f0[]
+        notched_boxes = Vector{Point2f0}[]
         t_segments = Point2f0[]
         medians = Point2f0[]
         for (i, glabel) in enumerate(glabels)
@@ -89,7 +89,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
             push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
             # Box
             if notch
-                push!(notched_boxes, (l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2))
+                push!(notched_boxes, map(Point2f0, [(l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2)]))
                 # push!(boxes, FRect(l, q4, hw, n)) # lower box
                 push!(medians, (L, q3), (R, q3))
             else
