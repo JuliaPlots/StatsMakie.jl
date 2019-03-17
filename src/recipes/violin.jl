@@ -14,8 +14,7 @@ function plot!(plot::Violin)
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
         meshes = GeometryTypes.GLPlainMesh[]
         lines = Pair{Point2f0, Point2f0}[]
-        ti = TiedIndices(x)
-        for (key, ii) in ti
+        for (key, idxs) in finduniquesorted(x)
             idxs = sortperm(ti)[ii]
             v = view(y, idxs)
             spec = (x = key, kde = kde(v), median = median(v))
