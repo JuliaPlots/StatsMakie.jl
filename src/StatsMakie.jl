@@ -11,7 +11,7 @@ import StatsBase
 using Distributions
 using IntervalSets
 using Tables, StructArrays
-using StructArrays: TiedIndices
+using StructArrays: finduniquesorted
 using IntervalSets: Interval, endpoints
 using Loess
 using NamedArrays: NamedArray

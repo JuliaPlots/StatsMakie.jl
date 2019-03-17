@@ -126,30 +126,29 @@ function to_traces(style::Style)
     to_traces(args...; g.columns...)
 end
 
-function to_traces(gidx::TiedIndices, args::Tuple)
+function traces_from_groups(keys, data)
     traces = TraceSpec[]
-    for (key, ii) in gidx
-        idxs = sortperm(gidx)[ii]
+    for (key, idxs) in keys
         if any(x -> isa(x, ByColumn), key)
-            m = maximum(width, args)
+            m = maximum(width, data)
             for i in 1:m
-                output = map(x -> extract_view(x, idxs, i), args)
+                output = map(x -> extract_view(x, idxs, i), data)
                 new_key = map(x -> x isa ByColumn ? i : x, key)
                 push!(traces, TraceSpec(new_key, idxs, output))
             end
         else
-            output =  map(x -> extract_view(x, idxs), args)
+            output =  map(x -> extract_view(x, idxs), data)
             push!(traces, TraceSpec(key, idxs, output))
         end
     end
-    traces
+    return traces
 end
 
 function to_traces(args...; kwargs...)
     len = column_length(args[1])
     pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), values(kwargs))
     sa = isempty(pcols) ? fill(NamedTuple(), len) : StructArray(pcols)
-    to_traces(TiedIndices(sa), args)
+    traces_from_groups(finduniquesorted(sa), args)
 end
 
 function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwargs...)
