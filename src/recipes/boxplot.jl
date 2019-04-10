@@ -105,6 +105,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
     outliers = lift(getindex, signals, Node(2))
     medians = lift(getindex, signals, Node(3))
     boxes = lift(getindex, signals, Node(1))
+    t_segments = lift(last, signals)
     scatter!(
         plot,
         color = plot[:outliercolor],
@@ -117,14 +118,11 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         plot,
         color = plot[:strokecolor],
         linewidth = plot[:strokewidth],
-        # extract(plot, (:color, :strokecolor, :markershape))
-        lift(last, signals),
+        t_segments,
     )
     poly!(
         plot,
         color = plot[:color],
-        strokecolor = plot[:strokecolor],
-        strokewidth = plot[:strokewidth],
         boxes,
     )
     linesegments!(
