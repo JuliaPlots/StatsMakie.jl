@@ -167,7 +167,8 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
         colorrange = extrema_nan(col)
     end
 
-    PlotSpec{MultiplePlot}(pl, colorrange = colorrange)
+    # PlotSpec{MultiplePlot}(pl, colorrange = colorrange)
+    pl
 end
 
 struct DelayedAttribute
