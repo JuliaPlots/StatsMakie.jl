@@ -427,3 +427,22 @@ end
     @test p[end].plots[2][:color][] == :white
     @test p[end].plots[2][:visible][] == :false
 end
+
+@testset "errorbar" begin
+    x = [1:4;]
+    y =  [1:4;]
+    Δx = fill(0.25, 4)
+    Δy = fill(0.25, 4)
+    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red)
+    @test p[end] isa ErrorBar
+    @test p[end][:ycolor][] == :red
+    @test p[end][:xcolor][] == :green
+
+    @test p[end].plots[1] isa ErrorBarX
+    @test p[end].plots[1].plots[1] isa LineSegments
+    @test p[end].plots[1][:color][] == :green
+
+    @test p[end].plots[2] isa ErrorBarY
+    @test p[end].plots[2].plots[1] isa LineSegments
+    @test p[end].plots[2][:color][] == :red
+end
