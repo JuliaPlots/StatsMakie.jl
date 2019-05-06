@@ -1,17 +1,39 @@
 import AbstractPlotting:plot!
 
+"""
+    errorbary(x, y, Δy)
+
+Plots points defined by `x` and `y`,
+and vertical error bars (along the `y`-axis)
+on those points, as defined by `Δy`.
+"""
 @recipe(ErrorBarY, x, y, Δy) do scene
     Theme(
           color = theme(scene, :color)
          )
 end
 
+"""
+    errorbarx(x, y, Δx)
+
+Plots points defined by `x` and `y`,
+and horizontal error bars (along the `x`-axis)
+on those points, as defined by `Δx`.
+"""
 @recipe(ErrorBarX, x, y, Δx) do scene
     Theme(
           color = theme(scene, :color)
          )
 end
 
+"""
+    errorbar(x, y, Δx, Δy)
+
+Plots points defined by `x` and `y`,
+and horizontal and vertical error bars 
+(along the `x` and `y`-axes)
+on those points, as defined by `Δx` and `Δy`.
+"""
 @recipe(ErrorBar, x, y, Δx, Δy) do scene
     Theme(
           xcolor = theme(scene, :color),
