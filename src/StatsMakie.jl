@@ -38,6 +38,7 @@ include(joinpath("typerecipes", "namedarray.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))
 include(joinpath("recipes", "ribbon.jl"))
+include(joinpath("recipes", "errorbar.jl"))
 
 include(joinpath("ui", "ui.jl"))
 
