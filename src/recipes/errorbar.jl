@@ -2,20 +2,20 @@ import AbstractPlotting:plot!
 
 @recipe(ErrorBarY, x, y, Δy) do scene
     Theme(
-          color = :black
+          color = theme(scene, :color)
          )
 end
 
 @recipe(ErrorBarX, x, y, Δx) do scene
     Theme(
-          color = :black
+          color = theme(scene, :color)
          )
 end
 
 @recipe(ErrorBar, x, y, Δx, Δy) do scene
     Theme(
-          xcolor = :black,
-          ycolor = :black
+          xcolor = theme(scene, :color),
+          ycolor = theme(scene, :color)
          )
 end
 
