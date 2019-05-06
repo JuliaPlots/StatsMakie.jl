@@ -3,12 +3,17 @@ function combine_color_alpha(c, alpha)
     RGBAf0(col.r, col.g, col.b, col.alpha * alpha)
 end
 
+"""
+    ribbon(x, y, yerror)
+
+Plots a filled area centered along the line specified
+by `x` and `y`, with thickness specified by `error`.
+"""
 @recipe(Ribbon) do scene
     Theme(;
         default_theme(scene, Band)...,
         color = theme(scene, :color),
-        fillalpha = 0.2,
-        error = 0.0
+        fillalpha = 0.2
     )
 end
 
@@ -23,9 +28,9 @@ end
 
 function plot!(p::Ribbon)
     x, y = p[1:2]
-    err = p[:error]
-    ylow = lift(_get_broadcast, y, err, Node(1))
-    yhigh = lift(_get_broadcast, y, err, Node(2))
+    yerr = p[3]
+    ylow = lift(_get_broadcast, y, yerr, Node(1))
+    yhigh = lift(_get_broadcast, y, yerr, Node(2))
 
     theme = copy(Theme(p))
     theme[:color] = lift(combine_color_alpha, Theme(p)[:color], Theme(p)[:fillalpha])
