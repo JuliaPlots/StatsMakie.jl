@@ -28,7 +28,7 @@ end
 
 function plot!(p::Ribbon)
     x, y = p[1:2]
-    yerr = p[:3]
+    yerr = p[3]
     ylow = lift(_get_broadcast, y, yerr, Node(1))
     yhigh = lift(_get_broadcast, y, yerr, Node(2))
 
