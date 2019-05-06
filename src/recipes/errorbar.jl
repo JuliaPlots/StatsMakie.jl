@@ -29,7 +29,7 @@ end
 function plot!(plot::ErrorBarX)
     segments = map(plot[1], plot[2], plot[3]) do x,y,Δx
         [Point2f0(x[i]-Δx[i], y[i])=>Point2f0(x[i]+Δx[i], y[i]) for i in 1:length(x)]
-    end 
+    end
     linesegments!(plot, segments, color=plot[:color])
 end
 
