@@ -158,7 +158,7 @@ function convert_arguments(P::PlotFunc, st::Style; colorrange = automatic, kwarg
     f = adjust_globally(pre_f, pre_traces)
     traces = map_traces(f, pre_traces)
 
-    uniquevalues = map(UniqueValues, Tables.columns([trace.primary for trace in traces]))
+    uniquevalues = map(UniqueValues, Tables.columntable([trace.primary for trace in traces]))
     series = (to_plotspec(P, trace, uniquevalues; to_kwargs(style)...) for trace in traces)
     pl = PlotList(series...)
 
