@@ -1,4 +1,4 @@
-@recipe(Violin, x, y) do scene
+@recipe(Violin) do scene
     Theme(;
         default_theme(scene, Poly)...,
         side = :both,
@@ -8,10 +8,23 @@
     )
 end
 
+function xy_constant_default(v)
+    if length(v.converted) == 1
+        y_obs = v[1]
+        x_obs = lift(t -> fill(1, length(t)), y_obs)
+    else
+        x_obs = v[1]
+        y_obs = v[2]
+    end
+    return x_obs, y_obs
+end
+
 function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 
-    signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
+    x_obs, y_obs = xy_constant_default(plot)
+
+    signals = lift(x_obs, y_obs, width, side) do x, y, bw, vside
         meshes = GeometryTypes.GLPlainMesh[]
         lines = Pair{Point2f0, Point2f0}[]
         for (key, idxs) in finduniquesorted(x)
