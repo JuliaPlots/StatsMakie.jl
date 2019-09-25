@@ -13,6 +13,7 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
     t = Theme(
         color = theme(scene, :color),
         notch = false,
+		whiskers = true,
         range = 1.5,
         outliers = true,
         whisker_width = :match,
@@ -31,9 +32,9 @@ _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
 function AbstractPlotting.plot!(plot::BoxPlot)
-    args = @extract plot (width, range, outliers, whisker_width, notch)
+    args = @extract plot (width, range, outliers, whisker_width, notch, whiskers)
 
-    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch
+    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch, whiskers
         glabels = sort(collect(unique(x)))
         warning = false
         outlier_points = Point2f0[]
@@ -85,8 +86,8 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 # using maximum and minimum values inside the limits
                 q1, q5 = extrema_nan(inside)
             end
-            push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
-            push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
+            whiskers && push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
+            whiskers && push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
             # Box
             if notch
                 push!(notched_boxes, map(Point2f0, [(l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2)]))
