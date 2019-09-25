@@ -86,8 +86,10 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 # using maximum and minimum values inside the limits
                 q1, q5 = extrema_nan(inside)
             end
-            whiskers && push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
-            whiskers && push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
+			if whiskers
+				push!(t_segments, (m, q2), (m, q1), (l, q1), (r, q1))# lower T
+				push!(t_segments, (m, q4), (m, q5), (r, q5), (l, q5))# upper T
+			end
             # Box
             if notch
                 push!(notched_boxes, map(Point2f0, [(l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2)]))
