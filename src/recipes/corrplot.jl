@@ -16,20 +16,19 @@ AbstractPlotting.convert_arguments(::Type{<: CorrPlot}, x) = (x,)
 
 function AbstractPlotting.plot!(scene::Scene, ::Type{CorrPlot}, attributes::Attributes, mat)
     n = size(mat, 2)
-    C = cor(mat)
-    plotgrid = broadcast(1:n, (1:n)') do i, j
-        vi = view(mat, :, i)
-        vj = view(mat, :, j)
-        s = Scene(scene, Reactive.value(pixelarea(scene)))
-        if i == j # histograms are on the diagonal
-            histogram!(s, vi)
-        elseif i > j
-            scatter!(s, vj, vi)
-        else
-            scatter!(s, vj, vi)
+    scene = Scene(scene, pixelarea(scene))
+    layout = GridLayout(scene, n, n)
+    for i in 1:n
+        for j in 1:n
+            axs = LAxis(scene)
+            if i > j
+                scatter!(axs, view(mat, :, j), view(mat, :, i))
+                plot!(axs, linear, view(mat, :, j), view(mat, :, i))
+            else
+                plot!(axs, histogram, view(mat, :, j), view(mat, :, i))
+            end
+            layout[i,j] = axs
         end
-        s
     end
-    grid!(scene, plotgrid)
     scene
 end
