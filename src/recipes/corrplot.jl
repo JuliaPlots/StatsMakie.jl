@@ -16,19 +16,24 @@ AbstractPlotting.convert_arguments(::Type{<: CorrPlot}, x) = (x,)
 
 function AbstractPlotting.plot!(scene::Scene, ::Type{CorrPlot}, attributes::Attributes, mat)
     n = size(mat, 2)
-    scene = Scene(scene, pixelarea(scene))
     layout = GridLayout(scene, n, n)
+    layout[1:n, 1:n] = axs = [LAxis(scene) for i in 1:n, j in 1:n]
+
     for i in 1:n
         for j in 1:n
-            axs = LAxis(scene)
+            ax = axs[i, j]
             if i > j
-                scatter!(axs, view(mat, :, j), view(mat, :, i))
-                plot!(axs, linear, view(mat, :, j), view(mat, :, i))
+                scatter!(ax, view(mat, :, j), view(mat, :, i))
+                plot!(ax, linear, view(mat, :, j), view(mat, :, i))
+            elseif i == j
+                plot!(ax, histogram, view(mat, :, j))
             else
-                plot!(axs, histogram, view(mat, :, j), view(mat, :, i))
+                plot!(ax, histogram, view(mat, :, j), view(mat, :, i))
             end
-            layout[i,j] = axs
         end
     end
-    scene
+
+    tight_ticklabel_spacing!.(axs)
+
+    return scene
 end
