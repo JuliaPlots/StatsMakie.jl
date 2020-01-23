@@ -22,6 +22,7 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         strokewidth = 1.0,
         mediancolor = :white,
         show_median = true,
+        markersize = automatic,
     )
     t[:outliercolor] = t[:color]
     t
@@ -106,11 +107,12 @@ function AbstractPlotting.plot!(plot::BoxPlot)
     medians = lift(getindex, signals, Node(3))
     boxes = lift(getindex, signals, Node(1))
     t_segments = lift(last, signals)
+
     scatter!(
         plot,
         color = plot[:outliercolor],
         strokecolor = plot[:strokecolor],
-        markersize = lift(*, width, 0.1),
+        markersize = lift((w, ms)-> ms === automatic ? w * 0.1 : ms, width, plot.markersize),
         strokewidth = plot[:strokewidth],
         outliers,
     )
