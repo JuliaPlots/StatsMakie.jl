@@ -7,6 +7,7 @@ using AbstractPlotting: plottype, Plot, PlotFunc, to_value, to_node, to_tuple
 using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme
 using AbstractPlotting: GeometryTypes
 using Statistics, KernelDensity
+using MakieLayout
 import StatsBase
 using Distributions
 using IntervalSets
@@ -34,7 +35,7 @@ include(joinpath("typerecipes", "distribution.jl"))
 include(joinpath("typerecipes", "smooth.jl"))
 include(joinpath("typerecipes", "namedarray.jl"))
 
-# include(joinpath("recipes", "corrplot.jl"))
+include(joinpath("recipes", "corrplot.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))
 include(joinpath("recipes", "ribbon.jl"))
