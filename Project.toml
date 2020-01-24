@@ -23,6 +23,8 @@ Widgets = "cc8bc4a8-27d6-5769-a93b-9d913e69aa62"
 [compat]
 AbstractPlotting = ">=0.9.1"
 Distributions = ">= 0.15"
+FreqTables = ">=0.3.1"
+OrderedCollections = "1.1"
 NamedArrays = "0.9"
 StatsBase = "0.32"
 IntervalSets = "0.3"
