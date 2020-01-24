@@ -23,6 +23,7 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         mediancolor = :white,
         show_median = true,
         markersize = automatic,
+        orientation = :vertical,
     )
     t[:outliercolor] = t[:color]
     t
@@ -31,10 +32,13 @@ end
 _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
-function AbstractPlotting.plot!(plot::BoxPlot)
-    args = @extract plot (width, range, outliers, whisker_width, notch)
+_flip_xy(p::Point2f0) = reverse(p)
+_flip_xy(r::Rect{2, T}) where T = Rect{2, T}(reverse(r.origin), reverse(r.widths))
 
-    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch
+function AbstractPlotting.plot!(plot::BoxPlot)
+    args = @extract plot (width, range, outliers, whisker_width, notch, orientation)
+
+    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch, orientation
         glabels = sort(collect(unique(x)))
         warning = false
         outlier_points = Point2f0[]
@@ -98,15 +102,26 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 push!(medians, (l, q3), (r, q3))
             end
         end
-        if notch
-            return notched_boxes, outlier_points, medians, t_segments
+
+        final_boxes = notch ? notched_boxes : boxes
+
+        # for horizontal boxplots just flip all components
+        if orientation == :horizontal
+            final_boxes = _flip_xy.(final_boxes)
+            outlier_points = _flip_xy.(outlier_points)
+            medians = _flip_xy.(medians)
+            t_segments = _flip_xy.(t_segments)
+        elseif orientation != :vertical
+            error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
-        return boxes, outlier_points, medians, t_segments
+
+        return final_boxes, outlier_points, medians, t_segments
     end
-    outliers = lift(getindex, signals, Node(2))
-    medians = lift(getindex, signals, Node(3))
-    boxes = lift(getindex, signals, Node(1))
-    t_segments = lift(last, signals)
+
+    boxes = @lift($signals[1])
+    outliers = @lift($signals[2])
+    medians = @lift($signals[3])
+    t_segments = @lift($signals[4])
 
     scatter!(
         plot,
