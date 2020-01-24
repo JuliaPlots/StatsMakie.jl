@@ -103,10 +103,11 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         end
         return boxes, outlier_points, medians, t_segments
     end
-    outliers = lift(getindex, signals, Node(2))
-    medians = lift(getindex, signals, Node(3))
-    boxes = lift(getindex, signals, Node(1))
-    t_segments = lift(last, signals)
+
+    boxes = @lift($signals[1])
+    outliers = @lift($signals[2])
+    medians = @lift($signals[3])
+    t_segments = @lift($signals[4])
 
     scatter!(
         plot,
