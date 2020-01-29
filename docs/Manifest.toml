@@ -8,9 +8,9 @@ version = "0.5.0"
 
 [[AbstractNumbers]]
 deps = ["SpecialFunctions"]
-git-tree-sha1 = "166dd550832720b4c851f30e5938e675e42c16d4"
+git-tree-sha1 = "924732f1a32f0e4b1e748b469d4604125bdf1d00"
 uuid = "85c772de-338a-5e7f-b815-41e76c26ac1f"
-version = "0.2.0"
+version = "0.2.1"
 
 [[AbstractPlotting]]
 deps = ["AbstractNumbers", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "FreeType", "FreeTypeAbstraction", "GeometryTypes", "ImageMagick", "IntervalSets", "LinearAlgebra", "Markdown", "Observables", "Packing", "PlotUtils", "Printf", "Random", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "StaticArrays", "Statistics", "StructArrays", "UnicodeFun"]
@@ -207,9 +207,9 @@ version = "0.8.4"
 
 [[FiniteDiff]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "a496a96abc027eaeee90c3e229dec7c9243898dd"
+git-tree-sha1 = "109cca539ac87b1b95538f539ed8eb7e3f35eee5"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.0.0"
+version = "2.1.0"
 
 [[FixedPointNumbers]]
 git-tree-sha1 = "4aaea64dd0c30ad79037084f8ca2b94348e65eaa"
@@ -286,9 +286,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[Interpolations]]
 deps = ["AxisAlgorithms", "LinearAlgebra", "OffsetArrays", "Random", "Ratios", "SharedArrays", "SparseArrays", "StaticArrays", "WoodburyMatrices"]
-git-tree-sha1 = "96b16bb44b1037f42a50e3fa9ba38dd78c9c1a3e"
+git-tree-sha1 = "c7579b2617b513d8e6eb9f4b91837eefe7080af8"
 uuid = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
-version = "0.12.7"
+version = "0.12.8"
 
 [[IntervalSets]]
 deps = ["Dates", "Statistics"]
@@ -410,9 +410,9 @@ version = "1.0.2"
 
 [[OpenBLAS_jll]]
 deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "3a6e5767e8ae022871c19162cc3ecd80748bd3dc"
+git-tree-sha1 = "e2551d7c25d52f35b76d86a50917a3ba8988f519"
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.7+4"
+version = "0.3.7+5"
 
 [[OpenSpecFun_jll]]
 deps = ["Libdl", "Pkg"]
@@ -602,9 +602,9 @@ version = "0.9.3"
 
 [[StatsMakie]]
 deps = ["AbstractPlotting", "Distributions", "FileIO", "FreqTables", "IntervalSets", "KernelDensity", "Loess", "NamedArrays", "Observables", "OrderedCollections", "Random", "Statistics", "StatsBase", "StructArrays", "Tables", "Widgets"]
-git-tree-sha1 = "2307293357f872a6dcbe2616d47efdaa0ea2bb9b"
+git-tree-sha1 = "b4dab493b0efac1043d1ede3b54934c711f96134"
 uuid = "65254759-4cff-5aa5-8326-61ce017a8c70"
-version = "0.0.6"
+version = "0.0.7"
 
 [[StructArrays]]
 deps = ["PooledArrays", "Tables", "WeakRefStrings"]
@@ -652,10 +652,10 @@ uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
 version = "0.6.2"
 
 [[Widgets]]
-deps = ["Colors", "Dates", "Observables", "OrderedCollections"]
-git-tree-sha1 = "fc0feda91b3fef7fe6948ee09bb628f882b49ca4"
+deps = ["Colors", "Dates", "Observables", "OrderedCollections", "Test"]
+git-tree-sha1 = "843a440fc2e715ace09adcbfc765018c43cd828d"
 uuid = "cc8bc4a8-27d6-5769-a93b-9d913e69aa62"
-version = "0.6.2"
+version = "0.5.1"
 
 [[WoodburyMatrices]]
 deps = ["LinearAlgebra", "SparseArrays"]
