@@ -33,7 +33,7 @@ Observables = "0.2"
 OrderedCollections = "1.1"
 StatsBase = "0.31, 0.32"
 StructArrays = "0.2, 0.3, 0.4"
-Tables = "0.2.2, 1.0"
+Tables = "1"
 Widgets = "0.5"
 julia = "1.0"
 
