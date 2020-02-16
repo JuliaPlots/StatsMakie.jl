@@ -11,11 +11,9 @@ import StatsBase
 using Distributions
 using IntervalSets
 using Tables, StructArrays
-using StructArrays: finduniquesorted
+using StructArrays: uniquesorted, finduniquesorted, GroupPerm
 using IntervalSets: Interval, endpoints
 using Loess
-using NamedArrays: NamedArray
-using FreqTables: freqtable
 
 export Data, Group, Style
 export Position
