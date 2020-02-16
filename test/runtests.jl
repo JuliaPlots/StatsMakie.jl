@@ -4,7 +4,6 @@ using Test
 using Random: seed!
 using AbstractPlotting.GeometryTypes: HyperRectangle
 using Distributions
-using FreqTables
 using KernelDensity: kde
 
 seed!(0)
@@ -360,16 +359,12 @@ end
     @test plt[4][] == h.weights
 end
 
-@testset "named" begin
+@testset "frequency" begin
     v = rand(1:3, 1000)
-    p = plot(freqtable, v)
+    p = plot(frequency, v)
     n1 = count(==(1), v)
     n2 = count(==(2), v)
     n3 = count(==(3), v)
-    @test p[end] isa BarPlot
-    @test p[end][1][] == Point{2, Float32}.([1, 2, 3], [n1, n2, n3])
-
-    p = plot(frequency, v)
     @test p[end] isa BarPlot
     @test p[end][1][] == Point{2, Float32}.([1, 2, 3], [n1, n2, n3])
 end
