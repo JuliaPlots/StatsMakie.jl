@@ -97,8 +97,12 @@ function gui(df)
     end
 end
 
-function save_plot(name, scene)
-    fp = joinpath(homedir(), ".StatsMakie", "plots")
+"""
+    save_plot(name::String, scene::Scene; fp = joinpath(homedir(), ".StatsMakie", "plots"))
+
+Saves the given Scene with the name `name` (extension needs to be included) in `~/.StatsMakie/plots`.
+"""
+function save_plot(name, scene; fp = joinpath(homedir(), ".StatsMakie", "plots"))
     ispath(fp) || mkpath(fp)
     FileIO.save(joinpath(fp, name), scene)
 end
