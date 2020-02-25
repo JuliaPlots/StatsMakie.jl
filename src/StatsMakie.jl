@@ -23,6 +23,7 @@ using Tables, StructArrays
 using StructArrays: uniquesorted, finduniquesorted, GroupPerm
 using IntervalSets: Interval, endpoints
 using Loess
+using Hexagons
 
 export Data, Group, Style
 export Position

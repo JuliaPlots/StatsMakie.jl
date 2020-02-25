@@ -5,6 +5,7 @@ version = "0.1.2"
 [deps]
 AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Hexagons = "a1b4810d-1bce-5fbd-ac56-80944d57a21f"
 IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 Loess = "4345ca2d-374a-55d4-8d30-97f9976e7612"
