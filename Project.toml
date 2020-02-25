@@ -1,6 +1,6 @@
 name = "StatsMakie"
 uuid = "65254759-4cff-5aa5-8326-61ce017a8c70"
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
