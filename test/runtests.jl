@@ -190,7 +190,7 @@ end
     @test series isa PlotSpec
     @test AbstractPlotting.plottype(series) <: BarPlot
     @test series[1] == [1, 2, 3, 4]
-    @test series[2] == [-1, -2, -3, -4]
+    @test series[2] == [11.0, 12.0, 13.0, 14.0]
     @test series[:fillto] == [12, 14, 16, 18]
     @test series[:width] == 0.8
 
@@ -198,7 +198,7 @@ end
     @test series isa PlotSpec
     @test AbstractPlotting.plottype(series) <: BarPlot
     @test series[1] == [1, 2, 3, 4]
-    @test series[2] == [-11, -12, -13, -14]
+    @test series[2] == [0.0, 0.0, 0.0, 0.0]
     @test series[:fillto] == [11, 12, 13, 14]
     @test series[:width] == 0.8
 
@@ -207,7 +207,7 @@ end
     @test series isa PlotSpec
     @test AbstractPlotting.plottype(series) <: BarPlot
     @test series[1] == [1, 2, 3, 4]
-    @test series[2] == [-1, -2, -3, -4]
+    @test series[2] == [11.0, 12.0, 13.0, 14.0]
     @test series[:fillto] == [12, 14, 16, 18]
     @test series[:width] == 0.8
 
@@ -215,7 +215,7 @@ end
     @test series isa PlotSpec
     @test AbstractPlotting.plottype(series) <: BarPlot
     @test series[1] == [1, 2, 3, 4]
-    @test series[2] == [-11, -12, -13, -14]
+    @test series[2] == [0.0, 0.0, 0.0, 0.0]
     @test series[:fillto] == [11, 12, 13, 14]
     @test series[:width] == 0.8
 end
