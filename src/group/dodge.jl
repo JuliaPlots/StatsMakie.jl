@@ -48,8 +48,7 @@ function convert_arguments(P::PlotFunc, p::Position.Arrangement, pl::PlotList; w
             w = barwidth
             xs = xs_input
             y_mat = series2matrix(x, xs_input, ys_input)
-            y0, y1 = compute_stacked(y_mat; reverse = true)
-            y = y1 .- y0
+            y0, y = compute_stacked(y_mat; reverse = true)
             ft = y0
             ys = (adjust_to_x(x′, x, y[:, i]) for (i, x′) in enumerate(xs))
             fts = (adjust_to_x(x′, x, ft[:, i]) for (i, x′) in enumerate(xs))
