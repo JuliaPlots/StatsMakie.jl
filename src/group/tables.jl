@@ -99,10 +99,6 @@ function map_traces(f, traces::AbstractArray{<:TraceSpec})
     map(ft, traces)
 end
 
-function categoric_position(x::AbstractString, labels::AbstractVector{<:AbstractString})
-    findfirst(l -> l == x, labels)
-end
-
 struct SampleBased <: ConversionTrait end
 
 function convert_arguments(::SampleBased, args::NTuple{N,AbstractVector{<:Number}}) where {N}
