@@ -8,6 +8,8 @@
     )
 end
 
+conversion_trait(x::Type{<:Violin}) = SampleBased()
+
 function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 

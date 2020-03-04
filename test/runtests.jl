@@ -17,6 +17,15 @@ seed!(0)
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
+    # test categorical
+    a = repeat(["a", "b", "c", "d", "e"], inner = 20)
+    b = 1:100
+    p = boxplot(a, b)
+    plts = p[end].plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+
     @test plts[2] isa LineSegments
     pts = Point{2, Float32}[
         [1.0, 5.75], [1.0, 1.0], [0.6, 1.0], [1.4, 1.0], [1.0, 15.25],
@@ -422,6 +431,16 @@ end
 @testset "violin" begin
     x = repeat(1:4, 250)
     y = x .+ randn.()
+    p = violin(x, y, side = :left, color = :blue)
+    @test p[end] isa Violin
+    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1][:color][] == :blue
+    @test p[end].plots[2] isa LineSegments
+    @test p[end].plots[2][:color][] == :white
+    @test p[end].plots[2][:visible][] == :false
+
+    # test categorical
+    x = repeat(["a", "b", "c", "d"], 250)
     p = violin(x, y, side = :left, color = :blue)
     @test p[end] isa Violin
     @test p[end].plots[1] isa Mesh

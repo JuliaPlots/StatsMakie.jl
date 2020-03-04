@@ -29,6 +29,8 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
     t
 end
 
+conversion_trait(x::Type{<:BoxPlot}) = SampleBased()
+
 _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
