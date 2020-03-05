@@ -66,7 +66,7 @@ function _widths(limits, dlimits, x, y)
 end
 
 _stack_offset(ndots, ::Val{:center}) = -ndots / 2
-_stack_offset(ndots, ::Val{:centerwhole}) = -floor(ndots / 2)
+_stack_offset(ndots, ::Val{:centerwhole}) = -ceil(ndots / 2)
 _stack_offset(ndots, ::Val{:up}) = zero(ndots)
 _stack_offset(ndots, ::Union{Val{:up},Val{:left}}) = zero(ndots)
 _stack_offset(ndots, ::Union{Val{:down},Val{:right}}) = -ndots
