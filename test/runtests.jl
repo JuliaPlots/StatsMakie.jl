@@ -17,6 +17,26 @@ seed!(0)
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
+    # test single arg
+    p = boxplot(b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == zeros(100)
+    @test bp.converted[2][] == b
+
+    # test single x-value
+    p = boxplot(1.0, b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == ones(100)
+    @test bp.converted[2][] == b
+
     # test categorical
     a = repeat(["a", "b", "c", "d", "e"], inner = 20)
     b = 1:100
@@ -25,6 +45,16 @@ seed!(0)
     @test length(plts) == 4
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
+
+    # test single categorical x-value
+    p = boxplot("a", b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == ones(100)
+    @test bp.converted[2][] == b
 
     @test plts[2] isa LineSegments
     pts = Point{2, Float32}[
