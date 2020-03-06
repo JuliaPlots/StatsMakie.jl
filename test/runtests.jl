@@ -17,26 +17,6 @@ seed!(0)
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
-    # test single arg
-    p = boxplot(b)
-    bp = p[end]
-    plts = bp.plots
-    @test length(plts) == 4
-    @test plts[1] isa Scatter
-    @test isempty(plts[1][1][])
-    @test bp.converted[1][] == zeros(100)
-    @test bp.converted[2][] == b
-
-    # test single x-value
-    p = boxplot(1.0, b)
-    bp = p[end]
-    plts = bp.plots
-    @test length(plts) == 4
-    @test plts[1] isa Scatter
-    @test isempty(plts[1][1][])
-    @test bp.converted[1][] == ones(100)
-    @test bp.converted[2][] == b
-
     # test categorical
     a = repeat(["a", "b", "c", "d", "e"], inner = 20)
     b = 1:100
@@ -45,16 +25,6 @@ seed!(0)
     @test length(plts) == 4
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
-
-    # test single categorical x-value
-    p = boxplot("a", b)
-    bp = p[end]
-    plts = bp.plots
-    @test length(plts) == 4
-    @test plts[1] isa Scatter
-    @test isempty(plts[1][1][])
-    @test bp.converted[1][] == ones(100)
-    @test bp.converted[2][] == b
 
     @test plts[2] isa LineSegments
     pts = Point{2, Float32}[
@@ -98,6 +68,38 @@ seed!(0)
                                            map(Point2f0, [[3.6, 65.75], [4.4, 65.75], [4.4, 67.4282], [4.2, 70.5], [4.4, 73.5718], [4.4, 75.25], [3.6, 75.25], [3.6, 73.5718], [3.8, 70.5], [3.6, 67.4282], [3.6, 65.75]]),
                                            map(Point2f0, [[4.6, 85.75], [5.4, 85.75], [5.4, 87.4282], [5.2, 90.5], [5.4, 93.5718], [5.4, 95.25], [4.6, 95.25], [4.6, 93.5718], [4.8, 90.5], [4.6, 87.4282], [4.6, 85.75]])]
     @test plts[3][1][] ≈ notch_boxes
+
+    b = 1:100
+
+    # test single arg
+    p = boxplot(b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == zeros(100)
+    @test bp.converted[2][] == b
+
+    # test single x-value
+    p = boxplot(1.0, b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == ones(100)
+    @test bp.converted[2][] == b
+
+    # test single categorical x-value
+    p = boxplot("a", b)
+    bp = p[end]
+    plts = bp.plots
+    @test length(plts) == 4
+    @test plts[1] isa Scatter
+    @test isempty(plts[1][1][])
+    @test bp.converted[1][] == ones(100)
+    @test bp.converted[2][] == b
 end
 
 @testset "density" begin
