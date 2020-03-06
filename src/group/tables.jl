@@ -106,7 +106,7 @@ function convert_arguments(P::SampleBased, y::AbstractVector)
 end
 
 function convert_arguments(P::SampleBased, x, y::AbstractVector)
-    return convert_arguments(P, repeat([x], length(y)), y)
+    return convert_arguments(P, fill(x, length(y)), y)
 end
 
 function convert_arguments(::SampleBased, args::NTuple{N,AbstractVector{<:Number}}) where {N}
