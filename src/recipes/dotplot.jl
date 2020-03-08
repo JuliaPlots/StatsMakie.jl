@@ -1,4 +1,4 @@
-using AbstractPlotting: data_limits, parent_scene
+using AbstractPlotting: parent_scene, xyz_boundingbox
 
 @recipe(DotPlot, x, y) do scene
     t = Theme(
