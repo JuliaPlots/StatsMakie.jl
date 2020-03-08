@@ -7,6 +7,7 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         strokecolor = :black,
         strokewidth = 0,
         orientation = :horizontal,
+        width = 1.0, # used for padding only
         stackdir = :up,
         stackratio = 1,
         dotscale = 1,
@@ -57,23 +58,36 @@ function _bindots(x, binwidth, ::Val{:righttoleft}; kwargs...)
     return reverse(-centers), counts
 end
 
-function _widths(limits, dlimits, x, y)
-    limits === nothing || return widths(limits)[1:2]
-    dlimits === nothing || return widths(dlimits)[1:2]
-    xmin, xmax = extrema(x)
-    ymin, ymax = extrema(y)
-    return [xmax - xmin, ymax - ymin]
-end
-
 _stack_offset(ndots, ::Val{:center}) = -ndots / 2
 _stack_offset(ndots, ::Val{:centerwhole}) = -ceil(ndots / 2)
-_stack_offset(ndots, ::Val{:up}) = zero(ndots)
-_stack_offset(ndots, ::Union{Val{:up},Val{:left}}) = zero(ndots)
-_stack_offset(ndots, ::Union{Val{:down},Val{:right}}) = -ndots
+_stack_offset(ndots, ::Union{Val{:up},Val{:right}}) = zero(ndots)
+_stack_offset(ndots, ::Union{Val{:down},Val{:left}}) = -ndots
+
+_stack_center(::Any) = -0.5
+_stack_center(::Union{Val{:up},Val{:right}}) = 0
+_stack_center(::Union{Val{:down},Val{:left}}) = -1
 
 _flip_xy(::Nothing) = nothing
+_flip_xy(t::NTuple{2}) = reverse(t)
 _flip_xy(r::Rect{N,T}) where {N,T} = _flip_xy(Rect{2,T}(r))
 _flip_xy(v::AbstractVector) = reverse(v[1:2])
+
+# because dot sizes depend on limits, prevent limits from counting stack heights
+function data_limits(P::DotPlot{<:Tuple{X, Y}}) where {X, Y}
+    orientation, stackdir, width = @extract P (orientation, stackdir, width)
+    bb = xyz_boundingbox(to_value(P[1]), to_value(P[2]))
+    w = widths(bb)
+    T = eltype(bb)
+    wv = T(to_value(width))
+    w = Vec3{T}(w[1] + wv, w[2], w[3])
+    o = bb.origin
+    o = Vec3{T}(o[1] + T(_stack_center(Val(to_value(stackdir))) * wv), o[2], o[3])
+    bb = FRect3D(o, w)
+    if to_value(orientation) === :horizontal
+        bb = FRect3D(_flip_xy(bb))
+    end
+    return bb
+end
 
 function AbstractPlotting.plot!(plot::DotPlot)
     args = @extract plot (
