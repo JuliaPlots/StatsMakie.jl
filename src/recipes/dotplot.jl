@@ -96,6 +96,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         strokecolor,
         strokewidth,
         orientation,
+        width,
         stackdir,
         stackratio,
         dotscale,
@@ -113,6 +114,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         pixelarea(plot),
         scene.padding,
         orientation,
+        width,
         stackdir,
         stackratio,
         dotscale,
@@ -121,10 +123,11 @@ function AbstractPlotting.plot!(plot::DotPlot)
         bindir,
     ) do x,
     y,
-    limits,
+    old_limits,
     area,
     padding,
     orientation,
+    width,
     stackdir,
     stackratio,
     dotscale,
@@ -135,20 +138,26 @@ function AbstractPlotting.plot!(plot::DotPlot)
         stackdir = Val(stackdir)
         padding = padding[1:2]
         xywidthpx = widths(area)
-        dlimits = data_limits(scene)
+        new_limits = data_limits(plot)
 
         if orientation == :horizontal
-            padding = _flip_xy(padding)
-            xywidthpx = _flip_xy(xywidthpx)
-            limits = _flip_xy(limits)
-            dlimits = _flip_xy(dlimits)
+            padding, xywidthpx, old_limits, new_limits = _flip_xy.((padding, xywidthpx, old_limits, new_limits))
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
 
-        xywidth = _widths(limits, dlimits, x, y)
+        xylimits = if old_limits === nothing
+            new_limits
+        else
+            union(old_limits, new_limits)
+        end
+        xywidth = widths(xylimits)[1:2]
 
-        binwidth = binwidth === automatic ? xywidth[2] / maxbins : binwidth
+        data_width = widths(new_limits)[2] - width
+        if binwidth === automatic
+            data_width = widths(new_limits)[2] - width
+            binwidth = data_width / maxbins
+        end
 
         pos_centers_counts = map(finduniquesorted(x)) do p
             key, idxs = p
@@ -161,7 +170,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         xywidthtot = xywidth .* (1 .+ 2 .* padding)
         pxperunit = xywidthpx ./ xywidthtot
         markersize = dotscale * binwidth * pxperunit[2]
-        dotwidth = markersize / pxperunit[1] # TODO: fix when one group is plotted
+        dotwidth = markersize / pxperunit[1]
         scaleddotwidth = stackratio * dotwidth
 
         dotx = Float32[]
