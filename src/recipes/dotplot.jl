@@ -178,8 +178,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
         for (xpos, centers_counts) in pos_centers_counts
             for (c, n) in centers_counts
                 offset = _stack_offset(n, stackdir)
-                append!(dotx, xpos .+ dotwidth .* ((1:n) .- 1 / 2 .+ offset))
-                append!(doty, repeat([c], n))
+                append!(dotx, xpos .+ scaleddotwidth .* ((1:n) .- 1 / 2 .+ offset))
+                append!(doty, fill(c, n))
             end
         end
 
