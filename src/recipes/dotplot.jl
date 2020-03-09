@@ -90,21 +90,25 @@ _flip_xy(t::NTuple{2}) = reverse(t)
 _flip_xy(r::Rect{N,T}) where {N,T} = _flip_xy(Rect{2,T}(r))
 _flip_xy(v::AbstractVector) = reverse(v[1:2])
 
+function _dot_limits(x, y, width, stackdir)
+    bb = xyz_boundingbox(x, y)
+    T = eltype(bb)
+    wv = T(width)
+    xoffset = T(_stack_center(_maybe_val(stackdir)) * wv)
+    origin, widths = bb.origin, bb.widths
+    @inbounds widths = Vec2{T}(widths[1] + wv, widths[2])
+    @inbounds origin = Vec2{T}(origin[1] + xoffset, origin[2])
+    return FRect2D(origin, widths)
+end
+
 # because dot sizes depend on limits, prevent limits from counting stack heights
 function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
-    @extract P (orientation, stackdir, width)
-    bb = xyz_boundingbox(to_value(P[1]), to_value(P[2]))
-    w = widths(bb)
-    T = eltype(bb)
-    wv = T(to_value(width))
-    w = Vec3{T}(w[1] + wv, w[2], w[3])
-    o = bb.origin
-    o = Vec3{T}(o[1] + T(_stack_center(Val(to_value(stackdir))) * wv), o[2], o[3])
-    bb = FRect3D(o, w)
+    @extract P (orientation, width, stackdir)
+    bb = _dot_limits(to_value.((P[1], P[2], width, stackdir))...)
     if to_value(orientation) === :horizontal
-        bb = FRect3D(_flip_xy(bb))
+        bb = _flip_xy(bb)
     end
-    return bb
+    return FRect3D(bb)
 end
 
 function AbstractPlotting.plot!(plot::DotPlot)
@@ -160,15 +164,15 @@ function AbstractPlotting.plot!(plot::DotPlot)
         stackdir = Val(stackdir)
         padding = padding[1:2]
         xywidthpx = widths(area)
-        new_limits = data_limits(plot)
 
         if orientation == :horizontal
-            padding, xywidthpx, old_limits, new_limits =
-                _flip_xy.((padding, xywidthpx, old_limits, new_limits))
+            padding, xywidthpx, old_limits =
+                _flip_xy.((padding, xywidthpx, old_limits))
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
 
+        new_limits = _dot_limits(x, y, width, stackdir)
         xylimits = if old_limits === nothing
             new_limits
         else
