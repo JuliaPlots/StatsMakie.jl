@@ -59,7 +59,7 @@ function _bindots(x, binwidth, ::Val{:righttoleft}; kwargs...)
 end
 
 _stack_offset(ndots, ::Val{:center}) = -ndots / 2
-_stack_offset(ndots, ::Val{:centerwhole}) = -ceil(ndots / 2)
+_stack_offset(ndots, ::Val{:centerwhole}) = -ceil(ndots / 2) + 1 / 2
 _stack_offset(ndots, ::Union{Val{:up},Val{:right}}) = zero(ndots)
 _stack_offset(ndots, ::Union{Val{:down},Val{:left}}) = -ndots
 
