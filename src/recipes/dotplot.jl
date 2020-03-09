@@ -33,23 +33,31 @@ function _centers_counts(x, binids, idxs = sortperm(x); func = _outermean)
     return centers, counts
 end
 
-_maybe_val(::Val{T}) where {T} = T
-_maybe_val(v) = v
+@inline _maybe_val(v::Val) = v
+@inline _maybe_val(v) = Val(v)
+
+@inline _maybe_unval(::Val{T}) where {T} = T
+@inline _maybe_unval(v) = v
+
+@inline _convert_order(::Any) = Base.Order.ForwardOrdering()
+@inline _convert_order(::Val{:righttoleft}) = Base.Order.ReverseOrdering()
 
 # bin `x`s according to Wilkinson, 1999. doi: 10.1080/00031305.1999.10474474
-function _dotdensitybin(x, binwidth, bindir = Val(:lefttoright))
-    if _maybe_val(bindir) === :righttoleft
-        order = Base.Order.ReverseOrdering()
+function _dotdensitybin(
+    x,
+    binwidth,
+    bindir = Val(:lefttoright);
+    idxs = sortperm(x; order = _convert_order(_maybe_val(bindir))),
+)
+    if _maybe_unval(bindir) === :righttoleft
         binend_offset = -binwidth
         fcmp = ≤
     else
-        order = Base.Order.ForwardOrdering()
         binend_offset = binwidth
         fcmp = ≥
     end
 
     n = length(x)
-    idxs = sortperm(x; order = order)
     x = view(x, idxs)
     binids = view(Vector{Int}(undef, n), idxs)
     binid = 1
