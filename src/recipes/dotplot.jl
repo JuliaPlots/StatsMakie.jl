@@ -24,7 +24,7 @@ Base.@propagate_inbounds _outermean(x, l, u) = (x[l] + x[u]) / 2
 
 function _centers_counts(x, lowers, uppers; func = _outermean)
     nbins = length(uppers)
-    centers = Vector{eltype(x)}(undef, nbins)
+    centers = Vector{float(eltype(x))}(undef, nbins)
     T = Base.promote_eltype(lowers, uppers)
     counts = Vector{T}(undef, nbins)
     @inbounds for i in eachindex(lowers, uppers)
