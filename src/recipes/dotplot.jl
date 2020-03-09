@@ -83,7 +83,7 @@ _flip_xy(r::Rect{N,T}) where {N,T} = _flip_xy(Rect{2,T}(r))
 _flip_xy(v::AbstractVector) = reverse(v[1:2])
 
 # because dot sizes depend on limits, prevent limits from counting stack heights
-function data_limits(P::DotPlot{<:Tuple{X, Y}}) where {X, Y}
+function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
     @extract P (orientation, stackdir, width)
     bb = xyz_boundingbox(to_value(P[1]), to_value(P[2]))
     w = widths(bb)
@@ -155,7 +155,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
         new_limits = data_limits(plot)
 
         if orientation == :horizontal
-            padding, xywidthpx, old_limits, new_limits = _flip_xy.((padding, xywidthpx, old_limits, new_limits))
+            padding, xywidthpx, old_limits, new_limits =
+                _flip_xy.((padding, xywidthpx, old_limits, new_limits))
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
@@ -196,7 +197,11 @@ function AbstractPlotting.plot!(plot::DotPlot)
             for (c, n) in centers_counts
                 stack_offset = _stack_offset(n, stackdir)
                 point = Point2f0(xpos, c)
-                offsets = Point2f0.(dotwidth .* ((1:n) .- 1 / 2 .+ stack_offset) .- markersize/2, -markersize/2)
+                offsets =
+                    Point2f0.(
+                        dotwidth .* ((1:n) .- 1 / 2 .+ stack_offset) .- markersize / 2,
+                        -markersize / 2,
+                    )
                 append!(base_points, fill(point, n))
                 append!(offset_points, offsets)
             end
