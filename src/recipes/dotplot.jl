@@ -179,34 +179,37 @@ function AbstractPlotting.plot!(plot::DotPlot)
             markersize -= strokewidth
         end
 
-        dotx = Float32[]
-        doty = Float32[]
+        base_points = Point2f0[]
+        offset_points = Point2f0[]
         for (xpos, centers_counts) in pos_centers_counts
             for (c, n) in centers_counts
-                offset = _stack_offset(n, stackdir)
-                append!(dotx, xpos .+ scaleddotwidth .* ((1:n) .- 1 / 2 .+ offset))
-                append!(doty, fill(c, n))
+                stack_offset = _stack_offset(n, stackdir)
+                point = Point2f0(xpos, c)
+                offsets = Point2f0.(dotwidth .* ((1:n) .- 1 / 2 .+ stack_offset) .- markersize/2, -markersize/2)
+                append!(base_points, fill(point, n))
+                append!(offset_points, offsets)
             end
         end
 
         if orientation == :horizontal
-            dotx, doty = doty, dotx
+            base_points = _flip_xy.(base_points)
+            offset_points = _flip_xy.(offset_points)
         end
 
-        return dotx, doty, markersize * px
+        return base_points, offset_points, markersize * px
     end
-    dotx = @lift($outputs[1])
-    doty = @lift($outputs[2])
+    points = @lift($outputs[1])
+    marker_offset = @lift($outputs[2])
     markersize = @lift($outputs[3])
 
     scatter!(
         plot,
-        dotx,
-        doty;
+        points;
         markersize = markersize,
         color = color,
         alpha = alpha,
         strokecolor = strokecolor,
         strokewidth = strokewidth,
+        marker_offset = marker_offset,
     )
 end
