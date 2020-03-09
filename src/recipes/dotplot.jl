@@ -74,7 +74,7 @@ _flip_xy(v::AbstractVector) = reverse(v[1:2])
 
 # because dot sizes depend on limits, prevent limits from counting stack heights
 function data_limits(P::DotPlot{<:Tuple{X, Y}}) where {X, Y}
-    orientation, stackdir, width = @extract P (orientation, stackdir, width)
+    @extract P (orientation, stackdir, width)
     bb = xyz_boundingbox(to_value(P[1]), to_value(P[2]))
     w = widths(bb)
     T = eltype(bb)
@@ -90,7 +90,7 @@ function data_limits(P::DotPlot{<:Tuple{X, Y}}) where {X, Y}
 end
 
 function AbstractPlotting.plot!(plot::DotPlot)
-    args = @extract plot (
+    @extract plot (
         color,
         alpha,
         strokecolor,
