@@ -103,6 +103,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         binwidth,
         maxbins,
         bindir,
+        strokewidth,
     )
 
     scene = parent_scene(plot)
@@ -121,6 +122,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         binwidth,
         maxbins,
         bindir,
+        strokewidth,
     ) do x,
     y,
     old_limits,
@@ -133,7 +135,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
     dotscale,
     binwidth,
     maxbins,
-    bindir
+    bindir,
+    strokewidth
         bindir = Val(bindir)
         stackdir = Val(stackdir)
         padding = padding[1:2]
@@ -169,8 +172,12 @@ function AbstractPlotting.plot!(plot::DotPlot)
         xywidthtot = xywidth .* (1 .+ 2 .* padding)
         pxperunit = xywidthpx ./ xywidthtot
         markersize = dotscale * binwidth * pxperunit[2]
-        dotwidth = markersize / pxperunit[1]
-        scaleddotwidth = stackratio * dotwidth
+        dotwidth = stackratio * markersize
+
+        # correct for horizontal overlap due to stroke
+        if strokewidth > 0
+            markersize -= strokewidth
+        end
 
         dotx = Float32[]
         doty = Float32[]
