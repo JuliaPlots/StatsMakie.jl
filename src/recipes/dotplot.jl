@@ -22,40 +22,50 @@ conversion_trait(x::Type{<:DotPlot}) = SampleBased()
 
 Base.@propagate_inbounds _outermean(x, l, u) = (x[l] + x[u]) / 2
 
-function _centers_counts(x, lowers, uppers; func = _outermean)
-    nbins = length(uppers)
-    centers = Vector{float(eltype(x))}(undef, nbins)
-    T = Base.promote_eltype(lowers, uppers)
-    counts = Vector{T}(undef, nbins)
-    @inbounds for i in eachindex(lowers, uppers)
-        l, u = lowers[i], uppers[i]
-        centers[i] = func(x, l, u)
-        counts[i] = u - l + 1
+function _centers_counts(x, binids, idxs = sortperm(x); func = _outermean)
+    centers = float(eltype(x))[]
+    counts = Int[]
+    for (binid, tmp) in finduniquesorted(binids, idxs)
+        n = length(tmp)
+        @inbounds push!(centers, func(x, tmp[1], tmp[n]))
+        push!(counts, n)
     end
     return centers, counts
 end
 
-# Bin data points according to Wilkinson
-function _bindots(x, binwidth, bindir = Val(:lefttoright); sorted = false)
-    x = sorted ? x : sort(x)
-    uppers, lowers = Int[], [1]
-    binend = @inbounds x[1] + binwidth
+_maybe_val(::Val{T}) where {T} = T
+_maybe_val(v) = v
+
+# bin `x`s according to Wilkinson, 1999. doi: 10.1080/00031305.1999.10474474
+function _dotdensitybin(x, binwidth, bindir = Val(:lefttoright))
+    if _maybe_val(bindir) === :righttoleft
+        order = Base.Order.ReverseOrdering()
+        binend_offset = -binwidth
+        fcmp = ≤
+    else
+        order = Base.Order.ForwardOrdering()
+        binend_offset = binwidth
+        fcmp = ≥
+    end
+
     n = length(x)
-    for i = 2:n
-        @inbounds if x[i] ≥ binend
-            push!(uppers, i - 1)
-            push!(lowers, i)
-            binend = x[i] + binwidth
+    idxs = sortperm(x; order = order)
+    x = view(x, idxs)
+    binids = view(Vector{Int}(undef, n), idxs)
+    binid = 1
+    @inbounds begin
+        binids[1] = 1
+        binend = x[1] + binend_offset
+        for i in 2:n
+            if fcmp(x[i], binend)
+                binid += 1
+                binend = x[i] + binend_offset
+            end
+            binids[i] = binid
         end
     end
-    push!(uppers, n)
-    centers, counts = _centers_counts(x, lowers, uppers)
-    return centers, counts
-end
-function _bindots(x, binwidth, ::Val{:righttoleft}; kwargs...)
-    x = reverse(-x)
-    centers, counts = _bindots(x, binwidth, Val(:lefttoright); kwargs...)
-    return reverse(-centers), counts
+
+    return parent(binids), idxs
 end
 
 _stack_offset(ndots, ::Val{:center}) = -ndots / 2
@@ -106,6 +116,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         strokewidth,
     )
 
+    binfunc = _dotdensitybin
     scene = parent_scene(plot)
 
     outputs = lift(
@@ -162,10 +173,10 @@ function AbstractPlotting.plot!(plot::DotPlot)
         end
 
         pos_centers_counts = map(finduniquesorted(x)) do p
-            key, idxs = p
-            v = view(y, idxs)
-            sortv = sort(v)
-            centers, counts = _bindots(sortv, binwidth, bindir; sorted = true)
+            key, xidxs = p
+            v = view(y, xidxs)
+            binids, vidxs = binfunc(v, binwidth, bindir)
+            centers, counts = _centers_counts(v, binids, vidxs)
             return key => zip(centers, counts)
         end
 
