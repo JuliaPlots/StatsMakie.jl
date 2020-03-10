@@ -94,9 +94,9 @@ function _stack_offsets(pos, ratio, ::Val{:centerwhole})
     return @. ratio * (pos - floor((n + 1) / 2)) + 1 / 2
 end
 
-_stack_center(::Any) = -0.5
-_stack_center(::Union{Val{:up},Val{:right}}) = 0
-_stack_center(::Union{Val{:down},Val{:left}}) = -1
+@inline _stack_center(::Any) = -0.5
+@inline _stack_center(::Union{Val{:up},Val{:right}}) = 0
+@inline _stack_center(::Union{Val{:down},Val{:left}}) = -1
 
 _flip_xy(::Nothing) = nothing
 _flip_xy(t::NTuple{2}) = reverse(t)
