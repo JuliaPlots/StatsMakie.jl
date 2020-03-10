@@ -13,7 +13,10 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         dotscale = 1,
         binwidth = automatic,
         maxbins = 30,
+        method = automatic,
         bindir = :lefttoright,
+        origin = automatic,
+        closed = :left,
     )
     t
 end
@@ -22,15 +25,13 @@ conversion_trait(x::Type{<:DotPlot}) = SampleBased()
 
 Base.@propagate_inbounds _outermean(x, l, u) = (x[l] + x[u]) / 2
 
-function _centers_counts(x, binids, idxs = sortperm(x); func = _outermean)
-    centers = float(eltype(x))[]
-    counts = Int[]
-    for (binid, tmp) in finduniquesorted(binids, idxs)
-        n = length(tmp)
-        @inbounds push!(centers, func(x, tmp[1], tmp[n]))
-        push!(counts, n)
-    end
-    return centers, counts
+function _countbins(binids)
+    nonzero_counts = Dict(map(finduniquesorted(binids)) do p
+        binid, tmp = p
+        return binid => length(tmp)
+    end)
+    maxbinid = maximum(keys(nonzero_counts))
+    return [get(nonzero_counts, i, 0) for i in 1:maxbinid]
 end
 
 @inline _maybe_val(v::Val) = v
@@ -43,7 +44,8 @@ end
 @inline _convert_order(::Val{:righttoleft}) = Base.Order.ReverseOrdering()
 
 # bin `x`s according to Wilkinson, 1999. doi: 10.1080/00031305.1999.10474474
-function _dotdensitybin(
+function _bindots(
+    ::Val{:dotdensity},
     x,
     binwidth,
     bindir = Val(:lefttoright);
@@ -73,12 +75,80 @@ function _dotdensitybin(
         end
     end
 
-    return parent(binids), idxs
+    centers = Vector{float(eltype(x))}(undef, binid)
+    for (binid, idxs) in finduniquesorted(binids, 1:n)
+        n = length(idxs)
+        @inbounds centers[binid] = (x[idxs[1]] + x[idxs[n]]) / 2
+    end
+
+    return parent(binids), centers
+end
+
+# bin `x`s using a histogram
+# we don't use StatsBase here since we want bin ids
+function _bindots(
+    ::Val{:histodot},
+    x,
+    binwidth;
+    idxs = sortperm(x),
+    origin = automatic,
+    closed = :left,
+)
+    if _maybe_unval(closed) === :left
+        fcmp = (a, b, c) -> (b < c || a == b)
+    else
+        fcmp = (a, b, c) -> b ≤ c
+    end
+
+    n = length(x)
+    x = view(x, idxs)
+    @inbounds xmin, xmax = x[1], x[n]
+    if origin === automatic
+        xrange = xmax - xmin
+        nbins = Int(ceil(xrange / binwidth))
+        histrange = nbins * binwidth
+        origin = xmin - (histrange - xrange) / 2
+    else
+        nbins = Int(ceil((xmax - origin) / binwidth))
+    end
+
+
+    binids = view(Vector{Int}(undef, n), idxs)
+    centers = Vector{float(eltype(x))}(undef, nbins)
+    i = 1
+    @inbounds begin
+        for binid in 1:nbins
+            binend = origin + binid * binwidth
+            centers[binid] = binend - binwidth / 2
+            while i ≤ n && fcmp(binend - binwidth, x[i], binend)
+                binids[i] = binid
+                i += 1
+            end
+        end
+    end
+
+    return parent(binids), centers
+end
+
+function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
+    h.isdensity &&
+    throw(ErrorException("Histogram must not be density histogram for dotplot."))
+    edges = h.edges[1]
+    nbins = length(edges)
+    widths = diff(edges)
+    binwidth = widths[1]
+    if any(w -> !isapprox(w, binwidth), widths)
+        throw(ErrorException("Histogram must have bins of equal width for dotplot."))
+    end
+    centers = StatsBase.midpoints(edges)
+    counts = h.weights
+    # make a new dataset that has the same bins
+    y = [c for (c, n) in zip(centers, counts) for _ in 1:n]
+    return to_plotspec(P, convert_arguments(P, y); binwidth = binwidth)
 end
 
 # offset from base point in stack direction in units of markersize
 # ratio is distance between centers of adjacent dots
-#
 function _stack_offsets(pos, ratio, ::Union{Val{:up},Val{:right}})
     return @. ratio * (pos - 1) + 1 / 2
 end
@@ -137,11 +207,12 @@ function AbstractPlotting.plot!(plot::DotPlot)
         dotscale,
         binwidth,
         maxbins,
+        method,
         bindir,
-        strokewidth,
+        origin,
+        closed,
     )
 
-    binfunc = _dotdensitybin
     scene = parent_scene(plot)
 
     outputs = lift(
@@ -155,10 +226,13 @@ function AbstractPlotting.plot!(plot::DotPlot)
         stackdir,
         stackratio,
         dotscale,
+        strokewidth,
         binwidth,
         maxbins,
+        method,
         bindir,
-        strokewidth,
+        origin,
+        closed,
     ) do x,
     y,
     old_limits,
@@ -169,11 +243,19 @@ function AbstractPlotting.plot!(plot::DotPlot)
     stackdir,
     stackratio,
     dotscale,
+    strokewidth,
     binwidth,
     maxbins,
+    method,
     bindir,
-    strokewidth
-        bindir = _maybe_val(bindir)
+    origin,
+    closed
+        method = method === automatic ? Val(:dotdensity) : _maybe_val(method)
+        binargs, binkwargs = if method === Val(:dotdensity)
+            (_maybe_val(bindir),), NamedTuple()
+        else
+            (), (; origin = _maybe_unval(origin), closed = _maybe_unval(closed))
+        end
         stackdir = _maybe_val(stackdir)
         orientation = _maybe_unval(orientation)
         padding = padding[1:2]
@@ -189,20 +271,20 @@ function AbstractPlotting.plot!(plot::DotPlot)
         xylimits = if old_limits === nothing
             new_limits
         else
-            union(old_limits, new_limits)
+            union(FRect2D(old_limits), new_limits)
         end
         xywidth = widths(xylimits)[1:2]
 
         if binwidth === automatic
-            data_width = widths(new_limits)[2]
+            data_width = xywidth[2]
             binwidth = data_width / maxbins
         end
 
         pos_centers_counts = map(finduniquesorted(x)) do p
             key, xidxs = p
             v = view(y, xidxs)
-            binids, vidxs = binfunc(v, binwidth, bindir)
-            centers, counts = _centers_counts(v, binids, vidxs)
+            binids, centers =     _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
+            counts = _countbins(binids)
             return key => zip(centers, counts)
         end
 
