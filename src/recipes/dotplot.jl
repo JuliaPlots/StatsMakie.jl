@@ -173,14 +173,14 @@ function AbstractPlotting.plot!(plot::DotPlot)
     maxbins,
     bindir,
     strokewidth
-        bindir = Val(bindir)
-        stackdir = Val(stackdir)
+        bindir = _maybe_val(bindir)
+        stackdir = _maybe_val(stackdir)
+        orientation = _maybe_unval(orientation)
         padding = padding[1:2]
         xywidthpx = widths(area)
 
-        if orientation == :horizontal
-            padding, xywidthpx, old_limits =
-                _flip_xy.((padding, xywidthpx, old_limits))
+        if orientation === :horizontal
+            padding, xywidthpx, old_limits = _flip_xy.((padding, xywidthpx, old_limits))
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
@@ -228,7 +228,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
             end
         end
 
-        if orientation == :horizontal
+        if orientation === :horizontal
             base_points = _flip_xy.(base_points)
             offset_points = _flip_xy.(offset_points)
         end
