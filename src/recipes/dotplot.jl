@@ -34,12 +34,6 @@ function _countbins(binids)
     return [get(nonzero_counts, i, 0) for i in 1:maxbinid]
 end
 
-@inline _maybe_val(v::Val) = v
-@inline _maybe_val(v) = Val(v)
-
-@inline _maybe_unval(::Val{T}) where {T} = T
-@inline _maybe_unval(v) = v
-
 @inline _convert_order(::Any) = Base.Order.ForwardOrdering()
 @inline _convert_order(::Val{:righttoleft}) = Base.Order.ReverseOrdering()
 
@@ -168,11 +162,6 @@ end
 @inline _stack_center(::Union{Val{:up},Val{:right}}) = 0
 @inline _stack_center(::Union{Val{:down},Val{:left}}) = -1
 
-_flip_xy(::Nothing) = nothing
-_flip_xy(t::NTuple{2}) = reverse(t)
-_flip_xy(r::Rect{N,T}) where {N,T} = _flip_xy(Rect{2,T}(r))
-_flip_xy(v::AbstractVector) = reverse(v[1:2])
-
 function _dot_limits(x, y, width, stackdir)
     bb = xyz_boundingbox(x, y)
     T = eltype(bb)
@@ -188,26 +177,10 @@ end
 function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
     @extract P (orientation, width, stackdir)
     bb = _dot_limits(to_value.((P[1], P[2], width, stackdir))...)
-    if to_value(orientation) === :horizontal
+    if ishorizontal(orientation)
         bb = _flip_xy(bb)
     end
     return FRect3D(bb)
-end
-
-function _pixels_per_units(scene)
-    limits = to_value(data_limits(scene))
-    limits === nothing && return Vec2f0(0, 0)
-    widthsdata = Vec2f0(widths(limits))
-    widthsdatatot = widthsdata .* (1 .+ 2 .* Vec2f0(to_value(scene.padding)))
-    widthspx = widths(to_value(pixelarea(scene)))
-    return widthspx ./ widthsdatatot
-end
-
-function _validate_orientation(orientation)
-    orientation = _maybe_unval(to_value(orientation))
-    orientation === :horizontal && return
-    orientation === :vertical && return
-    error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
 end
 
 function AbstractPlotting.plot!(plot::DotPlot)
@@ -273,11 +246,11 @@ function AbstractPlotting.plot!(plot::DotPlot)
             (), (; origin = _maybe_unval(origin), closed = _maybe_unval(closed))
         end
         stackdir = _maybe_val(stackdir)
-        _validate_orientation(orientation)
+        validate_orientation(orientation)
 
         # set binwidth
         if binwidth === automatic
-            if orientation === :horizontal
+            if ishorizontal(orientation)
                 limits = _flip_xy(limits)
             end
             if limits === nothing
@@ -289,7 +262,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
 
         # set markersize
         px_per_units = _pixels_per_units(scene)
-        if orientation === :horizontal
+        if ishorizontal(orientation)
             px_per_units = _flip_xy(px_per_units)
         end
         markersize = dotscale * binwidth * px_per_units[2]
@@ -337,7 +310,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         end
         base_points, offset_points = parent(base_points), parent(offset_points)
 
-        if orientation === :horizontal
+        if ishorizontal(orientation)
             base_points = _flip_xy.(base_points)
             offset_points = _flip_xy.(offset_points)
         end

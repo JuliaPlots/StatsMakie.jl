@@ -34,9 +34,6 @@ conversion_trait(x::Type{<:BoxPlot}) = SampleBased()
 _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
-_flip_xy(p::Point2f0) = reverse(p)
-_flip_xy(r::Rect{2, T}) where T = Rect{2, T}(reverse(r.origin), reverse(r.widths))
-
 function AbstractPlotting.plot!(plot::BoxPlot)
     args = @extract plot (width, range, outliers, whisker_width, notch, orientation)
 
@@ -108,13 +105,12 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         final_boxes = notch ? notched_boxes : boxes
 
         # for horizontal boxplots just flip all components
-        if orientation == :horizontal
+        validate_orientation(orientation)
+        if ishorizontal(orientation)
             final_boxes = _flip_xy.(final_boxes)
             outlier_points = _flip_xy.(outlier_points)
             medians = _flip_xy.(medians)
             t_segments = _flip_xy.(t_segments)
-        elseif orientation != :vertical
-            error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
 
         return final_boxes, outlier_points, medians, t_segments
