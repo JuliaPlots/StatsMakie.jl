@@ -13,7 +13,7 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         dotscale = 1,
         binwidth = automatic,
         maxbins = 30,
-        method = automatic,
+        method = :dotdensity,
         bindir = :lefttoright,
         origin = automatic,
         closed = :left,
@@ -41,8 +41,10 @@ function _bindots(
     ::Val{:dotdensity},
     x,
     binwidth,
-    bindir = Val(:lefttoright);
+    bindir = Val(:lefttoright),
+    args...;
     idxs = sortperm(x; order = _convert_order(_maybe_val(bindir))),
+    kwargs...,
 )
     if _maybe_unval(bindir) === :righttoleft
         binend_offset = -binwidth
@@ -82,10 +84,12 @@ end
 function _bindots(
     ::Val{:histodot},
     x,
-    binwidth;
+    binwidth,
+    args...;
     idxs = sortperm(x),
     origin = automatic,
     closed = :left,
+    kwargs...,
 )
     if _maybe_unval(closed) === :left
         fcmp = (a, b, c) -> (b < c || a == b)
@@ -238,13 +242,6 @@ function AbstractPlotting.plot!(plot::DotPlot)
     bindir,
     origin,
     closed
-        method = method === automatic ? Val(:dotdensity) : _maybe_val(method)
-        binargs, binkwargs = if method === Val(:dotdensity)
-            (_maybe_val(bindir),), NamedTuple()
-        else
-            (), (; origin = _maybe_unval(origin), closed = _maybe_unval(closed))
-        end
-        stackdir = _maybe_val(stackdir)
         validate_orientation(orientation)
 
         # set binwidth
@@ -280,8 +277,14 @@ function AbstractPlotting.plot!(plot::DotPlot)
         j = 1
         for (groupid, xidxs) in finduniquesorted(x)
             v = view(y, xidxs)
-            group_binids, group_centers, vidxs =
-                _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
+            group_binids, group_centers, vidxs = _bindots(
+                Val(method),
+                v,
+                binwidth,
+                Val(bindir);
+                origin = origin,
+                closed = closed,
+            )
             group_counts = _countbins(group_binids)
             n = length(group_centers)
             append!(basex, fill(groupid, n))
@@ -300,7 +303,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         @inbounds for i in eachindex(basex, basey, counts)
             n = counts[i]
             stack_pos = 1:n
-            stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
+            stack_offsets = _stack_offsets(stack_pos, stackratio, Val(stackdir))
             # default offset is (-markersize / 2, -markersize / 2)
             offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
             offset_points[j:j+n-1] .= offsets
