@@ -258,26 +258,25 @@ function AbstractPlotting.plot!(plot::DotPlot)
         end
         stackdir = _maybe_val(stackdir)
         orientation = _maybe_unval(orientation)
-        padding = padding[1:2]
-        xywidthpx = widths(area)
 
+        xywidthpx = widths(area)
+        padding = padding[1:2]
         if orientation === :horizontal
             padding, xywidthpx, old_limits = _flip_xy.((padding, xywidthpx, old_limits))
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
-
+        ywidthpx = xywidthpx[2]
         new_limits = _dot_limits(x, y, width, stackdir)
         xylimits = if old_limits === nothing
             new_limits
         else
             union(FRect2D(old_limits), new_limits)
         end
-        xywidth = widths(xylimits)[1:2]
+        ywidth = widths(xylimits)[2]
 
         if binwidth === automatic
-            data_width = xywidth[2]
-            binwidth = data_width / maxbins
+            binwidth = ywidth / maxbins
         end
 
         pos_centers_counts = map(finduniquesorted(x)) do p
