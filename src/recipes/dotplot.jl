@@ -76,10 +76,23 @@ function _dotdensitybin(
     return parent(binids), idxs
 end
 
-_stack_offset(ndots, ::Val{:center}) = -ndots / 2
-_stack_offset(ndots, ::Val{:centerwhole}) = -ceil(ndots / 2) + 1 / 2
-_stack_offset(ndots, ::Union{Val{:up},Val{:right}}) = zero(ndots)
-_stack_offset(ndots, ::Union{Val{:down},Val{:left}}) = -ndots
+# offset from base point in stack direction in units of markersize
+# ratio is distance between centers of adjacent dots
+#
+function _stack_offsets(pos, ratio, ::Union{Val{:up},Val{:right}})
+    return @. ratio * (pos - 1) + 1 / 2
+end
+function _stack_offsets(pos, ratio, ::Union{Val{:down},Val{:left}})
+    return @. -ratio * (pos - 1) - 1 / 2
+end
+function _stack_offsets(pos, ratio, ::Val{:center})
+    n = length(pos)
+    return @. ratio * (pos - (n + 1) / 2)
+end
+function _stack_offsets(pos, ratio, ::Val{:centerwhole})
+    n = length(pos)
+    return @. ratio * (pos - floor((n + 1) / 2)) + 1 / 2
+end
 
 _stack_center(::Any) = -0.5
 _stack_center(::Union{Val{:up},Val{:right}}) = 0
@@ -196,7 +209,6 @@ function AbstractPlotting.plot!(plot::DotPlot)
         xywidthtot = xywidth .* (1 .+ 2 .* padding)
         pxperunit = xywidthpx ./ xywidthtot
         markersize = dotscale * binwidth * pxperunit[2]
-        dotwidth = stackratio * markersize
 
         # correct for horizontal overlap due to stroke
         if strokewidth > 0
@@ -206,16 +218,13 @@ function AbstractPlotting.plot!(plot::DotPlot)
         base_points = Point2f0[]
         offset_points = Point2f0[]
         for (xpos, centers_counts) in pos_centers_counts
-            for (c, n) in centers_counts
-                stack_offset = _stack_offset(n, stackdir)
-                point = Point2f0(xpos, c)
-                offsets =
-                    Point2f0.(
-                        dotwidth .* ((1:n) .- 1 / 2 .+ stack_offset) .- markersize / 2,
-                        -markersize / 2,
-                    )
-                append!(base_points, fill(point, n))
+            for (base, n) in centers_counts
+                stack_pos = 1:n
+                stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
+                # default offset is (-markersize / 2, -markersize / 2)
+                offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
                 append!(offset_points, offsets)
+                append!(base_points, fill(Point2f0(xpos, base), n))
             end
         end
 
