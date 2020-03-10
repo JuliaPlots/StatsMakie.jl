@@ -30,6 +30,8 @@ export Position
 export bycolumn
 export frequency
 
+include("utils.jl")
+
 include(joinpath("group", "analysis.jl"))
 include(joinpath("group", "scales.jl"))
 include(joinpath("group", "group.jl"))
