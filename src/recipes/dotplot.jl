@@ -25,11 +25,12 @@ conversion_trait(x::Type{<:DotPlot}) = SampleBased()
 
 function _countbins(binids)
     nonzero_counts = Dict(map(finduniquesorted(binids)) do p
-        binid, tmp = p
-        return binid => length(tmp)
+        binid, idxs = p
+        return binid => length(idxs)
     end)
     maxbinid = maximum(keys(nonzero_counts))
-    return [get(nonzero_counts, i, 0) for i in 1:maxbinid]
+    counts = map(i -> get(nonzero_counts, i, 0), Base.OneTo(maxbinid))
+    return counts
 end
 
 @inline _convert_order(::Any) = Base.Order.ForwardOrdering()
