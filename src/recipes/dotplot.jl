@@ -81,7 +81,7 @@ function _bindots(
         @inbounds centers[binid] = (x[idxs[1]] + x[idxs[n]]) / 2
     end
 
-    return parent(binids), centers
+    return parent(binids), centers, idxs
 end
 
 # bin `x`s using a histogram
@@ -127,7 +127,7 @@ function _bindots(
         end
     end
 
-    return parent(binids), centers
+    return parent(binids), centers, idxs
 end
 
 function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
@@ -250,6 +250,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
     bindir,
     origin,
     closed
+        npoints = length(y)
+
         method = method === automatic ? Val(:dotdensity) : _maybe_val(method)
         binargs, binkwargs = if method === Val(:dotdensity)
             (_maybe_val(bindir),), NamedTuple()
@@ -279,35 +281,49 @@ function AbstractPlotting.plot!(plot::DotPlot)
             binwidth = ywidth / maxbins
         end
 
-        pos_centers_counts = map(finduniquesorted(x)) do p
-            key, xidxs = p
-            v = view(y, xidxs)
-            binids, centers =     _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
-            counts = _countbins(binids)
-            return key => zip(centers, counts)
-        end
-
-        xywidthtot = xywidth .* (1 .+ 2 .* padding)
-        pxperunit = xywidthpx ./ xywidthtot
-        markersize = dotscale * binwidth * pxperunit[2]
+        ywidthtot = ywidth * (1 + 2padding[2])
+        pxperyunit = ywidthpx ./ ywidthtot
+        markersize = dotscale * binwidth * pxperyunit
 
         # correct for horizontal overlap due to stroke
         if strokewidth > 0
             markersize -= strokewidth
         end
 
-        base_points = Point2f0[]
-        offset_points = Point2f0[]
-        for (xpos, centers_counts) in pos_centers_counts
-            for (base, n) in centers_counts
-                stack_pos = 1:n
-                stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
-                # default offset is (-markersize / 2, -markersize / 2)
-                offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
-                append!(offset_points, offsets)
-                append!(base_points, fill(Point2f0(xpos, base), n))
-            end
+        basex = float(eltype(x))[]
+        basey = float(eltype(y))[]
+        counts = Int[]
+        binids = Int[]
+        sortidxs = Vector{Int}(undef, npoints)
+        j = 1
+        for (groupid, xidxs) in finduniquesorted(x)
+            v = view(y, xidxs)
+            group_binids, group_centers, vidxs = _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
+            group_counts = _countbins(group_binids)
+            n = length(group_centers)
+            append!(basex, fill(groupid, n))
+            append!(basey, group_centers)
+            append!(counts, group_counts)
+            append!(binids, group_binids)
+            m = length(v)
+            sortidxs[j:j+m-1] .= view(xidxs, vidxs)
+            j += m
         end
+
+        base_points = view(Vector{Point2f0}(undef, npoints), sortidxs)
+        offset_points = view(Vector{Point2f0}(undef, npoints), sortidxs)
+        j = 1
+        @inbounds for i in eachindex(basex, basey, counts)
+            n = counts[i]
+            stack_pos = 1:n
+            stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
+            # default offset is (-markersize / 2, -markersize / 2)
+            offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
+            offset_points[j:j+n-1] .= offsets
+            base_points[j:j+n-1] .= Ref(Point2f0(basex[i], basey[i]))
+            j += n
+        end
+        base_points, offset_points = parent(base_points), parent(offset_points)
 
         if orientation === :horizontal
             base_points = _flip_xy.(base_points)
