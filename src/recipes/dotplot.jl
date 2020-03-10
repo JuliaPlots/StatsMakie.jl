@@ -23,8 +23,6 @@ end
 
 conversion_trait(x::Type{<:DotPlot}) = SampleBased()
 
-Base.@propagate_inbounds _outermean(x, l, u) = (x[l] + x[u]) / 2
-
 function _countbins(binids)
     nonzero_counts = Dict(map(finduniquesorted(binids)) do p
         binid, tmp = p
