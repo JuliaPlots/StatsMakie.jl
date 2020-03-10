@@ -194,7 +194,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         xywidth = widths(xylimits)[1:2]
 
         if binwidth === automatic
-            data_width = widths(new_limits)[2] - width
+            data_width = widths(new_limits)[2]
             binwidth = data_width / maxbins
         end
 
