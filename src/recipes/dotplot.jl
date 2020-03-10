@@ -128,14 +128,13 @@ function _bindots(
 end
 
 function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
-    h.isdensity &&
-    throw(ErrorException("Histogram must not be density histogram for dotplot."))
+    h.isdensity && error("Histogram must not be density histogram for dotplot.")
     edges = h.edges[1]
     nbins = length(edges)
     widths = diff(edges)
     binwidth = widths[1]
     if any(w -> !isapprox(w, binwidth), widths)
-        throw(ErrorException("Histogram must have bins of equal width for dotplot."))
+        error("Histogram must have bins of equal width for dotplot.")
     end
     centers = StatsBase.midpoints(edges)
     counts = h.weights
