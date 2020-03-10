@@ -194,6 +194,22 @@ function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
     return FRect3D(bb)
 end
 
+function _pixels_per_units(scene)
+    limits = to_value(data_limits(scene))
+    limits === nothing && return Vec2f0(0, 0)
+    widthsdata = Vec2f0(widths(limits))
+    widthsdatatot = widthsdata .* (1 .+ 2 .* Vec2f0(to_value(scene.padding)))
+    widthspx = widths(to_value(pixelarea(scene)))
+    return widthspx ./ widthsdatatot
+end
+
+function _validate_orientation(orientation)
+    orientation = _maybe_unval(to_value(orientation))
+    orientation === :horizontal && return
+    orientation === :vertical && return
+    error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
+end
+
 function AbstractPlotting.plot!(plot::DotPlot)
     @extract plot (
         color,
@@ -218,8 +234,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
     outputs = lift(
         plot[1],
         plot[2],
-        scene.data_limits,
         pixelarea(plot),
+        scene.data_limits,
         scene.padding,
         orientation,
         width,
@@ -235,9 +251,9 @@ function AbstractPlotting.plot!(plot::DotPlot)
         closed,
     ) do x,
     y,
-    old_limits,
-    area,
-    padding,
+    _,
+    limits,
+    _,
     orientation,
     width,
     stackdir,
@@ -250,8 +266,6 @@ function AbstractPlotting.plot!(plot::DotPlot)
     bindir,
     origin,
     closed
-        npoints = length(y)
-
         method = method === automatic ? Val(:dotdensity) : _maybe_val(method)
         binargs, binkwargs = if method === Val(:dotdensity)
             (_maybe_val(bindir),), NamedTuple()
@@ -259,37 +273,33 @@ function AbstractPlotting.plot!(plot::DotPlot)
             (), (; origin = _maybe_unval(origin), closed = _maybe_unval(closed))
         end
         stackdir = _maybe_val(stackdir)
-        orientation = _maybe_unval(orientation)
+        _validate_orientation(orientation)
 
-        xywidthpx = widths(area)
-        padding = padding[1:2]
-        if orientation === :horizontal
-            padding, xywidthpx, old_limits = _flip_xy.((padding, xywidthpx, old_limits))
-        elseif orientation != :vertical
-            error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
-        end
-        ywidthpx = xywidthpx[2]
-        new_limits = _dot_limits(x, y, width, stackdir)
-        xylimits = if old_limits === nothing
-            new_limits
-        else
-            union(FRect2D(old_limits), new_limits)
-        end
-        ywidth = widths(xylimits)[2]
-
+        # set binwidth
         if binwidth === automatic
+            if orientation === :horizontal
+                limits = _flip_xy(limits)
+            end
+            if limits === nothing
+                limits = _dot_limits(x, y, width, stackdir)
+            end
+            ywidth = widths(limits)[2]
             binwidth = ywidth / maxbins
         end
 
-        ywidthtot = ywidth * (1 + 2 * padding[2])
-        pxperyunit = ywidthpx ./ ywidthtot
-        markersize = dotscale * binwidth * pxperyunit
-
+        # set markersize
+        px_per_units = _pixels_per_units(scene)
+        if orientation === :horizontal
+            px_per_units = _flip_xy(px_per_units)
+        end
+        markersize = dotscale * binwidth * px_per_units[2]
         # correct for horizontal overlap due to stroke
         if strokewidth > 0
             markersize -= strokewidth
         end
 
+        # bin data
+        npoints = length(y)
         basex = float(eltype(x))[]
         basey = float(eltype(y))[]
         counts = Int[]
@@ -311,6 +321,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
             j += m
         end
 
+        # make dots
         base_points = view(Vector{Point2f0}(undef, npoints), sortidxs)
         offset_points = view(Vector{Point2f0}(undef, npoints), sortidxs)
         j = 1
