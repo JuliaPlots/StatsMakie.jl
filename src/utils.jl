@@ -1,13 +1,17 @@
 function validate_orientation(orientation)
     orientation = _maybe_unval(to_value(orientation))
-    orientation === :horizontal && return
-    orientation === :vertical && return
-    error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
+    ishorizontal(orientation) && return
+    isvertical(orientation) && return
+    error("Invalid orientation $orientation. Valid options: :h, :hor, :horizontal, :v, :vert, :vertical.")
 end
 
-@inline ishorizontal(orientation) = _maybe_unval(to_value(orientation)) === :horizontal
+@inline function ishorizontal(orientation)
+    return _maybe_unval(to_value(orientation)) ∈ (:horizontal, :h, :hor)
+end
 
-@inline isvertical(orientation) = _maybe_unval(to_value(orientation)) === :vertical
+@inline function isvertical(orientation)
+    return _maybe_unval(to_value(orientation)) ∈ (:vertical, :v, :vert)
+end
 
 _flip_xy(::Nothing) = nothing
 _flip_xy(p::Point2f0) = reverse(p)
