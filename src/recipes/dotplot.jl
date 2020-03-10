@@ -281,7 +281,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
             binwidth = ywidth / maxbins
         end
 
-        ywidthtot = ywidth * (1 + 2padding[2])
+        ywidthtot = ywidth * (1 + 2 * padding[2])
         pxperyunit = ywidthpx ./ ywidthtot
         markersize = dotscale * binwidth * pxperyunit
 
@@ -298,7 +298,8 @@ function AbstractPlotting.plot!(plot::DotPlot)
         j = 1
         for (groupid, xidxs) in finduniquesorted(x)
             v = view(y, xidxs)
-            group_binids, group_centers, vidxs = _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
+            group_binids, group_centers, vidxs =
+                _bindots(method, v, binwidth, binargs...; pairs(binkwargs)...)
             group_counts = _countbins(group_binids)
             n = length(group_centers)
             append!(basex, fill(groupid, n))
