@@ -1,3 +1,10 @@
+function apply_keywords(f, args...; kwargs...)
+    is_nt = t -> (t isa NamedTuple)
+    new_args = Iterators.filter(!is_nt, args)
+    new_kwargs = Iterators.filter(is_nt, args)
+    f(new_args...; kwargs..., reduce(merge, new_kwargs, init = NamedTuple())...)
+end
+
 abstract type AbstractAnalysis{T} end
 
 struct Analysis{T, N<:NamedTuple} <: AbstractAnalysis{T}
