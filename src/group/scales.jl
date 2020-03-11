@@ -1,15 +1,15 @@
-is_scale(::FunctionOrAnalysis) = true
+is_scale(::Function) = true
 is_scale(::AbstractArray) = true
 is_scale(::Any) = false
 
-function compute_attribute(scale::FunctionOrAnalysis, el, rank_dict)
+function compute_attribute(scale::Function, el, rankdict)
     scale(el)
 end
-function compute_attribute(scale::AbstractArray, el, rank_dict)
-    scale[mod1(rank_dict[el], length(scale))]
+function compute_attribute(scale::AbstractArray, el, rankdict)
+    scale[mod1(rankdict[el], length(scale))]
 end
 
-function rank_dict(col::AbstractVector)
+function rankdict(col::AbstractVector)
     s = collect(uniquesorted(col))
     return Dict(zip(s, 1:length(s)))
 end

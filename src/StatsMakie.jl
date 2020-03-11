@@ -31,9 +31,9 @@ export Position
 export bycolumn
 export frequency
 
-include(joinpath("group", "analysis.jl"))
 include(joinpath("group", "scales.jl"))
-include(joinpath("group", "group.jl"))
+include(joinpath("group", "grammarspec.jl"))
+include(joinpath("group", "convert_arguments.jl"))
 include(joinpath("group", "dodge.jl"))
 
 include(joinpath("typerecipes", "density.jl"))
