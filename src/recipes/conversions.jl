@@ -1,5 +1,13 @@
 struct SampleBased <: ConversionTrait end
 
+function convert_arguments(P::SampleBased, y::AbstractVector)
+    return convert_arguments(P, 0, y)
+end
+
+function convert_arguments(P::SampleBased, x, y::AbstractVector)
+    return convert_arguments(P, fill(x, length(y)), y)
+end
+
 function convert_arguments(::SampleBased, args::NTuple{N,AbstractVector{<:Number}}) where {N}
     return args
 end
@@ -20,4 +28,3 @@ function convert_arguments(::SampleBased, positions::NTuple{N,AbstractVector}) w
     end
     PlotSpec(newpos...; tickranges = xyrange, ticklabels = labels)
 end
-
