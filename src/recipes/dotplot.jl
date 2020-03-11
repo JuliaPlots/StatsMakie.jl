@@ -143,12 +143,18 @@ function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
     return to_plotspec(P, convert_arguments(P, y); binwidth = binwidth)
 end
 
+function convert_attribute(s::Symbol, ::key"stackdir")
+    s === :right && return :up
+    s === :left && return :down
+    return s
+end
+
 # offset from base point in stack direction in units of markersize
 # ratio is distance between centers of adjacent dots
-function _stack_offsets(pos, ratio, ::Union{Val{:up},Val{:right}})
+function _stack_offsets(pos, ratio, ::Val{:up})
     return @. ratio * (pos - 1) + 1 / 2
 end
-function _stack_offsets(pos, ratio, ::Union{Val{:down},Val{:left}})
+function _stack_offsets(pos, ratio, ::Val{:down})
     return @. -ratio * (pos - 1) - 1 / 2
 end
 function _stack_offsets(pos, ratio, ::Val{:center})
@@ -160,15 +166,16 @@ function _stack_offsets(pos, ratio, ::Val{:centerwhole})
     return @. ratio * (pos - floor((n + 1) / 2)) + 1 / 2
 end
 
-@inline _stack_center(::Any) = -0.5
-@inline _stack_center(::Union{Val{:up},Val{:right}}) = 0
-@inline _stack_center(::Union{Val{:down},Val{:left}}) = -1
+@inline _stack_limits(::Val{:center}) = -0.5
+@inline _stack_limits(::Val{:centerwhole}) = -0.5
+@inline _stack_limits(::Val{:up}) = 0
+@inline _stack_limits(::Val{:down}) = -1
 
 function _dot_limits(x, y, width, stackdir)
     bb = xyz_boundingbox(x, y)
     T = eltype(bb)
     wv = T(width)
-    xoffset = T(_stack_center(_maybe_val(stackdir)) * wv)
+    xoffset = T(_stack_limits(_maybe_val(stackdir)) * wv)
     origin, widths = bb.origin, bb.widths
     @inbounds widths = Vec2{T}(widths[1] + wv, widths[2])
     @inbounds origin = Vec2{T}(origin[1] + xoffset, origin[2])
@@ -178,6 +185,7 @@ end
 # because dot sizes depend on limits, prevent limits from counting stack heights
 function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
     @extract P (orientation, width, stackdir)
+    stackdir = convert_attribute(to_value(stackdir), key"stackdir"())
     bb = _dot_limits(to_value.((P[1], P[2], width, stackdir))...)
     if ishorizontal(orientation)
         bb = _flip_xy(bb)
@@ -242,6 +250,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
     origin,
     closed
         validate_orientation(orientation)
+        stackdir = Val(convert_attribute(stackdir, key"stackdir"()))
 
         # set binwidth
         if binwidth === automatic
@@ -302,7 +311,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         @inbounds for i in eachindex(basex, basey, counts)
             n = counts[i]
             stack_pos = 1:n
-            stack_offsets = _stack_offsets(stack_pos, stackratio, Val(stackdir))
+            stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
             # default offset is (-markersize / 2, -markersize / 2)
             offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
             offset_points[j:j+n-1] .= offsets

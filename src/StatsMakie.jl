@@ -2,7 +2,7 @@ module StatsMakie
 
 using Observables
 using AbstractPlotting
-import AbstractPlotting: conversion_trait, convert_arguments, data_limits, used_attributes, plot!, combine, to_plotspec
+import AbstractPlotting: conversion_trait, convert_arguments, convert_attribute, data_limits, used_attributes, plot!, combine, to_plotspec
 using AbstractPlotting: plottype, Plot, PlotFunc, to_tuple
 using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme
 using AbstractPlotting: GeometryTypes
