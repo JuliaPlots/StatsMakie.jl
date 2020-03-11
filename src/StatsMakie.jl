@@ -1,5 +1,6 @@
 module StatsMakie
 
+using Base: tail
 using Observables
 using AbstractPlotting
 import AbstractPlotting: conversion_trait, convert_arguments, used_attributes, plot!, combine, to_plotspec
@@ -30,10 +31,9 @@ export Position
 export bycolumn
 export frequency
 
-include(joinpath("group", "analysis.jl"))
 include(joinpath("group", "scales.jl"))
-include(joinpath("group", "group.jl"))
-include(joinpath("group", "tables.jl"))
+include(joinpath("group", "grammarspec.jl"))
+include(joinpath("group", "convert_arguments.jl"))
 include(joinpath("group", "dodge.jl"))
 
 include(joinpath("typerecipes", "density.jl"))
@@ -42,6 +42,7 @@ include(joinpath("typerecipes", "distribution.jl"))
 include(joinpath("typerecipes", "smooth.jl"))
 include(joinpath("typerecipes", "namedarray.jl"))
 
+include(joinpath("recipes", "conversions.jl"))
 # include(joinpath("recipes", "corrplot.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))

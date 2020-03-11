@@ -1,4 +1,18 @@
-to_scale(x::Function) = x
-to_scale(x::AbstractArray) = x
-to_scale(x::Any) = nothing
-to_scale(x::Nothing) = nothing
+is_scale(::Function) = true
+is_scale(::AbstractArray) = true
+is_scale(::Any) = false
+
+function compute_attribute(scale::Function, el, rankdict)
+    scale(el)
+end
+function compute_attribute(scale::AbstractArray, el, rankdict)
+    scale[mod1(rankdict[el], length(scale))]
+end
+
+function rankdict(col::AbstractVector)
+    s = collect(uniquesorted(col))
+    return Dict(zip(s, 1:length(s)))
+end
+
+rankdicts(s) = map(rankdict, Tables.columntable(s))
+
