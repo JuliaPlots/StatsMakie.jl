@@ -73,7 +73,8 @@ function _bindots(
     idxs = sortperm(x; order = _convert_order(_maybe_val(bindir))),
     kwargs...,
 )
-    if _maybe_unval(bindir) === :righttoleft
+    bindir = _maybe_unval(bindir)
+    if bindir === :righttoleft
         binend_offset = -binwidth
         fcmp = ≤
     else
@@ -98,9 +99,9 @@ function _bindots(
     end
 
     centers = Vector{float(eltype(x))}(undef, binid)
-    for (binid, idxs) in finduniquesorted(binids, 1:n)
-        n = length(idxs)
-        @inbounds centers[binid] = (x[idxs[1]] + x[idxs[n]]) / 2
+    @inbounds for (binid, idxs) in finduniquesorted(binids)
+        xmin, xmax = x[first(idxs)], x[last(idxs)]
+        centers[binid] = (xmin + xmax) / 2
     end
 
     return parent(binids), centers, idxs
@@ -129,7 +130,7 @@ function _bindots(
         binids[r] .= binid
         push!(centers, center)
         adj_ranges = _rangediff.(adj_ranges, Ref(r))
-        filter!(r -> !(isempty(r)), adj_ranges)
+        filter!(!isempty, adj_ranges)
         binid += 1
     end
     return parent(binids), centers, idxs
