@@ -34,3 +34,6 @@ function _pixels_per_units(scene)
     widthspx = widths(to_value(pixelarea(scene)))
     return widthspx ./ widthsdatatot
 end
+
+to_weights(v) = StatsBase.weights(v)
+to_weights(v::StatsBase.AbstractWeights) = v

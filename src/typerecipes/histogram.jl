@@ -9,9 +9,6 @@ function convert_arguments(P::Type{<:AbstractPlot}, h::StatsBase.Histogram{<:Any
     to_plotspec(ptype, convert_arguments(ptype, map(f, h.edges)..., Float64.(h.weights)); kwargs...)
 end
 
-to_weights(v) = StatsBase.weights(v)
-to_weights(v::StatsBase.AbstractWeights) = v
-
 bool2options(t::Bool, a, b) = t ? a : b
 bool2options(t, a, b) = t
 
