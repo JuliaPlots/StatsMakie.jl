@@ -38,6 +38,7 @@ include(joinpath("group", "group.jl"))
 include(joinpath("group", "tables.jl"))
 include(joinpath("group", "dodge.jl"))
 
+include(joinpath("typerecipes", "quantiles.jl"))
 include(joinpath("typerecipes", "density.jl"))
 include(joinpath("typerecipes", "histogram.jl"))
 include(joinpath("typerecipes", "distribution.jl"))
