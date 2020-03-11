@@ -33,6 +33,33 @@ function _countbins(binids)
     return counts
 end
 
+# for each in sorted `x`, get range of indices of all `x` within radius `binwidth`
+function _adjacent_ranges(x, binwidth)
+    n = length(x)
+    lowers = Vector{Int}(undef, n)
+    uppers = Vector{Int}(undef, n)
+    i₊ = 1
+    @inbounds for i₋ in Base.OneTo(n)
+        x₋ = x[i₋]
+        while i₊ ≤ n && x[i₊] < x₋ + binwidth / 2
+            lowers[i₊] = i₋
+            i₊ += 1
+        end
+        # TODO: probably could be made more efficient with a backwards pass
+        uppers[i₋:i₊-1] .= i₊ - 1
+    end
+    return map(UnitRange, lowers, uppers)
+end
+
+# setdiff assuming interval `y` is not a proper subset of interval `x`
+# so output is also UnitRange
+function _rangediff(x::UnitRange, y::UnitRange)
+    a, b, c, d = first(x), last(x), first(y), last(y)
+    a < c && return UnitRange(a, min(b + 1, c) - 1)
+    b > d && return UnitRange(max(a - 1, d) + 1, b)
+    return UnitRange(a, a - 1)
+end
+
 @inline _convert_order(::Any) = Base.Order.ForwardOrdering()
 @inline _convert_order(::Val{:righttoleft}) = Base.Order.ReverseOrdering()
 
@@ -76,6 +103,35 @@ function _bindots(
         @inbounds centers[binid] = (x[idxs[1]] + x[idxs[n]]) / 2
     end
 
+    return parent(binids), centers, idxs
+end
+
+# bin `x`s according to Dang, 2010. doi: 10.1109/TVCG.2010.197
+function _bindots(
+    ::Val{:dotdensity},
+    x,
+    binwidth,
+    ::Val{:undirected},
+    args...;
+    idxs = sortperm(x),
+    kwargs...,
+)
+    x = view(x, idxs)
+    adj_ranges = _adjacent_ranges(x, binwidth)
+    binids = view(Vector{Int}(undef, length(x)), idxs)
+    centers = float(eltype(x))[]
+    binid = 1
+    @inbounds while !isempty(adj_ranges)
+        i = sortperm(adj_ranges; rev = true, by = length)[1]
+        r = copy(adj_ranges[i])
+        rmin, rmax = extrema(r)
+        center = (x[rmin] + x[rmax]) / 2
+        binids[r] .= binid
+        push!(centers, center)
+        adj_ranges = _rangediff.(adj_ranges, Ref(r))
+        filter!(r -> !(isempty(r)), adj_ranges)
+        binid += 1
+    end
     return parent(binids), centers, idxs
 end
 
