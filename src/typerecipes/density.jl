@@ -12,7 +12,7 @@ end
 
 function trim_limits!(x, lims)
     len = column_length(x)
-    for i in 1:width(x)
+    for i in 1:ncols(x)
         xmin, xmax = extrema_nan(extract_view(x, 1:len, i))
         xmin′, xmax′ = lims[i]
         lims[i] = (max(xmin′, xmin), min(xmax′, xmax))
