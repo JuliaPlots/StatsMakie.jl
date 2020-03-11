@@ -138,8 +138,7 @@ const bycolumn = ByColumn()
 Base.isless(::ByColumn, ::ByColumn) = false
 extract_column(t, c::ByColumn) = c
 
-# convert a Group and a Style to a vector of TraceSpec
-function traces_rankdicts_attributes(gs::GrammarSpec)
+function traces_attributes(gs::GrammarSpec)
     g, style = groupstyle(gs)
     data = style.args
     len = column_length(data)
@@ -163,10 +162,7 @@ function traces_rankdicts_attributes(gs::GrammarSpec)
     end
 
     analysis = adjust_globally(gs.analysis, traces)
-    comp_traces = map_traces(analysis, traces)
-    table = Tables.columntable([trace.primary for trace in comp_traces])
-    rankdicts = map(rankdict, table)
-    return comp_traces, rankdicts, style.kwargs
+    return map_traces(analysis, traces), style.kwargs
 end
 
 function map_traces(f, traces::AbstractArray{<:TraceSpec})

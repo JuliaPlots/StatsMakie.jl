@@ -20,7 +20,7 @@ end
 convert_arguments(P::PlotFunc, arg::GoG, args...; kwargs...) =
     convert_arguments(P, tuple, arg, args...; kwargs...)
 
-function to_plotspec(P::PlotFunc, g::TraceSpec, rankdicts; kwargs...)
+function to_plotspec(P::PlotFunc, g::TraceSpec, rks; kwargs...)
     plotspec = to_plotspec(P, convert_arguments(P, g.output...))
     names = propertynames(g.primary)
     d = Dict{Symbol, Node}()
@@ -28,7 +28,7 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, rankdicts; kwargs...)
         f = function (user; palette = theme_scale)
             scale = is_scale(user) ? user : palette
             val = getproperty(g.primary, key)
-            compute_attribute(scale, val, rankdicts[ind])
+            compute_attribute(scale, val, rks[ind])
         end
         d[key] = DelayedAttribute(f)
     end
@@ -41,8 +41,9 @@ function to_plotspec(P::PlotFunc, g::TraceSpec, rankdicts; kwargs...)
 end
 
 function convert_arguments(P::PlotFunc, gs::GrammarSpec; colorrange = automatic, kwargs...)
-    traces, rankdicts, attributes = traces_rankdicts_attributes(gs)
-    series = (to_plotspec(P, trace, rankdicts; attributes...) for trace in traces)
+    traces, attributes = traces_attributes(gs)
+    rks = rankdicts([trace.primary for trace in traces])
+    series = (to_plotspec(P, trace, rks; attributes...) for trace in traces)
     pl = PlotList(series...)
 
     col = get(attributes, :color, nothing)

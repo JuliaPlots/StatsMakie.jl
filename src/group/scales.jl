@@ -13,3 +13,6 @@ function rankdict(col::AbstractVector)
     s = collect(uniquesorted(col))
     return Dict(zip(s, 1:length(s)))
 end
+
+rankdicts(s) = map(rankdict, Tables.columntable(s))
+
