@@ -48,7 +48,13 @@ end
 Analysis() = Analysis(tuple)
 
 (an::Analysis)(; kwargs...) = Analysis(an.f; kwargs..., an.kwargs...)
-(an::Analysis)(args...; kwargs...) = an.f(args...; kwargs..., an.kwargs...)
+function (an::Analysis)(args...; kwargs...)
+    init = ((), merge(values(kwargs), an.kwargs))
+    new_args, new_kwargs = foldl(args, init = init) do (pos, kw), arg
+        arg isa NamedTuple ? (pos, merge(kw, arg)) : ((pos..., arg), kw)
+    end
+    an.f(new_args...; new_kwargs...)
+end
 
 Base.merge(a1::Analysis, a2::Analysis) = a2
 
