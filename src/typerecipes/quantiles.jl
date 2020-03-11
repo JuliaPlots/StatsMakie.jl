@@ -4,8 +4,8 @@ _ppoints(n, a = n ≤ 10 ? 3 / 8 : 1 / 2) = (1:(n-1).-a) ./ (n - 2a)
 
 function _quantiles(x; p = automatic, n = 100, weights = automatic, sorted = false)
     p = p === automatic ? _ppoints(n) : p
-    x = sorted ? x : sort(x)
     ws = weights === automatic ? () : (Ref(to_weights(weights)),)
+    x = sorted ? x : view(x, sortperm(x))
     qs = StatsBase.quantile.(Ref(x), ws..., p; sorted = true)
     return qs
 end
