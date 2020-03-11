@@ -24,28 +24,28 @@ Base.merge(g::Group, f::FunctionOrAnalysis) = merge(g, Group(f))
 
 Base.:*(g1::Group, g2::Group) = merge(g1, g2)
 
-width(v::Tuple) = length(v)
-width(v::NamedTuple) = maximum(width, v)
-width(v::AbstractVector) = 1
-width(v::AbstractArray) = mapreduce(length, *, axes(v)[2:end])
+ncols(v::Tuple) = length(v)
+ncols(v::AbstractVector) = 1
+ncols(v::AbstractArray) = mapreduce(length, *, tail(axes(v)))
 
 column_length(v::Union{Tuple, NamedTuple}) = column_length(v[1])
 column_length(v::AbstractVector) = length(v)
-column_length(v::AbstractArray) = length(axes(v)[1])
+column_length(v::AbstractArray) = length(axes(v, 1))
 
 extract_view(v::Union{Tuple, NamedTuple}, idxs) = map(x -> extract_view(x, idxs), v)
 extract_view(v::AbstractVector, idxs) = view(v, idxs)
-extract_view(v::AbstractArray, idxs) = view(v, idxs, axes(v)[2:end]...)
+function extract_view(v::AbstractArray{<:Any, N}, idxs) where {T, N}
+    args = ntuple(i -> i == 1 ? idxs : Colon(), N)
+    view(v, args...)
+end
 
-extract_view(v::Tuple, idxs, n) = extract_view(v[n], idxs)
+extract_view(v::Union{Tuple, NamedTuple}, idxs, n) = extract_view(v[n], idxs)
 extract_view(v::AbstractVector, idxs, n) = view(v, idxs)
 function extract_view(v::AbstractArray, idxs, n)
-    ax = axes(v)[2:end]
+    ax = tail(axes(v))
     c = CartesianIndices(ax)[n]
     view(v, idxs, Tuple(c)...)
 end
-
-extract_view(v::NamedTuple, idxs, n) = map(t -> extract_view(t, idxs, n), v)
 
 struct Data{T}
     table::T
@@ -161,7 +161,7 @@ end
 # convert a normalized style to a vector of TraceSpec
 function to_traces(style::Style)
     g_args = to_args(style)
-    g, args = g_args[1], g_args[2:end]
+    g, args = g_args[1], tail(g_args)
     len = column_length(args[1])
     pcols = map(x -> isa(x, AbstractVector) ? x : fill(x, len), g.columns)
     sa = isempty(pcols) ? fill(NamedTuple(), len) : StructArray(pcols)
@@ -172,7 +172,7 @@ function traces_from_groups(keys, data)
     traces = TraceSpec[]
     for (key, idxs) in keys
         if any(x -> isa(x, ByColumn), key)
-            m = maximum(width, data)
+            m = maximum(ncols, data)
             for i in 1:m
                 output = map(x -> extract_view(x, idxs, i), data)
                 new_key = map(x -> x isa ByColumn ? i : x, key)
