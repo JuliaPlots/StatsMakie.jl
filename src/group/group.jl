@@ -47,9 +47,6 @@ end
 
 extract_view(v::NamedTuple, idxs, n) = map(t -> extract_view(t, idxs, n), v)
 
-concatenate(v::Union{Tuple, NamedTuple}...) = map(concatenate, v...)
-concatenate(v::AbstractArray...) = vcat(v...)
-
 struct Data{T}
     table::T
 end
@@ -71,9 +68,6 @@ const GoG = Union{Data, Group, Style}
 Base.merge(g1::GoG, g2::GoG) = merge(to_style(g1), to_style(g2))
 Base.merge(f::FunctionOrAnalysis, s::Style) = merge(Group(f), s)
 Base.merge(s::Style, f::FunctionOrAnalysis) = merge(s, Group(f))
-
-remove_name(v::NamedTuple) = Tuple(v)
-remove_name(v) = v
 
 extract_column(t, c::Union{Tuple, NamedTuple}) = map(x -> extract_column(t, x), c)
 extract_column(t, c::ByColumn) = c
@@ -142,29 +136,6 @@ TraceSpec(::Tuple{}, args...) = TraceSpec(NamedTuple(), args...)
 function map_traces(f, traces::AbstractArray{<:TraceSpec})
     ft = trace -> TraceSpec(trace.primary, trace.idxs, to_tuple(f(trace.output...)))
     map(ft, traces)
-end
-
-struct SampleBased <: ConversionTrait end
-
-function convert_arguments(::SampleBased, args::NTuple{N,AbstractVector{<:Number}}) where {N}
-    return args
-end
-
-function convert_arguments(P::SampleBased, positions::Vararg{AbstractVector})
-    return convert_arguments(P, positions)
-end
-
-function convert_arguments(::SampleBased, positions::NTuple{N,AbstractVector}) where {N}
-    x = first(positions)
-    if any(n-> length(x) != length(n), positions)
-        error("all vector need to be same length. Found: $(length.(positions))")
-    end
-    labels = categoric_labels.(positions)
-    xyrange = categoric_range.(labels)
-    newpos = map(positions, labels) do pos,lab
-        el32convert(categoric_position.(pos, Ref(lab)))
-    end
-    PlotSpec(newpos...; tickranges = xyrange, ticklabels = labels)
 end
 
 function to_plotspec(P::PlotFunc, g::TraceSpec, rank_dicts; kwargs...)

@@ -1,5 +1,6 @@
 module StatsMakie
 
+using Base: tail
 using Observables
 using AbstractPlotting
 import AbstractPlotting: conversion_trait, convert_arguments, used_attributes, plot!, combine, to_plotspec
@@ -41,6 +42,7 @@ include(joinpath("typerecipes", "distribution.jl"))
 include(joinpath("typerecipes", "smooth.jl"))
 include(joinpath("typerecipes", "namedarray.jl"))
 
+include(joinpath("recipes", "conversions.jl"))
 # include(joinpath("recipes", "corrplot.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))
