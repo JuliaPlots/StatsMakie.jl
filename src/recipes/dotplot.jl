@@ -14,7 +14,10 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         binwidth = automatic,
         maxbins = 30,
         method = :dotdensity,
+        # dotdensity options
         bindir = :lefttoright,
+        smooth = false,
+        # histodot options
         origin = automatic,
         closed = :left,
     )
@@ -63,6 +66,34 @@ end
 @inline _convert_order(::Any) = Base.Order.ForwardOrdering()
 @inline _convert_order(::Val{:righttoleft}) = Base.Order.ReverseOrdering()
 
+# smooth counts between adjacent bins using algorithm in
+# Wilkinson, 1999. doi: 10.1080/00031305.1999.10474474
+function _smoothbins!(binids, x, cutoff)
+    n = length(x)
+    l₋ = l₊ = r₊ = 1
+    @inbounds r₋ = findnext(!isequal(binids[l₋]), binids, l₋)
+    r₋ === nothing && return binids
+    @inbounds while r₋ < n
+        l₊ = r₋ - 1
+        r₊ = findnext(!isequal(binids[r₋]), binids, r₋)
+        r₊ = r₊ === nothing ? n : r₊ - 1
+        if abs(x[r₋] - x[l₊]) < cutoff
+            r₋′ = r₋ + div((r₊ - r₋) - (l₊ - l₋), 2)
+            while r₋′ < r₋
+                binids[r₋′] = binids[r₊]
+                r₋ -= 1
+            end
+            while r₋′ > r₋
+                binids[r₋′] = binids[l₋]
+                r₋ += 1
+            end
+        end
+        l₋ = r₋
+        r₋ = r₊ + 1
+    end
+    return binids
+end
+
 # bin `x`s according to Wilkinson, 1999. doi: 10.1080/00031305.1999.10474474
 function _bindots(
     ::Val{:dotdensity},
@@ -71,6 +102,7 @@ function _bindots(
     bindir = Val(:lefttoright),
     args...;
     idxs = sortperm(x; order = _convert_order(_maybe_val(bindir))),
+    smooth = false,
     kwargs...,
 )
     bindir = _maybe_unval(bindir)
@@ -102,6 +134,19 @@ function _bindots(
     @inbounds for (binid, idxs) in finduniquesorted(binids)
         xmin, xmax = x[first(idxs)], x[last(idxs)]
         centers[binid] = (xmin + xmax) / 2
+    end
+
+    # smooth the binids but keep the centers
+    if smooth
+        if bindir === :righttoleft
+            idxs_rev = n:-1:1
+            @inbounds smooth_x = view(x, idxs_rev)
+            @inbounds smooth_binids = view(binids, idxs_rev)
+        else
+            smooth_x = x
+            smooth_binids = binids
+        end
+        _smoothbins!(smooth_binids, smooth_x, binwidth / 4)
     end
 
     return parent(binids), centers, idxs
@@ -265,6 +310,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         maxbins,
         method,
         bindir,
+        smooth,
         origin,
         closed,
     )
@@ -287,6 +333,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         maxbins,
         method,
         bindir,
+        smooth,
         origin,
         closed,
     ) do x,
@@ -304,6 +351,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
     maxbins,
     method,
     bindir,
+    smooth,
     origin,
     closed
         validate_orientation(orientation)
@@ -347,6 +395,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
                 v,
                 binwidth,
                 Val(bindir);
+                smooth = smooth,
                 origin = origin,
                 closed = closed,
             )
