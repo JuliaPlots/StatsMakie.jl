@@ -12,7 +12,7 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         stackratio = 1,
         dotscale = 1,
         binwidth = automatic,
-        maxbins = 30,
+        nbins = 30,
         method = :dotdensity,
         # dotdensity options
         bindir = :lefttoright,
@@ -306,7 +306,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         stackratio,
         dotscale,
         binwidth,
-        maxbins,
+        nbins,
         method,
         bindir,
         smooth,
@@ -329,7 +329,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         dotscale,
         strokewidth,
         binwidth,
-        maxbins,
+        nbins,
         method,
         bindir,
         smooth,
@@ -347,7 +347,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
     dotscale,
     strokewidth,
     binwidth,
-    maxbins,
+    nbins,
     method,
     bindir,
     smooth,
@@ -365,7 +365,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
                 limits = _dot_limits(x, y, width, side)
             end
             ywidth = widths(limits)[2]
-            binwidth = ywidth / maxbins
+            binwidth = ywidth / nbins
         end
 
         # set markersize
