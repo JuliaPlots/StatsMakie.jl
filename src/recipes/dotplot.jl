@@ -8,7 +8,7 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         strokewidth = 0,
         orientation = :vertical,
         width = 0.8, # used for padding only
-        stackdir = :center,
+        side = :both,
         stackratio = 1,
         dotscale = 1,
         binwidth = automatic,
@@ -245,7 +245,7 @@ function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
     return to_plotspec(P, convert_arguments(P, y); binwidth = binwidth)
 end
 
-function convert_attribute(s::Symbol, ::key"stackdir")
+function convert_attribute(s::Symbol, ::key"side")
     s === :right && return :up
     s === :left && return :down
     return s
@@ -259,24 +259,24 @@ end
 function _stack_offsets(pos, ratio, ::Val{:down})
     return @. -ratio * (pos - 1) - 1 / 2
 end
-function _stack_offsets(pos, ratio, ::Val{:center})
+function _stack_offsets(pos, ratio, ::Val{:both})
     n = length(pos)
     return @. ratio * (pos - (n + 1) / 2)
 end
-function _stack_offsets(pos, ratio, ::Val{:centerwhole})
+function _stack_offsets(pos, ratio, ::Val{:bothaligned})
     n = length(pos)
     return @. ratio * (pos - floor((n + 1) / 2)) + 1 / 2
 end
 
-@inline _stack_limits(::Val{:center}, width) = (-width / 2, width)
-@inline _stack_limits(::Val{:centerwhole}, width) = (-width / 2, width)
+@inline _stack_limits(::Val{:both}, width) = (-width / 2, width)
+@inline _stack_limits(::Val{:bothaligned}, width) = (-width / 2, width)
 @inline _stack_limits(::Val{:up}, width) = (zero(width), width / 2)
 @inline _stack_limits(::Val{:down}, width) = (-width / 2, width / 2)
 
-function _dot_limits(x, y, width, stackdir)
+function _dot_limits(x, y, width, side)
     bb = xyz_boundingbox(x, y)
     T = eltype(bb)
-    so, sw = _stack_limits(_maybe_val(stackdir), width)
+    so, sw = _stack_limits(_maybe_val(side), width)
     origin, widths = bb.origin, bb.widths
     @inbounds widths = Vec2{T}(widths[1] + sw, widths[2])
     @inbounds origin = Vec2{T}(origin[1] + so, origin[2])
@@ -285,9 +285,9 @@ end
 
 # because dot sizes depend on limits, prevent limits from counting stack heights
 function data_limits(P::DotPlot{<:Tuple{X,Y}}) where {X,Y}
-    @extract P (orientation, width, stackdir)
-    stackdir = convert_attribute(to_value(stackdir), key"stackdir"())
-    bb = _dot_limits(to_value.((P[1], P[2], width, stackdir))...)
+    @extract P (orientation, width, side)
+    side = convert_attribute(to_value(side), key"side"())
+    bb = _dot_limits(to_value.((P[1], P[2], width, side))...)
     if ishorizontal(orientation)
         bb = _flip_xy(bb)
     end
@@ -302,7 +302,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         strokewidth,
         orientation,
         width,
-        stackdir,
+        side,
         stackratio,
         dotscale,
         binwidth,
@@ -324,7 +324,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         scene.padding,
         orientation,
         width,
-        stackdir,
+        side,
         stackratio,
         dotscale,
         strokewidth,
@@ -342,7 +342,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
     _,
     orientation,
     width,
-    stackdir,
+    side,
     stackratio,
     dotscale,
     strokewidth,
@@ -354,7 +354,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
     origin,
     closed
         validate_orientation(orientation)
-        stackdir = Val(convert_attribute(stackdir, key"stackdir"()))
+        side = Val(convert_attribute(side, key"side"()))
 
         # set binwidth
         if binwidth === automatic
@@ -362,7 +362,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
                 limits = _flip_xy(limits)
             end
             if limits === nothing
-                limits = _dot_limits(x, y, width, stackdir)
+                limits = _dot_limits(x, y, width, side)
             end
             ywidth = widths(limits)[2]
             binwidth = ywidth / maxbins
@@ -416,7 +416,7 @@ function AbstractPlotting.plot!(plot::DotPlot)
         @inbounds for i in eachindex(basex, basey, counts)
             n = counts[i]
             stack_pos = 1:n
-            stack_offsets = _stack_offsets(stack_pos, stackratio, stackdir)
+            stack_offsets = _stack_offsets(stack_pos, stackratio, side)
             # default offset is (-markersize / 2, -markersize / 2)
             offsets = Point2f0.(markersize .* (stack_offsets .- 1 / 2), -markersize / 2)
             offset_points[j:j+n-1] .= offsets
