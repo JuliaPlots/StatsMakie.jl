@@ -6,9 +6,9 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         alpha = 1,
         strokecolor = :black,
         strokewidth = 0,
-        orientation = :horizontal,
+        orientation = :vertical,
         width = 0.8, # used for padding only
-        stackdir = :up,
+        stackdir = :center,
         stackratio = 1,
         dotscale = 1,
         binwidth = automatic,
