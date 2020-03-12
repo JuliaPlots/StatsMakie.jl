@@ -7,7 +7,7 @@ using AbstractPlotting: parent_scene, xyz_boundingbox
         strokecolor = :black,
         strokewidth = 0,
         orientation = :horizontal,
-        width = 1.0, # used for padding only
+        width = 0.8, # used for padding only
         stackdir = :up,
         stackratio = 1,
         dotscale = 1,
@@ -268,19 +268,18 @@ function _stack_offsets(pos, ratio, ::Val{:centerwhole})
     return @. ratio * (pos - floor((n + 1) / 2)) + 1 / 2
 end
 
-@inline _stack_limits(::Val{:center}) = -0.5
-@inline _stack_limits(::Val{:centerwhole}) = -0.5
-@inline _stack_limits(::Val{:up}) = 0
-@inline _stack_limits(::Val{:down}) = -1
+@inline _stack_limits(::Val{:center}, width) = (-width / 2, width)
+@inline _stack_limits(::Val{:centerwhole}, width) = (-width / 2, width)
+@inline _stack_limits(::Val{:up}, width) = (zero(width), width / 2)
+@inline _stack_limits(::Val{:down}, width) = (-width / 2, width / 2)
 
 function _dot_limits(x, y, width, stackdir)
     bb = xyz_boundingbox(x, y)
     T = eltype(bb)
-    wv = T(width)
-    xoffset = T(_stack_limits(_maybe_val(stackdir)) * wv)
+    so, sw = _stack_limits(_maybe_val(stackdir), width)
     origin, widths = bb.origin, bb.widths
-    @inbounds widths = Vec2{T}(widths[1] + wv, widths[2])
-    @inbounds origin = Vec2{T}(origin[1] + xoffset, origin[2])
+    @inbounds widths = Vec2{T}(widths[1] + sw, widths[2])
+    @inbounds origin = Vec2{T}(origin[1] + so, origin[2])
     return FRect2D(origin, widths)
 end
 
