@@ -32,7 +32,7 @@ export bycolumn
 export frequency
 
 include(joinpath("group", "scales.jl"))
-include(joinpath("group", "convert_arguments.jl"))
+include(joinpath("group", "algebraofgraphics.jl"))
 include(joinpath("group", "dodge.jl"))
 
 include(joinpath("typerecipes", "density.jl"))
