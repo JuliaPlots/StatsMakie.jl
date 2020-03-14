@@ -6,8 +6,8 @@ Base.:*(s::Type{<:AbstractPlot}, t::Any) = Product(s) * t
 Base.:*(s::Any, t::Type{<:AbstractPlot}) = s * Product(t)
 Base.:*(s::Type{<:AbstractPlot}, t::Type{<:AbstractPlot}) = Product(s, t)
 
-*(t::Sum, b::Type{<:AbstractPlot}) = t * Product(b)
-*(a::Type{<:AbstractPlot}, t::Sum) = a * Product(b)
+Base.:*(t::Sum, b::Type{<:AbstractPlot}) = t * Product(b)
+Base.:*(a::Type{<:AbstractPlot}, t::Sum) = a * Product(b)
 
 Base.:+(s::Type{<:AbstractPlot}, t::Any) = Sum(s) + (t)
 Base.:+(s::Any, t::Type{<:AbstractPlot}) = s + Sum(t)
@@ -40,7 +40,7 @@ function to_plotspec(P::PlotFunc, g::Trace, rks)
     to_plotspec(P, plotspec; d...)
 end
 
-function convert_arguments(P::PlotFunc, gs::Product; kwargs...)
+function _convert_arguments(P::PlotFunc, gs::Product; kwargs...)
                            # TODO readd colorrange = automatic
     metadata, ts = traces(gs)
     i = findlast(x -> isa(x, Type{<:AbstractPlot}), metadata)
@@ -48,7 +48,11 @@ function convert_arguments(P::PlotFunc, gs::Product; kwargs...)
         P = plottype(P, metadata[i])
     end
     rks = rankdicts([trace.attributes for trace in ts])
-    series = (to_plotspec(P, trace, rks) for trace in ts)
+    series = [to_plotspec(P, trace, rks) for trace in ts]
+end
+
+function convert_arguments(P::PlotFunc, gs::Product; kwargs...)
+    series = _convert_arguments(P, gs; kwargs...)
     pl = PlotList(series...)
 
     # col = get(attributes, :color, nothing)
@@ -56,6 +60,13 @@ function convert_arguments(P::PlotFunc, gs::Product; kwargs...)
     #     colorrange = extrema_nan(col)
     # end
 
+    PlotSpec{MultiplePlot}(pl) #, colorrange = colorrange)
+end
+
+function convert_arguments(P::PlotFunc, gs::Sum; kwargs...)
+    nested_series = [_convert_arguments(P, el; kwargs...) for el in gs.elements]
+    series = reduce(vcat, nested_series)
+    pl = PlotList(series...)
     PlotSpec{MultiplePlot}(pl) #, colorrange = colorrange)
 end
 
