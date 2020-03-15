@@ -114,6 +114,14 @@ plot(linear, Group(linestyle = a), x, y)
 
 ![screenshot from 2018-11-28 12-01-54](https://user-images.githubusercontent.com/6333339/49150640-6cc47300-f305-11e8-8db7-d8a97e84218e.png)
 
+
+If you want confidence intervals for the affine fits, use the
+`linear_confidence` analysis:
+
+```julia
+plot(linear_confidence, x, y)
+```
+
 ### A non-linear example
 
 Using non-linear techniques here is not very interesting as linear techniques work quite well already, so let's change variables:

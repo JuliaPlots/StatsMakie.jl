@@ -25,6 +25,7 @@ using Tables, StructArrays
 using StructArrays: uniquesorted, finduniquesorted, GroupPerm
 using IntervalSets: Interval, endpoints
 using Loess
+using GLM
 
 export Data, Group, Style
 export Position
@@ -42,11 +43,15 @@ include(joinpath("typerecipes", "distribution.jl"))
 include(joinpath("typerecipes", "smooth.jl"))
 include(joinpath("typerecipes", "namedarray.jl"))
 
+include(joinpath("recipes", "utilities.jl"))
 include(joinpath("recipes", "conversions.jl"))
 # include(joinpath("recipes", "corrplot.jl"))
 include(joinpath("recipes", "boxplot.jl"))
 include(joinpath("recipes", "violin.jl"))
 include(joinpath("recipes", "ribbon.jl"))
+include(joinpath("recipes","shaded_background.jl"))
 include(joinpath("recipes", "errorbar.jl"))
+
+include(joinpath("typerecipes", "glm.jl"))
 
 end
