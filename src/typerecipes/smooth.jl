@@ -1,16 +1,19 @@
-struct Linear{S, T}
-    x::NTuple{2, S}
-    y::NTuple{2, T}
+struct GLMResult{S, T}
+    x::AbstractVector{S}
+    y::AbstractVector{T}
+    l::AbstractVector{T}
+    u::AbstractVector{T}
 end
 
-convert_arguments(P::PlotFunc, l::Linear) = PlotSpec{LineSegments}([Point2f0(x,y) for (x,y) in zip(l.x, l.y)])
-
-function linear(x, y)
-    itc, slp = hcat(fill!(similar(x), 1), x) \ y
-    xs = extrema_nan(x)
-    ys = slp .* xs .+ itc
-    Linear(xs, ys)
+function linear(x::AbstractVector{T}, y::AbstractVector{T}) where {T}
+    lin_model = GLM.lm(@formula(Y ~ X), (X=x, Y=y))
+    y_new, lower, upper = GLM.predict(lin_model,
+     [ones(T, length(x)) x], interval=:confidence)
+    # the GLM predictions always return matrices
+   return GLMResult(x, vec(y_new), vec(lower), vec(upper))
 end
+
+convert_arguments(P::PlotFunc, g::GLMResult) = PlotSpec{ShadedLine}(g.x, g.y, g.l, g.u)
 
 struct Smooth{S, T}
     x::Vector{S}

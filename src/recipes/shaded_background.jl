@@ -4,7 +4,7 @@
 Plots a line through `x` and `y` and a filled area
 behind it defined by `lower` and `upper`
 """
-@recipe(ShadedLine) do scene
+@recipe(ShadedLine, x, y, lower, upper) do scene
     Theme(;
         default_theme(scene, Band)...,
         color = theme(scene, :color),

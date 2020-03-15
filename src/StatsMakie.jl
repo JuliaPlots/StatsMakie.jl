@@ -52,6 +52,4 @@ include(joinpath("recipes", "ribbon.jl"))
 include(joinpath("recipes","shaded_background.jl"))
 include(joinpath("recipes", "errorbar.jl"))
 
-include(joinpath("typerecipes", "glm.jl"))
-
 end
