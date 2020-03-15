@@ -1,5 +1,4 @@
-using AlgebraOfGraphics: Product, Sum, traces, Trace, Analysis, AlgebraOfGraphics
-import AlgebraOfGraphics: adjust_globally
+using AlgebraOfGraphics: Product, Sum, Traces, Analysis, metadata, AlgebraOfGraphics
 
 # Heavy piracy, can we do better?
 const PiratedTypes = Union{Type{<:AbstractPlot}, Attributes}
@@ -15,35 +14,22 @@ Base.:+(s::PiratedTypes, t::Any) = Sum(s) + (t)
 Base.:+(s::Any, t::PiratedTypes) = s + Sum(t)
 Base.:+(s::PiratedTypes, t::PiratedTypes) = Sum(s, t)
 
-# this will merge all attributes for a given product
-AlgebraOfGraphics.combine(a::Attributes, b::Attributes) = merge(a, b)
-
 # used_attributes(P::PlotFunc, f::Function, g::GoG, args...) =
 #     Tuple(union((:colorrange,), used_attributes(P, f, args...)))
 
 # used_attributes(P::PlotFunc, g::GoG, args...) =
 #     Tuple(union((:colorrange,), used_attributes(P, args...)))
 
-function get_type(::Type{T}, metadata, default) where {T}
-    i = findlast(x -> isa(x, T), metadata)
-    i === nothing ? default : metadata[i]
+function get_plotfunc(metadata, init = Any)
+    i = findlast(x -> isa(x, PlotFunc), metadata)
+    i === nothing ? Any : metadata[i]
 end
-
-function plot!(scene::SceneLike, P::PlotFunc, attr::Attributes, trace::Trace, metadata, rks)
-    P = get_type(Type{<:AbstractPlot}, metadata, P)
-    attr = merge(attr, get_type(Attributes, metadata, Attributes()))
-
-    names = propertynames(trace.attributes)
-    palette = AbstractPlotting.current_default_theme()[:palette]
-
-    d = Dict{Symbol, Node}()
-    for (key, val) in pairs(trace.attributes)
-        user = get(attr, key, nothing)
-        scale = user !== nothing && is_scale(user[]) ? user[] : palette[key][]
-        attr[key] = compute_attribute(scale, val, rks[key])
+function get_attributes(metadata, init = Attributes())
+    a = copy(init)
+    for el in metadata
+        isa(el, Attributes) && merge!(a, el)
     end
-    plot!(scene, P, merge(attr, Attributes(trace.select.kwargs)), trace.select.args...)
-    return scene
+    return a
 end
 
 # TODO readd colorrange = automatic
@@ -52,11 +38,30 @@ end
 #     colorrange = extrema_nan(col)
 # end
 
+function plot!(scene::SceneLike, P::PlotFunc, attr::Attributes, ts::Traces)
+    plot!(scene, P, attr, Product(ts))
+end
+
+# How to split so that it's overloadable?
 function plot!(scene::SceneLike, P::PlotFunc, attr::Attributes, gs::Product)
-    metadata, ts = traces(gs)
-    rks = rankdicts([trace.attributes for trace in ts])
-    for t in ts
-        plot!(scene, P, attr, t, metadata, rks)
+    traces = Traces(gs)
+    m = metadata(gs)
+    P = get_plotfunc(m, P)
+    attr = get_attributes(m, attr)
+    rks = rankdicts(map(first, traces))
+    palette = AbstractPlotting.current_default_theme()[:palette]
+    for (trace_attr, select) in traces
+        attr′ = copy(attr)
+        d = Dict{Symbol, Node}()
+        for (key, val) in pairs(trace_attr)
+            user = get(attr, key, nothing)
+            scale = user !== nothing && is_scale(user[]) ? user[] : palette[key][]
+            attr′[key] = compute_attribute(scale, val, rks[key])
+        end
+        for (key, val) in pairs(select.kwargs)
+            attr′[key] = val
+        end
+        plot!(scene, P, attr′, select.args...)
     end
     return scene
 end
