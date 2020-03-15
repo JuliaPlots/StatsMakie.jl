@@ -188,3 +188,20 @@ function AbstractPlotting.plot!(plot::DotPlot)
         strokewidth = strokewidth,
     )
 end
+
+function convert_arguments(P::Type{<:DotPlot}, h::StatsBase.Histogram{<:Any,1})
+    return convert_arguments(P, convert(Tallies, h))
+end
+
+function convert_arguments(P::Type{<:DotPlot}, t::Tallies)
+    widths = t.widths
+    binwidth = widths[1]
+    if any(w -> !isapprox(w, binwidth), widths)
+        error("Tallies must have bins of equal width for dotplot.")
+    end
+    centers = t.positions
+    counts = t.counts
+    # make a new dataset that has the same tallies
+    y = [c for (c, n) in zip(centers, counts) for _ in 1:n]
+    return to_plotspec(P, convert_arguments(P, y); binwidth = binwidth)
+end
