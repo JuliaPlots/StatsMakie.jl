@@ -35,5 +35,8 @@ function _pixels_per_units(scene)
     return widthspx ./ widthsdatatot
 end
 
+# get resolution of points, that is, minimum distance between adjacent points
+_resolution(x) = minimum(diff(unique(x)))
+
 to_weights(v) = StatsBase.weights(v)
 to_weights(v::StatsBase.AbstractWeights) = v
