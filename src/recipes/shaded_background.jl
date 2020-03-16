@@ -1,5 +1,5 @@
 """
-    shaded_line(x, y, `lower`, `upper`)
+    shaded_line(x, y, lower, upper)
 
 Plots a line through `x` and `y` and a filled area
 behind it defined by `lower` and `upper`
