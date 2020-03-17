@@ -31,6 +31,7 @@ export Data, Group, Style
 export Position
 export bycolumn
 export frequency
+export linear, smooth
 
 include(joinpath("group", "scales.jl"))
 include(joinpath("group", "grammarspec.jl"))
