@@ -14,7 +14,7 @@ function plot!(plot::Violin)
     width, side = plot[:width], plot[:side]
 
     signals = lift(plot[1], plot[2], width, side) do x, y, bw, vside
-        meshes = GeometryTypes.GLPlainMesh[]
+        vertices = Vector{Point2f0}[]
         lines = Pair{Point2f0, Point2f0}[]
         for (key, idxs) in finduniquesorted(x)
             v = view(y, idxs)
@@ -27,14 +27,14 @@ function plot!(plot::Violin)
 
             x_coord = vside == :left ? xl : vside == :right ? xr : vcat(xr, xl)
             y_coord = vside == :left ? yl : vside == :right ? yr : vcat(yr, yl)
-            mesh = GeometryTypes.GLPlainMesh(Point2f0.(x_coord, y_coord))
-            push!(meshes, mesh)
+            verts = Point2f0.(x_coord, y_coord)
+            push!(vertices, verts)
             median_left = Point2f0(vside == :right ? spec.x : spec.x-(0.5*bw), spec.median)
             median_right = Point2f0(vside == :left ? spec.x : spec.x+(0.5*bw), spec.median)
             push!(lines, median_left => median_right)
         end
-        return meshes, lines
+        return vertices, lines
     end
-    mesh!(plot, lift(first, signals), color = plot[:color], visible = plot[:visible])
+    poly!(plot, Theme(plot), lift(first, signals))
     linesegments!(plot, lift(last, signals), color = plot[:mediancolor], visible = plot[:show_median])
 end
