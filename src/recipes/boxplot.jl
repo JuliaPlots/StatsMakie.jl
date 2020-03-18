@@ -12,20 +12,27 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
 @recipe(BoxPlot, x, y) do scene
     t = Theme(
         color = theme(scene, :color),
+        colormap = theme(scene, :colormap),
+        colorrange = automatic,
         notch = false,
         range = 1.5,
         outliers = true,
         whisker_width = :match,
         width = 0.8,
-        markershape = :circle,
-        strokecolor = :black,
+        marker = :circle,
+        strokecolor = :white,
         strokewidth = 1.0,
-        mediancolor = :white,
+        mediancolor = automatic,
         show_median = true,
         markersize = automatic,
+        outlierstrokecolor = :black,
+        outlierstrokewidth = 1.0,
+        medianlinewidth = automatic,
+        whiskercolor = :black,
+        whiskerlinewidth = 1.0,
         orientation = :vertical,
     )
-    t[:outliercolor] = t[:color]
+    get!(t, :outliercolor, t[:color])
     t
 end
 
@@ -128,25 +135,31 @@ function AbstractPlotting.plot!(plot::BoxPlot)
     scatter!(
         plot,
         color = plot[:outliercolor],
-        strokecolor = plot[:strokecolor],
+        strokecolor = plot[:outlierstrokecolor],
+        marker = plot[:marker],
         markersize = lift((w, ms)-> ms === automatic ? w * 0.1 : ms, width, plot.markersize),
-        strokewidth = plot[:strokewidth],
+        strokewidth = plot[:outlierstrokewidth],
         outliers,
     )
     linesegments!(
         plot,
-        color = plot[:strokecolor],
-        linewidth = plot[:strokewidth],
+        color = plot[:whiskercolor],
+        linewidth = plot[:whiskerlinewidth],
         t_segments,
     )
     poly!(
         plot,
         color = plot[:color],
+        colorrange = plot[:colorrange],
+        colormap = plot[:colormap],
+        strokecolor = plot[:strokecolor],
+        strokewidth = plot[:strokewidth],
         boxes,
     )
     linesegments!(
         plot,
-        color = plot[:mediancolor],
+        color = lift((mc,sc) -> mc === automatic ? sc : mc, plot.mediancolor, plot.strokecolor),
+        linewidth = lift((lw,sw) -> lw === automatic ? sw : lw, plot.medianlinewidth, plot.strokewidth),
         visible = plot[:show_median],
         medians,
     )
