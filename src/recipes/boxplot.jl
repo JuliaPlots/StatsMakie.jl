@@ -14,23 +14,27 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         color = theme(scene, :color),
         colormap = theme(scene, :colormap),
         colorrange = automatic,
-        notch = false,
-        range = 1.5,
-        outliers = true,
-        whisker_width = :match,
         width = 0.8,
-        marker = :circle,
+        orientation = :vertical,
+        # box
+        notch = false,
         strokecolor = :white,
         strokewidth = 1.0,
-        mediancolor = automatic,
+        # median line
         show_median = true,
+        mediancolor = automatic,
+        medianlinewidth = automatic,
+        # whiskers
+        range = 1.5, # multiple of IQR controlling whisker length
+        whisker_width = :match,
+        whiskercolor = :black,
+        whiskerlinewidth = 1.0,
+        # outliers points
+        outliers = true,
+        marker = :circle,
         markersize = automatic,
         outlierstrokecolor = :black,
         outlierstrokewidth = 1.0,
-        medianlinewidth = automatic,
-        whiskercolor = :black,
-        whiskerlinewidth = 1.0,
-        orientation = :vertical,
     )
     get!(t, :outliercolor, t[:color])
     t
@@ -136,9 +140,9 @@ function AbstractPlotting.plot!(plot::BoxPlot)
     scatter!(
         plot,
         color = plot[:outliercolor],
-        strokecolor = plot[:outlierstrokecolor],
         marker = plot[:marker],
         markersize = lift((w, ms)-> ms === automatic ? w * 0.1 : ms, width, plot.markersize),
+        strokecolor = plot[:outlierstrokecolor],
         strokewidth = plot[:outlierstrokewidth],
         outliers,
     )
