@@ -30,11 +30,11 @@ function plot!(plot::Violin)
             yr = spec.kde.x
 
             x_coord, y_coord = if vside == :left
-                xl, yl
+                [spec.x; xl; spec.x], [yl[1]; yl; yl[end]]
             elseif vside == :right
-                xr, yr
+                [spec.x; xr; spec.x], [yr[1]; yr; yr[end]]
             else
-                vcat(xr, xl), vcat(yr, yl)
+                [spec.x; xr; spec.x; xl], [yr[1]; yr; yl[1]; yl]
             end
             verts = Point2f0.(x_coord, y_coord)
             push!(vertices, verts)
