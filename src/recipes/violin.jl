@@ -3,6 +3,7 @@
         default_theme(scene, Poly)...,
         side = :both,
         width = 0.8,
+        trim = false,
         strokecolor = :white,
         show_median = false,
         mediancolor = automatic,
@@ -13,14 +14,14 @@ end
 conversion_trait(x::Type{<:Violin}) = SampleBased()
 
 function plot!(plot::Violin)
-    width, side, show_median = plot[:width], plot[:side], plot[:show_median]
+    width, side, trim, show_median = plot[:width], plot[:side], plot[:trim], plot[:show_median]
 
-    signals = lift(plot[1], plot[2], width, side, show_median) do x, y, bw, vside, show_median
+    signals = lift(plot[1], plot[2], width, side, trim, show_median) do x, y, bw, vside, trim, show_median
         vertices = Vector{Point2f0}[]
         lines = Pair{Point2f0, Point2f0}[]
         for (key, idxs) in finduniquesorted(x)
             v = view(y, idxs)
-            spec = (x = key, kde = kde(v), median = median(v))
+            spec = (x = key, kde = density(v; trim = trim), median = median(v))
             min, max = extrema_nan(spec.kde.density)
             scale = 0.5*bw/max
             xl = reverse(spec.x .- spec.kde.density .* scale)
