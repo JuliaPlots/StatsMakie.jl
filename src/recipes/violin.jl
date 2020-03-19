@@ -28,8 +28,13 @@ function plot!(plot::Violin)
             yl = reverse(spec.kde.x)
             yr = spec.kde.x
 
-            x_coord = vside == :left ? xl : vside == :right ? xr : vcat(xr, xl)
-            y_coord = vside == :left ? yl : vside == :right ? yr : vcat(yr, yl)
+            x_coord, y_coord = if vside == :left
+                xl, yl
+            elseif vside == :right
+                xr, yr
+            else
+                vcat(xr, xl), vcat(yr, yl)
+            end
             verts = Point2f0.(x_coord, y_coord)
             push!(vertices, verts)
 
