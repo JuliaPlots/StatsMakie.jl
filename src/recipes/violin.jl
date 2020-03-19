@@ -47,7 +47,7 @@ function plot!(plot::Violin)
         end
         return vertices, lines
     end
-    t = Theme(plot)
+    t = copy(Theme(plot))
     mediancolor = pop!(t, :mediancolor)
     poly!(plot, t, lift(first, signals))
     linesegments!(
