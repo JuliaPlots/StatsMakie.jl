@@ -48,8 +48,12 @@ function plot!(plot::ErrorBarY)
         bar = Pair.(Point2f0.(x, y .- Δy), Point2f0.(x, y .+ Δy))
         segments = [bar;]
         if ww != 0
-            lw = Pair.(first.(bar) .- Point2f0.(ww, 0), first.(bar) .+ Point2f0.(ww, 0))
-            uw = Pair.(last.(bar) .- Point2f0.(ww, 0), last.(bar) .+ Point2f0.(ww, 0))
+            hww = ww ./ 2
+            lw = Pair.(
+                    first.(bar) .- Point2f0.(hww, 0),
+                    first.(bar) .+ Point2f0.(hww, 0),
+                )
+            uw = Pair.(last.(bar) .- Point2f0.(hww, 0), last.(bar) .+ Point2f0.(hww, 0))
             append!(segments, [lw; uw])
         end
         return segments
@@ -64,8 +68,12 @@ function plot!(plot::ErrorBarX)
         bar = Pair.(Point2f0.(x .- Δx, y), Point2f0.(x .+ Δx, y))
         segments = [bar;]
         if ww != 0
-            lw = Pair.(first.(bar) .- Point2f0.(0, ww), first.(bar) .+ Point2f0.(0, ww))
-            uw = Pair.(last.(bar) .- Point2f0.(0, ww), last.(bar) .+ Point2f0.(0, ww))
+            hww = ww ./ 2
+            lw = Pair.(
+                    first.(bar) .- Point2f0.(0, hww),
+                    first.(bar) .+ Point2f0.(0, hww),
+                )
+            uw = Pair.(last.(bar) .- Point2f0.(0, hww), last.(bar) .+ Point2f0.(0, hww))
             append!(segments, [lw; uw])
         end
         return segments
