@@ -8,6 +8,25 @@ using KernelDensity: kde
 
 seed!(0)
 
+@testset "crossbar" begin
+    p = crossbar(1, 3, 2, 4)
+    @test p.plots[end] isa CrossBar
+    @test p.plots[end].plots[1] isa Poly
+    @test p.plots[end].plots[1][1][] == HyperRectangle{2,Float32}[HyperRectangle{2,Float32}(Float32[0.6, 2.0], Float32[0.8, 2.0]),]
+    @test p.plots[end].plots[2] isa LineSegments
+    @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.6, 3.0], Float32[1.4, 3.0]]
+
+    p = crossbar(1, 3, 2, 4; notch = true, notchmin = 2.5, notchmax = 3.5)
+    @test p.plots[end] isa CrossBar
+    @test p.plots[end].plots[1] isa Poly
+    @test p.plots[end].plots[1][1][][1] isa AbstractPlotting.AbstractMesh
+    poly = Point{2,Float32}[[0.6, 2.0], [1.4, 2.0], [1.4, 2.5], [1.2, 3.0], [1.4, 3.5],
+                            [1.4, 4.0], [0.6, 4.0], [0.6, 3.5], [0.8, 3.0], [0.6, 2.5]]
+    @test map(Point2f0, p.plots[end].plots[1][1][][1].vertices) == poly
+    @test p.plots[end].plots[2] isa LineSegments
+    @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.8, 3.0], Float32[1.2, 3.0]]
+end
+
 @testset "boxplot" begin
     a = repeat(1:5, inner = 20)
     b = 1:100
