@@ -1,5 +1,3 @@
-using AbstractPlotting: extrema_nan
-
 """
     crossbar(x, y, ymin, ymax; kwargs...)
 

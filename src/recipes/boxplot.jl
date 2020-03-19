@@ -2,8 +2,6 @@ using AbstractPlotting: extrema_nan
 
 notch_width(q2, q4, N) = 1.58 * (q4 - q2) / sqrt(N)
 
-pair_up(dict, key) = (key => dict[key])
-
 #=
 Taken from https://github.com/JuliaPlots/StatPlots.jl/blob/master/src/boxplot.jl#L7
 The StatPlots.jl package is licensed under the MIT "Expat" License:
