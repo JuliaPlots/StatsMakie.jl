@@ -455,16 +455,35 @@ end
     y =  [1:4;]
     Δx = fill(0.25, 4)
     Δy = fill(0.25, 4)
-    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red)
+    p = errorbar(x,y,Δx,Δy,color=:red, whisker_width=0.2)
     @test p[end] isa ErrorBar
-    @test p[end][:ycolor][] == :red
-    @test p[end][:xcolor][] == :green
+    @test p[end].plots[1][:color][] == :red
+    @test p[end].plots[2][:color][] == :red
+    @test p[end].plots[1][:whisker_width][] == 0.2
+    @test p[end].plots[2][:whisker_width][] == 0.2
+
+    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red,xwhisker_width = 0.1,ywhisker_width=0.3)
+    @test p[end] isa ErrorBar
+    @test p[end].plots[1][:color][]  == :green
+    @test p[end].plots[2][:color][]  == :red
+    @test p[end].plots[1][:whisker_width][] == 0.1
+    @test p[end].plots[2][:whisker_width][] == 0.3
 
     @test p[end].plots[1] isa ErrorBarX
     @test p[end].plots[1].plots[1] isa LineSegments
     @test p[end].plots[1][:color][] == :green
+    @test p[end].plots[1].plots[1][1][] == Point{2, Float32}[
+        [0.75, 1.0], [1.25, 1.0], [1.75, 2.0], [2.25, 2.0], [2.75, 3.0], [3.25, 3.0], [3.75, 4.0], [4.25, 4.0],
+        [0.75, 0.95], [0.75, 1.05], [1.75, 1.95], [1.75, 2.05], [2.75, 2.95], [2.75, 3.05], [3.75, 3.95], [3.75, 4.05],
+        [1.25, 0.95], [1.25, 1.05], [2.25, 1.95], [2.25, 2.05], [3.25, 2.95], [3.25, 3.05], [4.25, 3.95], [4.25, 4.05],
+    ]
 
     @test p[end].plots[2] isa ErrorBarY
     @test p[end].plots[2].plots[1] isa LineSegments
     @test p[end].plots[2][:color][] == :red
+    @test p[end].plots[2].plots[1][1][] == Point{2, Float32}[
+        [1.0, 0.75], [1.0, 1.25], [2.0, 1.75], [2.0, 2.25], [3.0, 2.75], [3.0, 3.25], [4.0, 3.75], [4.0, 4.25],
+        [0.85, 0.75], [1.15, 0.75], [1.85, 1.75], [2.15, 1.75], [2.85, 2.75], [3.15, 2.75], [3.85, 3.75], [4.15, 3.75],
+        [0.85, 1.25], [1.15, 1.25], [1.85, 2.25], [2.15, 2.25], [2.85, 3.25], [3.15, 3.25], [3.85, 4.25], [4.15, 4.25],
+    ]
 end
