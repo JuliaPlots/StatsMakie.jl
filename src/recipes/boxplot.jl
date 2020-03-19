@@ -1,6 +1,6 @@
 using AbstractPlotting: extrema_nan
 
-notch_width(q2, q4, N) = 1.58 * (q4-q2)/sqrt(N)
+notch_width(q2, q4, N) = 1.58 * (q4 - q2) / sqrt(N)
 
 pair_up(dict, key) = (key => dict[key])
 
@@ -14,19 +14,21 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         color = theme(scene, :color),
         colormap = theme(scene, :colormap),
         colorrange = automatic,
-        width = 0.8,
         orientation = :vertical,
         # box
-        notch = false,
+        width = 0.8,
         strokecolor = :white,
-        strokewidth = 1.0,
+        strokewidth = 0.0,
+        # notch
+        notch = false,
+        notchwidth = 0.5,
         # median line
         show_median = true,
         mediancolor = automatic,
-        medianlinewidth = automatic,
+        medianlinewidth = 1.0,
         # whiskers
         range = 1.5, # multiple of IQR controlling whisker length
-        whisker_width = :match,
+        whisker_width = :match, # match or multiple of width
         whiskercolor = :black,
         whiskerlinewidth = 1.0,
         # outliers points
@@ -46,49 +48,45 @@ _cycle(v::AbstractVector, idx::Integer) = v[mod1(idx, length(v))]
 _cycle(v, idx::Integer) = v
 
 _flip_xy(p::Point2f0) = reverse(p)
-_flip_xy(r::Rect{2, T}) where T = Rect{2, T}(reverse(r.origin), reverse(r.widths))
+_flip_xy(r::Rect{2,T}) where {T} = Rect{2,T}(reverse(r.origin), reverse(r.widths))
 
 function AbstractPlotting.plot!(plot::BoxPlot)
     args = @extract plot (width, range, outliers, whisker_width, notch, orientation)
 
-    signals = lift(plot[1], plot[2], args...) do x, y, bw, range, outliers, whisker_width, notch, orientation
-        glabels = sort(collect(unique(x)))
-        warning = false
-        outlier_points = Point2f0[]
+    signals = lift(
+        plot[1],
+        plot[2],
+        args...,
+    ) do x, y, bw, range, outliers, whisker_width, notch, orientation
         if !(whisker_width == :match || whisker_width >= 0)
             error("whisker_width must be :match or a positive number. Found: $whisker_width")
         end
-        ww = whisker_width == :match ? bw : whisker_width
-        boxes = FRect2D[]
-        notched_boxes = Vector{Point2f0}[]
+        ww = whisker_width == :match ? bw : whisker_width * bw
+        outlier_points = Point2f0[]
+        centers = Float32[]
+        medians = Float32[]
+        boxmin = Float32[]
+        boxmax = Float32[]
+        notchmin = Float32[]
+        notchmax = Float32[]
         t_segments = Point2f0[]
-        medians = Point2f0[]
-        for (i, glabel) in enumerate(glabels)
-            # filter y
-            values = y[filter(i -> _cycle(x, i) == glabel, 1:length(y))]
+        for (i, (center, idxs)) in enumerate(finduniquesorted(x))
+            values = view(y, idxs)
+
             # compute quantiles
             q1, q2, q3, q4, q5 = quantile(values, LinRange(0, 1, 5))
-            # notch
-            n = notch_width(q2, q4, length(values))
-            # warn on inverted notches?
-            if notch && !warning && ( (q2>(q3-n)) || (q4<(q3+n)) )
-                @warn("Boxplot's notch went outside hinges. Set notch to false.")
-                warning = true # Show the warning only one time
+
+            # notches
+            if notch
+                notchheight = notch_width(q2, q4, length(values))
+                nmin, nmax = q3 - notchheight, q3 + notchheight
+                push!(notchmin, nmin)
+                push!(notchmax, nmax)
             end
-
-            # make the shape
-            center = glabel
-            hw = 0.5 * _cycle(bw, i) # Box width
-            HW = 0.5 * _cycle(ww, i) # Whisker width
-            l, m, r = center - hw, center, center + hw
-            lw, rw = center - HW, center + HW
-
-            # internal nodes for notches
-            L, R = center - 0.5 * hw, center + 0.5 * hw
 
             # outliers
             if Float64(range) != 0.0  # if the range is 0.0, the whiskers will extend to the data
-                limit = range*(q4-q2)
+                limit = range * (q4 - q2)
                 inside = Float64[]
                 for value in values
                     if (value < (q2 - limit)) || (value > (q4 + limit))
@@ -103,45 +101,57 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 # using maximum and minimum values inside the limits
                 q1, q5 = extrema_nan(inside)
             end
-            # Whiskers
-            push!(t_segments, (m, q2), (m, q1), (lw, q1), (rw, q1))# lower T
-            push!(t_segments, (m, q4), (m, q5), (rw, q5), (lw, q5))# upper T
-            # Box
-            if notch
-                push!(notched_boxes, map(Point2f0, [(l,q2),(r,q2),(r, q2 + n/2),(R, q3), (r, q4-n/2) , (r, q4), (l, q4), (l, q4-n/2), (L, q3), (l, q2+n/2), (l,q2)]))
-                # push!(boxes, FRect(l, q4, hw, n)) # lower box
-                push!(medians, (L, q3), (R, q3))
-            else
-                push!(boxes, FRect(l, q2, 2hw, (q4 - q2)))
-                push!(medians, (l, q3), (r, q3))
-            end
-        end
 
-        final_boxes = notch ? notched_boxes : boxes
+            # whiskers
+            HW = 0.5 * _cycle(ww, i) # Whisker width
+            lw, rw = center - HW, center + HW
+            push!(t_segments, (center, q2), (center, q1), (lw, q1), (rw, q1)) # lower T
+            push!(t_segments, (center, q4), (center, q5), (rw, q5), (lw, q5)) # upper T
+
+            # box
+            push!(centers, center)
+            push!(boxmin, q2)
+            push!(medians, q3)
+            push!(boxmax, q4)
+        end
 
         # for horizontal boxplots just flip all components
         if orientation == :horizontal
-            final_boxes = _flip_xy.(final_boxes)
             outlier_points = _flip_xy.(outlier_points)
-            medians = _flip_xy.(medians)
             t_segments = _flip_xy.(t_segments)
         elseif orientation != :vertical
             error("Invalid orientation $orientation. Valid options: :horizontal or :vertical.")
         end
 
-        return final_boxes, outlier_points, medians, t_segments
+        return (
+            centers = centers,
+            boxmin = boxmin,
+            boxmax = boxmax,
+            medians = medians,
+            notchmin = notchmin,
+            notchmax = notchmax,
+            outliers = outlier_points,
+            t_segments = t_segments,
+        )
     end
-
-    boxes = @lift($signals[1])
-    outliers = @lift($signals[2])
-    medians = @lift($signals[3])
-    t_segments = @lift($signals[4])
+    centers = @lift($signals.centers)
+    boxmin = @lift($signals.boxmin)
+    boxmax = @lift($signals.boxmax)
+    medians = @lift($signals.medians)
+    notchmin = @lift($notch ? $signals.notchmin : automatic)
+    notchmax = @lift($notch ? $signals.notchmax : automatic)
+    outliers = @lift($signals.outliers)
+    t_segments = @lift($signals.t_segments)
 
     scatter!(
         plot,
         color = plot[:outliercolor],
         marker = plot[:marker],
-        markersize = lift((w, ms)-> ms === automatic ? w * 0.1 : ms, width, plot.markersize),
+        markersize = lift(
+            (w, ms) -> ms === automatic ? w * 0.1 : ms,
+            width,
+            plot.markersize,
+        ),
         strokecolor = plot[:outlierstrokecolor],
         strokewidth = plot[:outlierstrokewidth],
         outliers,
@@ -152,20 +162,25 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         linewidth = plot[:whiskerlinewidth],
         t_segments,
     )
-    poly!(
+    crossbar!(
         plot,
         color = plot[:color],
         colorrange = plot[:colorrange],
         colormap = plot[:colormap],
         strokecolor = plot[:strokecolor],
         strokewidth = plot[:strokewidth],
-        boxes,
-    )
-    linesegments!(
-        plot,
-        color = lift((mc,sc) -> mc === automatic ? sc : mc, plot.mediancolor, plot.strokecolor),
-        linewidth = lift((lw,sw) -> lw === automatic ? sw : lw, plot.medianlinewidth, plot.strokewidth),
-        visible = plot[:show_median],
+        midlinecolor = plot[:mediancolor],
+        midlinewidth = plot[:medianlinewidth],
+        midline = plot[:show_median],
+        orientation = orientation,
+        width = width,
+        notch = notch,
+        notchmin = notchmin,
+        notchmax = notchmax,
+        notchwidth = plot[:notchwidth],
+        centers,
         medians,
+        boxmin,
+        boxmax,
     )
 end
