@@ -433,7 +433,7 @@ end
     y = x .+ randn.()
     p = violin(x, y, side = :left, color = :blue)
     @test p[end] isa Violin
-    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1] isa Poly
     @test p[end].plots[1][:color][] == :blue
     @test p[end].plots[2] isa LineSegments
     @test p[end].plots[2][:color][] == :white
@@ -443,7 +443,7 @@ end
     x = repeat(["a", "b", "c", "d"], 250)
     p = violin(x, y, side = :left, color = :blue)
     @test p[end] isa Violin
-    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1] isa Poly
     @test p[end].plots[1][:color][] == :blue
     @test p[end].plots[2] isa LineSegments
     @test p[end].plots[2][:color][] == :white
