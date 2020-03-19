@@ -42,7 +42,7 @@ on those points, as defined by `Δx` and `Δy`.
 end
 
 function plot!(plot::ErrorBarY)
-    t = Theme(plot)
+    t = copy(Theme(plot))
     ww = pop!(t, :whisker_width)
     segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δy,ww
         bar = Pair.(Point2f0.(x, y .- Δy), Point2f0.(x, y .+ Δy))
@@ -62,7 +62,7 @@ function plot!(plot::ErrorBarY)
 end
 
 function plot!(plot::ErrorBarX)
-    t = Theme(plot)
+    t = copy(Theme(plot))
     ww = pop!(t, :whisker_width)
     segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δx,ww
         bar = Pair.(Point2f0.(x .- Δx, y), Point2f0.(x .+ Δx, y))
