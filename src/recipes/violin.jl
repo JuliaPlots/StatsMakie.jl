@@ -3,8 +3,10 @@
         default_theme(scene, Poly)...,
         side = :both,
         width = 0.8,
-        mediancolor = :white,
-        show_median = false
+        strokecolor = :white,
+        show_median = false,
+        mediancolor = automatic,
+        medianlinewidth = 1.0,
     )
 end
 
@@ -35,6 +37,18 @@ function plot!(plot::Violin)
         end
         return vertices, lines
     end
-    poly!(plot, Theme(plot), lift(first, signals))
-    linesegments!(plot, lift(last, signals), color = plot[:mediancolor], visible = plot[:show_median])
+    t = Theme(plot)
+    mediancolor = pop!(t, :mediancolor)
+    poly!(plot, t, lift(first, signals))
+    linesegments!(
+        plot,
+        lift(last, signals),
+        color = lift(
+            (mc, sc) -> mc === automatic ? sc : mc,
+            mediancolor,
+            plot[:strokecolor],
+        ),
+        linewidth = plot[:medianlinewidth],
+        visible = plot[:show_median],
+    )
 end
