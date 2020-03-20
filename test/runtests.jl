@@ -16,7 +16,7 @@ seed!(0)
     @test p.plots[end].plots[2] isa LineSegments
     @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.6, 3.0], Float32[1.4, 3.0]]
 
-    p = crossbar(1, 3, 2, 4; notch = true, notchmin = 2.5, notchmax = 3.5)
+    p = crossbar(1, 3, 2, 4; show_notch = true, notchmin = 2.5, notchmax = 3.5)
     @test p.plots[end] isa CrossBar
     @test p.plots[end].plots[1] isa Poly
     @test p.plots[end].plots[1][1][][1] isa AbstractPlotting.AbstractMesh
@@ -39,7 +39,7 @@ end
     # test categorical
     a = repeat(["a", "b", "c", "d", "e"], inner = 20)
     b = 1:100
-    p = boxplot(a, b; whisker_width = 1.0)
+    p = boxplot(a, b; whiskerwidth = 1.0)
     plts = p[end].plots
     @test length(plts) == 3
     @test plts[1] isa Scatter
@@ -72,7 +72,7 @@ end
     @test plts[3].plots[1][1][] == poly
 
     #notch
-    p = boxplot(a, b, notch=true)
+    p = boxplot(a, b, show_notch=true)
     plts = p[end].plots
 
     @test length(plts) == 3
@@ -492,19 +492,19 @@ end
     y =  [1:4;]
     Δx = fill(0.25, 4)
     Δy = fill(0.25, 4)
-    p = errorbar(x,y,Δx,Δy,color=:red, whisker_width=0.2)
+    p = errorbar(x,y,Δx,Δy,color=:red, whiskerwidth=0.2)
     @test p[end] isa ErrorBar
     @test p[end].plots[1][:color][] == :red
     @test p[end].plots[2][:color][] == :red
-    @test p[end].plots[1][:whisker_width][] == 0.2
-    @test p[end].plots[2][:whisker_width][] == 0.2
+    @test p[end].plots[1][:whiskerwidth][] == 0.2
+    @test p[end].plots[2][:whiskerwidth][] == 0.2
 
-    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red,xwhisker_width = 0.1,ywhisker_width=0.3)
+    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red,xwhiskerwidth = 0.1,ywhiskerwidth=0.3)
     @test p[end] isa ErrorBar
     @test p[end].plots[1][:color][]  == :green
     @test p[end].plots[2][:color][]  == :red
-    @test p[end].plots[1][:whisker_width][] == 0.1
-    @test p[end].plots[2][:whisker_width][] == 0.3
+    @test p[end].plots[1][:whiskerwidth][] == 0.1
+    @test p[end].plots[2][:whiskerwidth][] == 0.3
 
     @test p[end].plots[1] isa ErrorBarX
     @test p[end].plots[1].plots[1] isa LineSegments

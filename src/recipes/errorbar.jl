@@ -8,7 +8,7 @@ and vertical error bars (along the `y`-axis)
 on those points, as defined by `Δy`.
 """
 @recipe(ErrorBarY, x, y, Δy) do scene
-    Theme(; default_theme(scene, LineSegments)..., whisker_width = 0)
+    Theme(; default_theme(scene, LineSegments)..., whiskerwidth = 0)
 end
 
 """
@@ -19,7 +19,7 @@ and horizontal error bars (along the `x`-axis)
 on those points, as defined by `Δx`.
 """
 @recipe(ErrorBarX, x, y, Δx) do scene
-    Theme(; default_theme(scene, LineSegments)..., whisker_width = 0)
+    Theme(; default_theme(scene, LineSegments)..., whiskerwidth = 0)
 end
 
 """
@@ -33,17 +33,17 @@ on those points, as defined by `Δx` and `Δy`.
 @recipe(ErrorBar, x, y, Δx, Δy) do scene
     Theme(;
         default_theme(scene, LineSegments)...,
-        whisker_width = 0,
+        whiskerwidth = 0,
         xcolor = automatic,
-        xwhisker_width = automatic,
+        xwhiskerwidth = automatic,
         ycolor = automatic,
-        ywhisker_width = automatic,
+        ywhiskerwidth = automatic,
     )
 end
 
 function plot!(plot::ErrorBarY)
     t = copy(Theme(plot))
-    ww = pop!(t, :whisker_width)
+    ww = pop!(t, :whiskerwidth)
     segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δy,ww
         bar = Pair.(Point2f0.(x, y .- Δy), Point2f0.(x, y .+ Δy))
         segments = [bar;]
@@ -63,7 +63,7 @@ end
 
 function plot!(plot::ErrorBarX)
     t = copy(Theme(plot))
-    ww = pop!(t, :whisker_width)
+    ww = pop!(t, :whiskerwidth)
     segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δx,ww
         bar = Pair.(Point2f0.(x .- Δx, y), Point2f0.(x .+ Δx, y))
         segments = [bar;]
@@ -86,17 +86,17 @@ function plot!(plot::ErrorBar)
 
     t = copy(Theme(plot))
     xcolor, ycolor = pop!.(Ref(t), (:xcolor, :ycolor))
-    xww, yww = pop!.(Ref(t), (:xwhisker_width, :ywhisker_width))
+    xww, yww = pop!.(Ref(t), (:xwhiskerwidth, :ywhiskerwidth))
     xcolor = lift((xc,c) -> xc === automatic ? c : xc, xcolor, plot[:color])
     ycolor = lift((yc,c) -> yc === automatic ? c : yc, ycolor, plot[:color])
-    xww = lift((xww,ww) -> xww === automatic ? ww : xww, xww, plot[:whisker_width])
-    yww = lift((yww,ww) -> yww === automatic ? ww : yww, yww, plot[:whisker_width])
+    xww = lift((xww,ww) -> xww === automatic ? ww : xww, xww, plot[:whiskerwidth])
+    yww = lift((yww,ww) -> yww === automatic ? ww : yww, yww, plot[:whiskerwidth])
 
     #x-error
-    tx = merge(Theme(color = xcolor, whisker_width = xww), t)
+    tx = merge(Theme(color = xcolor, whiskerwidth = xww), t)
     errorbarx!(plot, tx, x, y, Δx)
     #y-error
-    ty = merge(Theme(color = ycolor, whisker_width = yww), t)
+    ty = merge(Theme(color = ycolor, whiskerwidth = yww), t)
     errorbary!(plot, ty, x, y, Δy)
     plot
 end

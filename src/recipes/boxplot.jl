@@ -1,12 +1,37 @@
 using AbstractPlotting: extrema_nan
 
-notch_width(q2, q4, N) = 1.58 * (q4 - q2) / sqrt(N)
+notchheight(q2, q4, N) = 1.58 * (q4 - q2) / sqrt(N)
 
 #=
 Taken from https://github.com/JuliaPlots/StatPlots.jl/blob/master/src/boxplot.jl#L7
 The StatPlots.jl package is licensed under the MIT "Expat" License:
     Copyright (c) 2016: Thomas Breloff.
 =#
+"""
+    boxplot(x, y; kwargs...)
+
+Draw a Tukey style boxplot.
+The boxplot has 3 components:
+- a `crossbar` spanning the interquartile (IQR) range with a midline marking the
+    median
+- an `errorbar` whose whiskers span `range * iqr`
+- points marking outliers, that is, data outside the whiskers
+
+# Arguments
+- `x`: positions of the categories
+- `y`: variables within the boxes
+
+# Keywords
+- `orientation=:vertical`: orientation of box (`:vertical` or `:horizontal`)
+- `width=0.8`: width of the box
+- `show_notch=false`: draw the notch
+- `notchwidth=0.5`: multiplier of `width` for narrowest width of notch
+- `show_median=true`: show median as midline
+- `range`: multiple of IQR controlling whisker length
+- `whiskerwidth`: multiplier of `width` for width of T's on whiskers, or
+    `:match` to match `width`
+- `show_outliers`: show outliers as points
+"""
 @recipe(BoxPlot, x, y) do scene
     t = Theme(
         color = theme(scene, :color),
@@ -18,19 +43,19 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         strokecolor = :white,
         strokewidth = 0.0,
         # notch
-        notch = false,
+        show_notch = false,
         notchwidth = 0.5,
         # median line
         show_median = true,
         mediancolor = automatic,
         medianlinewidth = 1.0,
         # whiskers
-        range = 1.5, # multiple of IQR controlling whisker length
-        whisker_width = 0.0, # match or multiple of width
+        range = 1.5,
+        whiskerwidth = 0.0,
         whiskercolor = :black,
         whiskerlinewidth = 1.0,
         # outliers points
-        outliers = true,
+        show_outliers = true,
         marker = :circle,
         markersize = automatic,
         outlierstrokecolor = :black,
@@ -49,17 +74,17 @@ _flip_xy(p::Point2f0) = reverse(p)
 _flip_xy(r::Rect{2,T}) where {T} = Rect{2,T}(reverse(r.origin), reverse(r.widths))
 
 function AbstractPlotting.plot!(plot::BoxPlot)
-    args = @extract plot (width, range, outliers, whisker_width, notch, orientation)
+    args = @extract plot (width, range, show_outliers, whiskerwidth, show_notch, orientation)
 
     signals = lift(
         plot[1],
         plot[2],
         args...,
-    ) do x, y, bw, range, outliers, whisker_width, notch, orientation
-        if !(whisker_width == :match || whisker_width >= 0)
-            error("whisker_width must be :match or a positive number. Found: $whisker_width")
+    ) do x, y, bw, range, show_outliers, whiskerwidth, show_notch, orientation
+        if !(whiskerwidth == :match || whiskerwidth >= 0)
+            error("whiskerwidth must be :match or a positive number. Found: $whiskerwidth")
         end
-        ww = whisker_width == :match ? bw : whisker_width * bw
+        ww = whiskerwidth == :match ? bw : whiskerwidth * bw
         outlier_points = Point2f0[]
         centers = Float32[]
         medians = Float32[]
@@ -75,9 +100,9 @@ function AbstractPlotting.plot!(plot::BoxPlot)
             q1, q2, q3, q4, q5 = quantile(values, LinRange(0, 1, 5))
 
             # notches
-            if notch
-                notchheight = notch_width(q2, q4, length(values))
-                nmin, nmax = q3 - notchheight, q3 + notchheight
+            if show_notch
+                nh = notchheight(q2, q4, length(values))
+                nmin, nmax = q3 - nh, q3 + nh
                 push!(notchmin, nmin)
                 push!(notchmax, nmax)
             end
@@ -88,7 +113,7 @@ function AbstractPlotting.plot!(plot::BoxPlot)
                 inside = Float64[]
                 for value in values
                     if (value < (q2 - limit)) || (value > (q4 + limit))
-                        if outliers
+                        if show_outliers
                             push!(outlier_points, (center, value))
                         end
                     else
@@ -136,8 +161,8 @@ function AbstractPlotting.plot!(plot::BoxPlot)
     boxmin = @lift($signals.boxmin)
     boxmax = @lift($signals.boxmax)
     medians = @lift($signals.medians)
-    notchmin = @lift($notch ? $signals.notchmin : automatic)
-    notchmax = @lift($notch ? $signals.notchmax : automatic)
+    notchmin = @lift($show_notch ? $signals.notchmin : automatic)
+    notchmax = @lift($show_notch ? $signals.notchmax : automatic)
     outliers = @lift($signals.outliers)
     t_segments = @lift($signals.t_segments)
 
@@ -169,10 +194,10 @@ function AbstractPlotting.plot!(plot::BoxPlot)
         strokewidth = plot[:strokewidth],
         midlinecolor = plot[:mediancolor],
         midlinewidth = plot[:medianlinewidth],
-        midline = plot[:show_median],
+        show_midline = plot[:show_median],
         orientation = orientation,
         width = width,
-        notch = notch,
+        show_notch = show_notch,
         notchmin = notchmin,
         notchmax = notchmax,
         notchwidth = plot[:notchwidth],

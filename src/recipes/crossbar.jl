@@ -28,12 +28,12 @@ It is most commonly used as part of the boxplot.
         strokecolor = :white,
         strokewidth = 0.0,
         # notch
-        notch = false,
+        show_notch = false,
         notchmin = automatic,
         notchmax = automatic,
         notchwidth = 0.5,
         # median line
-        midline = true,
+        show_midline = true,
         midlinecolor = automatic,
         midlinewidth = 1.0,
     )
@@ -41,7 +41,7 @@ It is most commonly used as part of the boxplot.
 end
 
 function AbstractPlotting.plot!(plot::CrossBar)
-    args = @extract plot (width, notch, notchmin, notchmax, notchwidth, orientation)
+    args = @extract plot (width, show_notch, notchmin, notchmax, notchwidth, orientation)
 
     signals = lift(
         plot[1],
@@ -49,8 +49,8 @@ function AbstractPlotting.plot!(plot::CrossBar)
         plot[3],
         plot[4],
         args...,
-    ) do x, y, ymin, ymax, bw, notch, nmin, nmax, nw, orientation
-        show_notch = nmin !== automatic && nmax !== automatic
+    ) do x, y, ymin, ymax, bw, show_notch, nmin, nmax, nw, orientation
+        show_notch = show_notch && (nmin !== automatic && nmax !== automatic)
 
         # for horizontal crossbars just flip all components
         fpoint, frect = Point2f0, FRect
@@ -62,7 +62,7 @@ function AbstractPlotting.plot!(plot::CrossBar)
         hw = bw ./ 2 # half box width
         l, m, r = x .- hw, x, x .+ hw
 
-        if notch && nmin !== automatic && nmax !== automatic
+        if show_notch && nmin !== automatic && nmax !== automatic
             if any(nmin < ymin || nmax > ymax)
                 @warn("Crossbar's notch went outside hinges. Set notch to false.")
             end
@@ -109,7 +109,7 @@ function AbstractPlotting.plot!(plot::CrossBar)
             plot[:strokecolor],
         ),
         linewidth = plot[:midlinewidth],
-        visible = plot[:midline],
+        visible = plot[:show_midline],
         midlines,
     )
 end
