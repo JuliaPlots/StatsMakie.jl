@@ -1,16 +1,25 @@
-struct Linear{S, T}
-    x::NTuple{2, S}
-    y::NTuple{2, T}
+struct GLMResult{S, T}
+    x::AbstractVector{S}
+    y::AbstractVector{T}
+    l::AbstractVector{T}
+    u::AbstractVector{T}
 end
 
-convert_arguments(P::PlotFunc, l::Linear) = PlotSpec{LineSegments}([Point2f0(x,y) for (x,y) in zip(l.x, l.y)])
-
-function linear(x, y)
-    itc, slp = hcat(fill!(similar(x), 1), x) \ y
-    xs = extrema_nan(x)
-    ys = slp .* xs .+ itc
-    Linear(xs, ys)
+function linear(x::AbstractVector{T1}, y::AbstractVector{T2}; n_points = 100) where {T1, T2}
+    try
+        lin_model = GLM.lm(@formula(Y ~ X), (X=x, Y=y))
+        x_min, x_max = extrema(x)
+        x_new = range(x_min, x_max, length = n_points)
+        y_new, lower, upper = GLM.predict(lin_model,
+         [ones(T1, n_points) x_new], interval=:confidence)
+        # the GLM predictions always return matrices
+       return GLMResult(x_new, vec(y_new), vec(lower), vec(upper))
+    catch e
+        error("Linear fit not possible for the given data")
+    end
 end
+
+convert_arguments(P::PlotFunc, g::GLMResult) = PlotSpec{ShadedLine}(g.x, g.y, g.l, g.u)
 
 struct Smooth{S, T}
     x::Vector{S}
