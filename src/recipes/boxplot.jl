@@ -26,7 +26,7 @@ The StatPlots.jl package is licensed under the MIT "Expat" License:
         medianlinewidth = 1.0,
         # whiskers
         range = 1.5, # multiple of IQR controlling whisker length
-        whisker_width = :match, # match or multiple of width
+        whisker_width = 0.0, # match or multiple of width
         whiskercolor = :black,
         whiskerlinewidth = 1.0,
         # outliers points
