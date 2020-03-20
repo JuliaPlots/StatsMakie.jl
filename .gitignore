@@ -3,4 +3,3 @@
 *.jl.mem
 *play.jl
 docs/build
-Manifest.toml
