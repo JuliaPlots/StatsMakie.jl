@@ -1,31 +1,28 @@
 import AbstractPlotting:plot!
 
 """
-    errorbary(x, y, ymin, ymax)
     errorbary(x, y, Δy)
 
 Plots points defined by `x` and `y`,
 and vertical error bars (along the `y`-axis)
 on those points, as defined by `Δy`.
 """
-@recipe(ErrorBarY, x, ymin, ymax) do scene
+@recipe(ErrorBarY, x, y, Δy) do scene
     Theme(; default_theme(scene, LineSegments)..., whisker_width = 0)
 end
 
 """
-    errorbarx(x, y, xmin, xmax)
     errorbarx(x, y, Δx)
 
 Plots points defined by `x` and `y`,
 and horizontal error bars (along the `x`-axis)
 on those points, as defined by `Δx`.
 """
-@recipe(ErrorBarX, x, y, xmin, xmax) do scene
+@recipe(ErrorBarX, x, y, Δx) do scene
     Theme(; default_theme(scene, LineSegments)..., whisker_width = 0)
 end
 
 """
-    errorbar(x, y, xmin, xmax, ymin, ymax)
     errorbar(x, y, Δx, Δy)
 
 Plots points defined by `x` and `y`,
@@ -33,7 +30,7 @@ and horizontal and vertical error bars
 (along the `x` and `y`-axes)
 on those points, as defined by `Δx` and `Δy`.
 """
-@recipe(ErrorBar, x, y, xmin, xmax, ymin, ymax) do scene
+@recipe(ErrorBar, x, y, Δx, Δy) do scene
     Theme(;
         default_theme(scene, LineSegments)...,
         whisker_width = 0,
@@ -47,9 +44,8 @@ end
 function plot!(plot::ErrorBarY)
     t = copy(Theme(plot))
     ww = pop!(t, :whisker_width)
-    @extract plot (x, ymin, ymax)
-    segments = lift(plot[1], plot[2], plot[3], ww) do x,ymin,ymax,ww
-        bar = Pair.(Point2f0.(x, ymin), Point2f0.(x, ymax))
+    segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δy,ww
+        bar = Pair.(Point2f0.(x, y .- Δy), Point2f0.(x, y .+ Δy))
         segments = [bar;]
         if ww != 0
             hww = ww ./ 2
@@ -68,8 +64,8 @@ end
 function plot!(plot::ErrorBarX)
     t = copy(Theme(plot))
     ww = pop!(t, :whisker_width)
-    segments = lift(plot[1], plot[2], plot[3], plot[4], ww) do x,y,xmin,xmax,ww
-        bar = Pair.(Point2f0.(xmin, y), Point2f0.(xmax, y))
+    segments = lift(plot[1], plot[2], plot[3], ww) do x,y,Δx,ww
+        bar = Pair.(Point2f0.(x .- Δx, y), Point2f0.(x .+ Δx, y))
         segments = [bar;]
         if ww != 0
             hww = ww ./ 2
@@ -86,7 +82,7 @@ function plot!(plot::ErrorBarX)
 end
 
 function plot!(plot::ErrorBar)
-    x,y,xmin,xmax,ymin,ymax = (plot[1], plot[2], plot[3], plot[4], plot[5], plot[6])
+    x,y,Δx,Δy = (plot[1], plot[2], plot[3], plot[4])
 
     t = copy(Theme(plot))
     xcolor, ycolor = pop!.(Ref(t), (:xcolor, :ycolor))
@@ -98,24 +94,9 @@ function plot!(plot::ErrorBar)
 
     #x-error
     tx = merge(Theme(color = xcolor, whisker_width = xww), t)
-    errorbarx!(plot, tx, x, y, xmin, xmax)
+    errorbarx!(plot, tx, x, y, Δx)
     #y-error
     ty = merge(Theme(color = ycolor, whisker_width = yww), t)
-    errorbary!(plot, ty, x, y, ymin, ymax)
+    errorbary!(plot, ty, x, y, Δy)
     plot
-end
-
-const ErrorBarXorY = Union{ErrorBarX,ErrorBarY}
-
-# convert_arguments(T::Type{<:ErrorBarX}, x, y, Δx) = (x, y, x .- Δx, x .+ Δx)
-# function convert_arguments(T::Type{<:ErrorBarX}, x, y, xminmax::NTuple{2})
-#     return (x, y, first.(xminmax), last.(xminmax))
-# end
-convert_arguments(T::Type{<:ErrorBarY}, x, y, Δy) = (x, y, y .- Δy, y .+ Δy)
-convert_arguments(T::Type{<:ErrorBarY}, x, yrange::AbstractPlotting.Interval) = (x, yrange.left, yrange.right)
-function convert_arguments(T::Type{<:ErrorBarY}, x, y, yrange::NTuple{2})
-    return (x, y, first.(yminmax), last.(yminmax))
-end
-function convert_arguments(T::Type{<:ErrorBar}, x, y, Δx, Δy)
-    return (convert_arguments(ErrorBarX, x, y, Δx)..., convert_arguments(ErrorBarY, x, y, Δy)[3:end]...)
 end
