@@ -8,21 +8,40 @@ using KernelDensity: kde
 
 seed!(0)
 
+@testset "crossbar" begin
+    p = crossbar(1, 3, 2, 4)
+    @test p.plots[end] isa CrossBar
+    @test p.plots[end].plots[1] isa Poly
+    @test p.plots[end].plots[1][1][] == HyperRectangle{2,Float32}[HyperRectangle{2,Float32}(Float32[0.6, 2.0], Float32[0.8, 2.0]),]
+    @test p.plots[end].plots[2] isa LineSegments
+    @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.6, 3.0], Float32[1.4, 3.0]]
+
+    p = crossbar(1, 3, 2, 4; show_notch = true, notchmin = 2.5, notchmax = 3.5)
+    @test p.plots[end] isa CrossBar
+    @test p.plots[end].plots[1] isa Poly
+    @test p.plots[end].plots[1][1][][1] isa AbstractPlotting.AbstractMesh
+    poly = Point{2,Float32}[[0.6, 2.0], [1.4, 2.0], [1.4, 2.5], [1.2, 3.0], [1.4, 3.5],
+                            [1.4, 4.0], [0.6, 4.0], [0.6, 3.5], [0.8, 3.0], [0.6, 2.5]]
+    @test map(Point2f0, p.plots[end].plots[1][1][][1].vertices) == poly
+    @test p.plots[end].plots[2] isa LineSegments
+    @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.8, 3.0], Float32[1.2, 3.0]]
+end
+
 @testset "boxplot" begin
     a = repeat(1:5, inner = 20)
     b = 1:100
     p = boxplot(a, b)
     plts = p[end].plots
-    @test length(plts) == 4
+    @test length(plts) == 3
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
     # test categorical
     a = repeat(["a", "b", "c", "d", "e"], inner = 20)
     b = 1:100
-    p = boxplot(a, b)
+    p = boxplot(a, b; whiskerwidth = 1.0)
     plts = p[end].plots
-    @test length(plts) == 4
+    @test length(plts) == 3
     @test plts[1] isa Scatter
     @test isempty(plts[1][1][])
 
@@ -39,7 +58,8 @@ seed!(0)
     ]
     @test plts[2][1][] == pts
 
-    @test plts[3] isa Poly
+    @test plts[3] isa CrossBar
+    @test plts[3].plots[1] isa Poly
 
     poly = HyperRectangle{2,Float32}[
         HyperRectangle{2,Float32}(Float32[0.6, 5.75], Float32[0.8, 9.5]),
@@ -49,25 +69,42 @@ seed!(0)
         HyperRectangle{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 9.5]),
     ]
 
-    @test plts[3][1][] == poly
+    @test plts[3].plots[1][1][] == poly
 
     #notch
-    p = boxplot(a, b, notch=true)
+    p = boxplot(a, b, show_notch=true)
     plts = p[end].plots
 
-    @test length(plts) == 4
+    @test length(plts) == 3
+
+    pts = Point{2,Float32}[
+        [1.0, 5.75], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 15.25],
+        [1.0, 20.0], [1.0, 20.0], [1.0, 20.0], [2.0, 25.75], [2.0, 21.0],
+        [2.0, 21.0], [2.0, 21.0], [2.0, 35.25], [2.0, 40.0], [2.0, 40.0],
+        [2.0, 40.0], [3.0, 45.75], [3.0, 41.0], [3.0, 41.0], [3.0, 41.0],
+        [3.0, 55.25], [3.0, 60.0], [3.0, 60.0], [3.0, 60.0], [4.0, 65.75],
+        [4.0, 61.0], [4.0, 61.0], [4.0, 61.0], [4.0, 75.25], [4.0, 80.0],
+        [4.0, 80.0], [4.0, 80.0], [5.0, 85.75], [5.0, 81.0], [5.0, 81.0],
+        [5.0, 81.0], [5.0, 95.25], [5.0, 100.0], [5.0, 100.0], [5.0, 100.0],
+    ]
 
     @test plts[2] isa LineSegments
     @test plts[2][1][] == pts
 
-    @test plts[3] isa Poly
+    @test plts[3] isa CrossBar
+    @test plts[3].plots[1] isa Poly
 
-    notch_boxes = Vector{Point{2,Float32}}[map(Point2f0, [[0.6, 5.75], [1.4, 5.75], [1.4, 7.42817], [1.2, 10.5], [1.4, 13.5718], [1.4, 15.25], [0.6, 15.25], [0.6, 13.5718], [0.8, 10.5], [0.6, 7.42817], [0.6, 5.75]]),
-                                           map(Point2f0, [[1.6, 25.75], [2.4, 25.75], [2.4, 27.4282], [2.2, 30.5], [2.4, 33.5718], [2.4, 35.25], [1.6, 35.25], [1.6, 33.5718], [1.8, 30.5], [1.6, 27.4282], [1.6, 25.75]]),
-                                           map(Point2f0, [[2.6, 45.75], [3.4, 45.75], [3.4, 47.4282], [3.2, 50.5], [3.4, 53.5718], [3.4, 55.25], [2.6, 55.25], [2.6, 53.5718], [2.8, 50.5], [2.6, 47.4282], [2.6, 45.75]]),
-                                           map(Point2f0, [[3.6, 65.75], [4.4, 65.75], [4.4, 67.4282], [4.2, 70.5], [4.4, 73.5718], [4.4, 75.25], [3.6, 75.25], [3.6, 73.5718], [3.8, 70.5], [3.6, 67.4282], [3.6, 65.75]]),
-                                           map(Point2f0, [[4.6, 85.75], [5.4, 85.75], [5.4, 87.4282], [5.2, 90.5], [5.4, 93.5718], [5.4, 95.25], [4.6, 95.25], [4.6, 93.5718], [4.8, 90.5], [4.6, 87.4282], [4.6, 85.75]])]
-    @test plts[3][1][] ≈ notch_boxes
+    notch_boxes = Vector{Point{2,Float32}}[map(Point2f0, [[0.6, 5.75], [1.4, 5.75], [1.4, 7.14366], [1.2, 10.5], [1.4, 13.8563], [1.4, 15.25], [0.6, 15.25], [0.6, 13.8563], [0.8, 10.5], [0.6, 7.14366]]),
+                                           map(Point2f0, [[1.6, 25.75], [2.4, 25.75], [2.4, 27.1437], [2.2, 30.5], [2.4, 33.8563], [2.4, 35.25], [1.6, 35.25], [1.6, 33.8563], [1.8, 30.5], [1.6, 27.1437]]),
+                                           map(Point2f0, [[2.6, 45.75], [3.4, 45.75], [3.4, 47.1437], [3.2, 50.5], [3.4, 53.8563], [3.4, 55.25], [2.6, 55.25], [2.6, 53.8563], [2.8, 50.5], [2.6, 47.1437]]),
+                                           map(Point2f0, [[3.6, 65.75], [4.4, 65.75], [4.4, 67.1437], [4.2, 70.5], [4.4, 73.8563], [4.4, 75.25], [3.6, 75.25], [3.6, 73.8563], [3.8, 70.5], [3.6, 67.1437]]),
+                                           map(Point2f0, [[4.6, 85.75], [5.4, 85.75], [5.4, 87.1437], [5.2, 90.5], [5.4, 93.8563], [5.4, 95.25], [4.6, 95.25], [4.6, 93.8563], [4.8, 90.5], [4.6, 87.1437]])]
+    meshes = plts[3].plots[1][1][]
+    @testset for (i, mesh) in enumerate(meshes)
+        @test mesh isa AbstractPlotting.AbstractMesh
+        vertices = map(Point2f0, mesh.vertices)
+        @test vertices ≈ notch_boxes[i]
+    end
 end
 
 @testset "density" begin
@@ -433,7 +470,7 @@ end
     y = x .+ randn.()
     p = violin(x, y, side = :left, color = :blue)
     @test p[end] isa Violin
-    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1] isa Poly
     @test p[end].plots[1][:color][] == :blue
     @test p[end].plots[2] isa LineSegments
     @test p[end].plots[2][:color][] == :white
@@ -443,7 +480,7 @@ end
     x = repeat(["a", "b", "c", "d"], 250)
     p = violin(x, y, side = :left, color = :blue)
     @test p[end] isa Violin
-    @test p[end].plots[1] isa Mesh
+    @test p[end].plots[1] isa Poly
     @test p[end].plots[1][:color][] == :blue
     @test p[end].plots[2] isa LineSegments
     @test p[end].plots[2][:color][] == :white
@@ -455,16 +492,35 @@ end
     y =  [1:4;]
     Δx = fill(0.25, 4)
     Δy = fill(0.25, 4)
-    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red)
+    p = errorbar(x,y,Δx,Δy,color=:red, whiskerwidth=0.2)
     @test p[end] isa ErrorBar
-    @test p[end][:ycolor][] == :red
-    @test p[end][:xcolor][] == :green
+    @test p[end].plots[1][:color][] == :red
+    @test p[end].plots[2][:color][] == :red
+    @test p[end].plots[1][:whiskerwidth][] == 0.2
+    @test p[end].plots[2][:whiskerwidth][] == 0.2
+
+    p = errorbar(x,y,Δx,Δy,xcolor=:green,ycolor=:red,xwhiskerwidth = 0.1,ywhiskerwidth=0.3)
+    @test p[end] isa ErrorBar
+    @test p[end].plots[1][:color][]  == :green
+    @test p[end].plots[2][:color][]  == :red
+    @test p[end].plots[1][:whiskerwidth][] == 0.1
+    @test p[end].plots[2][:whiskerwidth][] == 0.3
 
     @test p[end].plots[1] isa ErrorBarX
     @test p[end].plots[1].plots[1] isa LineSegments
     @test p[end].plots[1][:color][] == :green
+    @test p[end].plots[1].plots[1][1][] == Point{2, Float32}[
+        [0.75, 1.0], [1.25, 1.0], [1.75, 2.0], [2.25, 2.0], [2.75, 3.0], [3.25, 3.0], [3.75, 4.0], [4.25, 4.0],
+        [0.75, 0.95], [0.75, 1.05], [1.75, 1.95], [1.75, 2.05], [2.75, 2.95], [2.75, 3.05], [3.75, 3.95], [3.75, 4.05],
+        [1.25, 0.95], [1.25, 1.05], [2.25, 1.95], [2.25, 2.05], [3.25, 2.95], [3.25, 3.05], [4.25, 3.95], [4.25, 4.05],
+    ]
 
     @test p[end].plots[2] isa ErrorBarY
     @test p[end].plots[2].plots[1] isa LineSegments
     @test p[end].plots[2][:color][] == :red
+    @test p[end].plots[2].plots[1][1][] == Point{2, Float32}[
+        [1.0, 0.75], [1.0, 1.25], [2.0, 1.75], [2.0, 2.25], [3.0, 2.75], [3.0, 3.25], [4.0, 3.75], [4.0, 4.25],
+        [0.85, 0.75], [1.15, 0.75], [1.85, 1.75], [2.15, 1.75], [2.85, 2.75], [3.15, 2.75], [3.85, 3.75], [4.15, 3.75],
+        [0.85, 1.25], [1.15, 1.25], [1.85, 2.25], [2.15, 2.25], [2.85, 3.25], [3.15, 3.25], [3.85, 4.25], [4.15, 4.25],
+    ]
 end
