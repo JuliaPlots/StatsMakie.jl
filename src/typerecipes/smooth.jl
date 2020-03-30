@@ -32,8 +32,8 @@ function smooth(x, y; length = 100, kwargs...)
     model = loess(x, y; kwargs...)
     min, max = extrema(x)
     us = collect(range(min, stop = max, length = length))
-    vs = predict(model, us)
-    Smooth(us, vs)
+    vs = Loess.predict(model, us)
+    return Smooth(us, vs)
 end
 
 smooth(; kwargs...) = (args...) -> smooth(args...; kwargs...)
