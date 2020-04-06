@@ -6,7 +6,7 @@ using AbstractPlotting
 import AbstractPlotting: conversion_trait, convert_arguments, used_attributes, plot!, combine, to_plotspec
 using AbstractPlotting: plottype, Plot, PlotFunc, to_tuple
 using AbstractPlotting: node_pairs, extrema_nan, automatic, default_theme
-using AbstractPlotting: GeometryTypes
+using AbstractPlotting: GeometryBasics
 using AbstractPlotting: ConversionTrait, el32convert, categoric_labels, categoric_position, categoric_range
 
 # Moved in https://github.com/JuliaGizmos/Observables.jl/pull/40
