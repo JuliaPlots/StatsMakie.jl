@@ -87,7 +87,6 @@ function AbstractPlotting.plot!(plot::CrossBar)
             boxes = frect.(l, ymin, bw, ymax .- ymin)
             midlines = Pair.(fpoint.(l, y), fpoint.(r, y))
         end
-        @show typeof(boxes)
         return [boxes...], [midlines...]
     end
     boxes = @lift($signals[1])
