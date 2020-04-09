@@ -22,7 +22,7 @@ seed!(0)
     @test p.plots[end].plots[1][1][][1] isa AbstractPlotting.AbstractMesh
     poly = Point{2,Float32}[[0.6, 2.0], [1.4, 2.0], [1.4, 2.5], [1.2, 3.0], [1.4, 3.5],
                             [1.4, 4.0], [0.6, 4.0], [0.6, 3.5], [0.8, 3.0], [0.6, 2.5]]
-    @test map(Point2f0, p.plots[end].plots[1][1][][1].vertices) == poly
+    @test map(Point2f0, p.plots[end].plots[1][1][][1].position) == poly
     @test p.plots[end].plots[2] isa LineSegments
     @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.8, 3.0], Float32[1.2, 3.0]]
 end
@@ -102,7 +102,7 @@ end
     meshes = plts[3].plots[1][1][]
     @testset for (i, mesh) in enumerate(meshes)
         @test mesh isa AbstractPlotting.AbstractMesh
-        vertices = map(Point2f0, mesh.vertices)
+        vertices = map(Point2f0, mesh.position)
         @test vertices ≈ notch_boxes[i]
     end
 end

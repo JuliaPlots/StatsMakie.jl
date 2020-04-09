@@ -70,7 +70,7 @@ function AbstractPlotting.plot!(plot::CrossBar)
             end
             # when notchmin = ymin || notchmax == ymax, fill disappears from
             # half the box. first ∘ StatsBase.rle removes adjacent duplicates.
-            boxes = [GeometryBasics.triangle_mesh.(first.(StatsBase.rle.(Base.vect.(
+            points = first.(StatsBase.rle.(Base.vect.(
                 fpoint.(l, ymin),
                 fpoint.(r, ymin),
                 fpoint.(r, nmin),
@@ -81,13 +81,18 @@ function AbstractPlotting.plot!(plot::CrossBar)
                 fpoint.(l, nmax),
                 fpoint.(m .- nw .* hw, y), # notch left
                 fpoint.(l, nmin),
-            ))))]
+            )))
+            boxes = if points isa AbstractVector{<: Point} # poly
+                [GeometryBasics.triangle_mesh(points)]
+            else # multiple polys (Vector{Vector{<:Point}})
+                GeometryBasics.triangle_mesh.(points)
+            end
             midlines = Pair.(fpoint.(m .- nw .* hw, y), fpoint.(m .+ nw .* hw, y))
         else
             boxes = frect.(l, ymin, bw, ymax .- ymin)
             midlines = Pair.(fpoint.(l, y), fpoint.(r, y))
         end
-        return [boxes...], [midlines...]
+        return [boxes;], [midlines;]
     end
     boxes = @lift($signals[1])
     midlines = @lift($signals[2])
