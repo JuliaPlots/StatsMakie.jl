@@ -2,7 +2,7 @@ using AbstractPlotting, StatsMakie, StatsBase
 using Test
 
 using Random: seed!
-using AbstractPlotting.GeometryTypes: HyperRectangle
+using AbstractPlotting.GeometryBasics: FRect2D
 using Distributions
 using KernelDensity: kde
 
@@ -12,17 +12,17 @@ seed!(0)
     p = crossbar(1, 3, 2, 4)
     @test p.plots[end] isa CrossBar
     @test p.plots[end].plots[1] isa Poly
-    @test p.plots[end].plots[1][1][] == HyperRectangle{2,Float32}[HyperRectangle{2,Float32}(Float32[0.6, 2.0], Float32[0.8, 2.0]),]
+    @test p.plots[end].plots[1][1][] == [FRect2D(Float32[0.6, 2.0], Float32[0.8, 2.0]),]
     @test p.plots[end].plots[2] isa LineSegments
     @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.6, 3.0], Float32[1.4, 3.0]]
 
-    p = crossbar(1, 3, 2, 4; show_notch = true, notchmin = 2.5, notchmax = 3.5)
+    p = crossbar(1, 3, 2, 4; show_notch = true, notchmin = 2.5, notchmax = 3.5);
     @test p.plots[end] isa CrossBar
     @test p.plots[end].plots[1] isa Poly
     @test p.plots[end].plots[1][1][][1] isa AbstractPlotting.AbstractMesh
     poly = Point{2,Float32}[[0.6, 2.0], [1.4, 2.0], [1.4, 2.5], [1.2, 3.0], [1.4, 3.5],
                             [1.4, 4.0], [0.6, 4.0], [0.6, 3.5], [0.8, 3.0], [0.6, 2.5]]
-    @test map(Point2f0, p.plots[end].plots[1][1][][1].vertices) == poly
+    @test map(Point2f0, p.plots[end].plots[1][1][][1].position) == poly
     @test p.plots[end].plots[2] isa LineSegments
     @test p.plots[end].plots[2][1][] == Point{2,Float32}[Float32[0.8, 3.0], Float32[1.2, 3.0]]
 end
@@ -61,12 +61,12 @@ end
     @test plts[3] isa CrossBar
     @test plts[3].plots[1] isa Poly
 
-    poly = HyperRectangle{2,Float32}[
-        HyperRectangle{2,Float32}(Float32[0.6, 5.75], Float32[0.8, 9.5]),
-        HyperRectangle{2,Float32}(Float32[1.6, 25.75], Float32[0.8, 9.5]),
-        HyperRectangle{2,Float32}(Float32[2.6, 45.75], Float32[0.8, 9.5]),
-        HyperRectangle{2,Float32}(Float32[3.6, 65.75], Float32[0.8, 9.5]),
-        HyperRectangle{2,Float32}(Float32[4.6, 85.75], Float32[0.8, 9.5]),
+    poly = [
+        FRect2D(Float32[0.6, 5.75], Float32[0.8, 9.5]),
+        FRect2D(Float32[1.6, 25.75], Float32[0.8, 9.5]),
+        FRect2D(Float32[2.6, 45.75], Float32[0.8, 9.5]),
+        FRect2D(Float32[3.6, 65.75], Float32[0.8, 9.5]),
+        FRect2D(Float32[4.6, 85.75], Float32[0.8, 9.5]),
     ]
 
     @test plts[3].plots[1][1][] == poly
@@ -102,7 +102,7 @@ end
     meshes = plts[3].plots[1][1][]
     @testset for (i, mesh) in enumerate(meshes)
         @test mesh isa AbstractPlotting.AbstractMesh
-        vertices = map(Point2f0, mesh.vertices)
+        vertices = map(Point2f0, mesh.position)
         @test vertices ≈ notch_boxes[i]
     end
 end
